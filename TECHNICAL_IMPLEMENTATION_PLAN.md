@@ -9,6 +9,11 @@
 ---
 
 ## Table of Contents
+
+### 📱 FOR NON-TECHNICAL FOUNDERS (READ THIS FIRST!)
+0. [Guide for Non-Technical Founders](#guide-for-non-technical-founders)
+
+### 🔧 FOR TECHNICAL TEAM
 1. [Executive Summary](#executive-summary)
 2. [Technical Architecture](#technical-architecture)
 3. [Database Design](#database-design)
@@ -22,6 +27,437 @@
 11. [Security Considerations](#security-considerations)
 12. [Monitoring & Observability](#monitoring--observability)
 13. [Risk Mitigation](#risk-mitigation)
+
+---
+
+## Guide for Non-Technical Founders
+
+**👋 Hi! If you're not a developer, this section is for you.**
+
+This document is 200+ pages of technical details for the engineering team. You don't need to read all of it. This section explains everything you need to know in plain English.
+
+---
+
+### What Are We Building?
+
+**In One Sentence:**
+A web dashboard where brands can see real-time production status from all their factories, without sending a single email.
+
+**The Problem We're Solving:**
+Right now, brands email factories constantly asking "What's the status?" It takes days to get responses, information is often outdated, and it's impossible to track 50+ orders across 10+ factories.
+
+**Our Solution:**
+- Brands log into our dashboard
+- See all orders from all factories in one place
+- Progress updates automatically (no manual work)
+- Alerts when orders are delayed
+- Everything organized and visual
+
+**Think of it like:**
+- Shopify for production tracking (instead of e-commerce)
+- Mint.com for factory orders (instead of bank accounts)
+- Trello for manufacturing (instead of project management)
+
+---
+
+### What Can You Actually DO With This?
+
+#### Week 3 (Phase 1 Complete):
+✅ **Create factories** - Add all your manufacturing partners
+✅ **Create orders** - Track every PO you place
+✅ **Update progress** - Manually update production status
+✅ **View dashboard** - See all orders at a glance
+✅ **Invite team** - Add your colleagues
+✅ **Track stages** - See cutting, sewing, QC, packaging progress
+
+**What it looks like:**
+- Login page (email + password)
+- Dashboard homepage (shows key numbers)
+- Factories page (list of all your factories)
+- Orders page (list of all orders with filters)
+- Order detail page (see progress, add notes, upload files)
+
+**Use case:** You can start using the platform immediately to track orders manually (like a smart spreadsheet).
+
+---
+
+#### Week 5 (Phase 2 Complete):
+Everything from Phase 1, PLUS:
+
+✅ **Beautiful charts** - Visual analytics (pie charts, line graphs, timelines)
+✅ **Automatic alerts** - Get notified when orders are delayed
+✅ **Email notifications** - Weekly digests and urgent alerts
+✅ **Timeline view** - See all orders on a Gantt chart
+✅ **Performance tracking** - Which factories deliver on time?
+
+**What changes:**
+- Dashboard has colorful charts showing trends
+- Email notifications when important things happen
+- Better visibility into factory performance
+- Easier to spot problems early
+
+**Use case:** Platform becomes proactive - it tells YOU about problems instead of you discovering them.
+
+---
+
+#### Week 8 (Phase 3 Complete):
+Everything from Phases 1-2, PLUS:
+
+✅ **Automatic factory connections** - No more manual updates!
+✅ **Real-time sync** - Data updates every 15 minutes
+✅ **Multiple connection methods** - Works with SAP, Oracle, SFTP, webhooks
+✅ **Integration dashboard** - Monitor connection health
+✅ **Audit logs** - See every data sync
+
+**What changes:**
+- You stop manually updating order progress
+- Factory systems automatically send updates
+- Data is always fresh (15-minute max delay)
+- Zero email exchanges for status updates
+
+**Use case:** This is the game-changer. Your team saves 10+ hours/week, data is 100% accurate, and you have real-time visibility.
+
+---
+
+### Timeline & Milestones
+
+```
+Week 1-2: Building Foundation
+├─ Database setup
+├─ Basic pages (login, factories, orders)
+└─ You can start testing by Week 2
+
+Week 3: Polish & Team Features
+├─ Invite team members
+├─ Better design
+└─ ✅ MILESTONE: Platform usable for manual tracking
+
+Week 4-5: Analytics & Alerts
+├─ Charts and graphs
+├─ Alert system
+└─ ✅ MILESTONE: Platform is helpful and proactive
+
+Week 6-7: Integration Framework
+├─ Connect to factory systems
+├─ Build adapters for different systems
+└─ Testing with pilot factories
+
+Week 8: Testing & Launch
+├─ Test with 2-3 real factories
+├─ Fix bugs
+└─ ✅ MILESTONE: Ready for production launch
+```
+
+**Key Dates:**
+- **End of Week 3:** Start using platform for real work
+- **End of Week 5:** Platform becomes your daily tool
+- **End of Week 8:** Factory integrations live
+
+---
+
+### What Do YOU Need to Do?
+
+As a non-technical founder, here's your role:
+
+#### Week 0 (Before Development Starts):
+- [ ] **Read plan.md** - Understand the business strategy
+- [ ] **Identify pilot factories** - Which 2-3 factories will test integrations?
+- [ ] **Talk to factories** - Would they share production data?
+- [ ] **Gather factory info** - What systems do they use? (SAP, Oracle, custom, Excel?)
+- [ ] **List requirements** - What data fields do you need?
+- [ ] **Setup accounts** - Email provider, hosting, domain name
+
+#### Week 1-2 (During Foundation Building):
+- [ ] **Review progress daily** - Developers will show you working features
+- [ ] **Test the platform** - Try creating factories and orders
+- [ ] **Give feedback** - "This button should be here", "Can we add X field?"
+- [ ] **Prepare test data** - Real factory names, real orders (for testing)
+
+#### Week 3-5 (During Analytics Building):
+- [ ] **Use the platform daily** - Track real orders
+- [ ] **Report bugs** - "This page is slow", "This button doesn't work"
+- [ ] **Request features** - "Can we add a search?", "Can we export to Excel?"
+- [ ] **Invite teammates** - Get your team using it
+
+#### Week 6-8 (During Integration Building):
+- [ ] **Coordinate with pilot factories** - Introduce dev team to factory IT
+- [ ] **Facilitate meetings** - Join calls between dev team and factory
+- [ ] **Validate data** - Check that synced data looks correct
+- [ ] **Document lessons** - What worked? What didn't?
+
+#### Post-Launch:
+- [ ] **Onboard factories** - Roll out to all your factories
+- [ ] **Onboard brands** - If you sell to other brands, sign them up
+- [ ] **Gather feedback** - What do users love? What's missing?
+- [ ] **Prioritize features** - What to build next?
+
+---
+
+### How to Track Progress
+
+#### Daily Check-ins (5 minutes):
+Ask developers:
+1. "What did you finish yesterday?"
+2. "What are you working on today?"
+3. "Any blockers I can help with?"
+
+#### Weekly Demos (30 minutes):
+Every Friday:
+- Developers show working features
+- You test live
+- Give feedback
+- Plan next week
+
+#### Use GitHub:
+- Check https://github.com/filipkov04/sourcing-dashboard
+- Look at "Issues" tab - see what's being worked on
+- Look at "Commits" tab - see daily progress
+- Don't worry about understanding the code!
+
+---
+
+### Budget & Costs
+
+#### Development Costs:
+- **Your developers:** Whatever you're paying them (8 weeks of work)
+- **This plan:** Free (open source tools)
+
+#### Operational Costs (Monthly):
+
+**Phase 1-2 (Weeks 1-5): ~$25/month**
+- Database (PostgreSQL): $0 (free tier) or $5/month
+- Hosting (Vercel): $0 (free tier)
+- Email (Resend): $0 (free tier for 3,000 emails/month)
+- Domain: $10/year
+
+**Phase 3+ (Week 6+): ~$75/month**
+- Everything from Phase 1-2: $25
+- Redis (for background jobs): $10/month
+- Database (upgraded): $20/month
+- Hosting (more users): $20/month
+- Monitoring (Sentry): $0 (free tier)
+
+**At Scale (100+ users, 50+ factories): ~$200-500/month**
+- Database: $50-100/month
+- Hosting: $100-300/month
+- Redis: $20/month
+- Email: $20-50/month
+- Monitoring: $10-30/month
+
+**Good News:**
+- Costs scale with usage (no big upfront costs)
+- Free tiers are generous (can use for months)
+- Can upgrade gradually as you grow
+
+---
+
+### When Can You Start Using It?
+
+**Week 2:** Developers will give you a test URL (like https://sourcing-dashboard-preview.vercel.app)
+- You can log in
+- Create test factories and orders
+- Give feedback
+- Not ready for real customers yet
+
+**Week 3:** Platform is stable enough for real use
+- Add your real factories
+- Track real orders
+- Invite your team
+- Still improving daily
+
+**Week 5:** Platform is polished
+- All features working smoothly
+- Good design and UX
+- Can show to customers (if applicable)
+
+**Week 8:** Production-ready
+- Fast and reliable
+- Integrations working
+- Ready to onboard everyone
+
+---
+
+### How to Give Feedback
+
+#### During Development (Weeks 1-8):
+
+**Good Feedback:**
+- ✅ "Can you add a search bar to the orders page?"
+- ✅ "This button is confusing, can we rename it to 'Add Factory'?"
+- ✅ "The order list is slow when I have 50+ orders"
+- ✅ "I need to export this data to Excel for my boss"
+
+**Not Helpful:**
+- ❌ "Can you make it look like Apple's website?" (too vague)
+- ❌ "Add AI" (what AI? for what?)
+- ❌ "Make it faster" (faster how? what's slow?)
+
+**How to Report Bugs:**
+1. Take a screenshot
+2. Describe what you did ("I clicked 'Create Order'")
+3. Describe what happened ("Got an error message")
+4. Describe what you expected ("Should create the order")
+
+#### Prioritizing Features:
+
+**Must Have (Week 1-8):**
+- Login/logout
+- Create factories
+- Create orders
+- Track progress
+- View dashboard
+- Basic charts
+- Alerts
+- Factory integrations
+
+**Nice to Have (Post-Launch):**
+- Mobile app
+- Advanced analytics
+- Custom reports
+- PDF exports
+- Multiple languages
+
+**Future (Maybe):**
+- AI predictions
+- Chatbot
+- IoT integrations
+- Blockchain (probably not needed!)
+
+---
+
+### Common Questions
+
+#### "How do I know it's working?"
+- You can log in and use it
+- No error messages
+- Data saves correctly
+- Developers say it's working
+
+#### "What if we need to change something?"
+- Before Week 3: Easy to change anything
+- Weeks 3-6: Medium difficulty, might take a few days
+- After Week 8: Harder, requires planning
+
+**Tip:** Give feedback early! Week 1 changes take 1 hour. Week 7 changes take 1 day.
+
+#### "What if a factory refuses to integrate?"
+- They can still use it manually (they log in and update)
+- Try with other factories first
+- Show them how much time they save
+- Make it a requirement for doing business
+
+#### "What if we run out of time?"
+- Phase 1 (manual tracking) is still valuable
+- Launch with manual entry, add integrations later
+- Most important: Launch something, improve iteratively
+
+#### "How secure is this?"
+- Industry-standard security (same as banks use)
+- Encrypted passwords
+- HTTPS everywhere
+- Regular security audits
+- Factory credentials encrypted at rest
+
+#### "Can we add more features later?"
+- Yes! That's the whole point of software
+- But launch MVP first (8 weeks)
+- Then add features based on real usage
+- Don't try to build everything at once
+
+#### "What if developers get stuck?"
+- They have this detailed plan to follow
+- Most problems are googleable
+- Worst case: Takes an extra week
+- Buffer time built into timeline
+
+---
+
+### Red Flags to Watch For
+
+#### Technical Red Flags:
+- 🚩 Developers working on same files → conflicts
+- 🚩 No demos for 2+ weeks → something wrong
+- 🚩 "We need to rewrite everything" → poor planning
+- 🚩 Adding features not in the plan → scope creep
+- 🚩 No tests → will break in production
+
+**What to do:** Ask developers to explain. Reference this plan.
+
+#### Process Red Flags:
+- 🚩 Developers not communicating daily
+- 🚩 No code pushed to GitHub for days
+- 🚩 Constantly changing direction
+- 🚩 Making it "perfect" before launching
+
+**What to do:** Weekly check-ins, hold team accountable, stick to timeline.
+
+---
+
+### Success Looks Like
+
+#### Week 3:
+- ✅ You can track 10 orders across 3 factories
+- ✅ Your team logs in daily
+- ✅ No major bugs
+- ✅ Saves you 2 hours/week vs spreadsheets
+
+#### Week 5:
+- ✅ Platform is your go-to tool
+- ✅ Charts help you spot delays early
+- ✅ Alerts catch problems before customers complain
+- ✅ Saves you 5 hours/week
+
+#### Week 8:
+- ✅ 2 factories auto-syncing successfully
+- ✅ Data updates every 15 minutes
+- ✅ Zero manual status emails to those factories
+- ✅ Saves you 10+ hours/week
+
+#### 6 Months:
+- ✅ 10+ factories on platform
+- ✅ 5+ with automatic integrations
+- ✅ 100+ orders tracked
+- ✅ Team can't imagine going back to old way
+
+---
+
+### Your Role as Founder
+
+**You are NOT expected to:**
+- ❌ Understand the code
+- ❌ Know what Prisma, Next.js, or Redis means
+- ❌ Debug technical issues
+- ❌ Write any code
+
+**You ARE expected to:**
+- ✅ Define what success looks like
+- ✅ Make business decisions (which features matter?)
+- ✅ Connect dev team with factories
+- ✅ Test the platform and give feedback
+- ✅ Prioritize features
+- ✅ Remove blockers (get access, make intros, etc.)
+- ✅ Celebrate wins with the team
+
+**Your job:** Be the bridge between developers and customers (factories/brands).
+
+---
+
+### Final Thoughts
+
+**This is ambitious but achievable.**
+
+The plan is detailed, the team has a clear roadmap, and the technology is proven (we're not inventing anything new, just combining existing tools smartly).
+
+**Keys to success:**
+1. **Trust the process** - Plan is detailed, follow it
+2. **Test early, test often** - Don't wait until Week 8 to try it
+3. **Give clear feedback** - Specific is better than general
+4. **Don't change scope** - Build what's in the plan, add more later
+5. **Celebrate milestones** - Week 3, 5, 8 are achievements!
+
+**You've got this!** 🚀
+
+Questions? Ask your dev team to explain any part of this document in plain English.
 
 ---
 
