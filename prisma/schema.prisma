@@ -1,14 +1,166 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Sourcing Dashboard - Database Schema
+// This defines all the data structures for the application
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  emailVerified DateTime?
+  name          String?
+  password      String?      // hashed with bcrypt
+  image         String?
+  role          UserRole     @default(MEMBER)
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+enum UserRole {
+  OWNER   // Can manage billing, delete org
+  ADMIN   // Can manage users, factories
+  MEMBER  // Can view and edit orders
+  VIEWER  // Read-only access
+}
+
+// ============================================
+// CORE ENTITIES
+// ============================================
+
+model Organization {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique // for URLs: /org/acme-fashion
+  logo String?
+
+  // Relations
+  users     User[]
+  factories Factory[]
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Factory {
+  id       String @id @default(cuid())
+  name     String
+  location String // "Guangzhou, China"
+  address  String? @db.Text
+
+  // Contact info
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders         Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      // Brand's PO number
+  productName     String
+  productSKU      String?
+  quantity        Int
+  unit            String      @default("pieces") // pieces, meters, kg
+  overallProgress Int         @default(0) // 0-100
+  status          OrderStatus @default(PENDING)
+
+  // Dates
+  orderDate    DateTime
+  expectedDate DateTime
+  actualDate   DateTime?
+
+  // Additional info
+  notes    String?   @db.Text
+  priority Priority  @default(NORMAL)
+  tags     String[]  // ["urgent", "sample", "production"]
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  factoryId      String
+  factory        Factory      @relation(fields: [factoryId], references: [id], onDelete: Cascade)
+  stages         OrderStage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, orderNumber]) // PO numbers unique per org
+  @@index([organizationId])
+  @@index([factoryId])
+  @@index([status])
+  @@index([expectedDate])
+}
+
+enum OrderStatus {
+  PENDING     // Order placed, not started
+  IN_PROGRESS // Production started
+  DELAYED     // Behind schedule
+  COMPLETED   // Production complete
+  SHIPPED     // Shipped to brand
+  DELIVERED   // Received by brand
+  CANCELLED   // Order cancelled
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model OrderStage {
+  id       String      @id @default(cuid())
+  orderId  String
+  order    Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  name     String      // "Cutting", "Sewing", "Quality Check"
+  sequence Int         // Order of stages: 1, 2, 3
+  progress Int         @default(0) // 0-100
+  status   StageStatus @default(NOT_STARTED)
+
+  // Dates
+  startedAt   DateTime?
+  completedAt DateTime?
+  notes       String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, sequence])
+  @@index([orderId])
+}
+
+enum StageStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
 }
