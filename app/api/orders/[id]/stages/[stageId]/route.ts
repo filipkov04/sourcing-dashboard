@@ -56,9 +56,9 @@ export async function PATCH(
       }
     }
 
-    // Validate status
+    // Validate status (ignore empty string)
     const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "SKIPPED", "DELAYED", "BLOCKED"];
-    if (status !== undefined && !validStatuses.includes(status)) {
+    if (status !== undefined && status !== "" && !validStatuses.includes(status)) {
       return error("Invalid status", 400);
     }
 
@@ -74,7 +74,7 @@ export async function PATCH(
 
       // Only auto-update status based on progress if NOT in a problem state
       // and NOT explicitly setting a problem status
-      if (!isProblemStatus && !isSettingProblemStatus && status === undefined) {
+      if (!isProblemStatus && !isSettingProblemStatus && (status === undefined || status === "")) {
         if (progress === 0) {
           updateData.status = "NOT_STARTED";
           updateData.startedAt = null;
@@ -95,7 +95,7 @@ export async function PATCH(
       }
     }
 
-    if (status !== undefined) {
+    if (status !== undefined && status !== "") {
       updateData.status = status;
 
       // Update timestamps based on status

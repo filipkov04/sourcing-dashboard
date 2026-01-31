@@ -263,10 +263,18 @@ export default function OrderDetailPage() {
               : s
           ),
         });
-        cancelEditingStage();
+        // Close the editing panel
+        setEditingStageId(null);
+        setEditingProgress(0);
+        setEditingStatus("");
+        setEditingNotes("");
+      } else {
+        console.error("Failed to save stage:", data.error || "Unknown error");
+        alert(data.error || "Failed to save changes. Please try again.");
       }
     } catch (err) {
       console.error("Failed to update stage:", err);
+      alert("Failed to save changes. Please try again.");
     } finally {
       setIsSavingStage(false);
     }
