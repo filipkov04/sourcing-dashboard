@@ -125,11 +125,15 @@
 | 3.1 | Dashboard Homepage | Filip | Build main dashboard with key statistics and metrics | Page at /dashboard showing order counts, status breakdown, recent activity | 4h | ⏳ |
 | 3.2 | Dashboard Stats | Filip | Create API to calculate dashboard statistics | API endpoint returning total orders, by status, by factory, etc. | 2h | ⏳ |
 | 3.3 | Recent Activity Feed | Filip | Show recent updates (new orders, progress changes) | Activity feed component showing last 10 updates | 2h | ⏳ |
-| 3.4 | Team Members Page | Filip | Build page to manage team (invite, remove, change roles) | Page at /team showing all users, with invite/remove buttons | 3h | ⏳ |
-| 3.5 | User Invitation | Filip | Create system to invite new team members via email | Email invitation system with unique signup links | 2h | ⏳ |
-| 3.6 | Week 3 PR | Filip | Package dashboard and team features | Pull request for review | 30min | ⏳ |
+| 3.4a | Email Whitelist Access Control | Filip | Create email whitelist system to restrict registration to internal team (3-5 Gmail accounts) | lib/access-control.ts utility + updated registration route with whitelist check | 1h | ⏳ |
+| 3.4b | Team Members Page | Filip | Build page to manage team (view members, invite, remove, change roles) | Page at /team showing all users with role badges, invite/remove buttons | 3h | ⏳ |
+| 3.5a | Invitation Database Model | Filip | Add UserInvitation model to Prisma schema for invitation-based access | Prisma schema updated with UserInvitation table, migration created and run | 1h | ⏳ |
+| 3.5b | Invitation API Endpoints | Filip | Create API routes to create, list, validate, and revoke team invitations | /api/invitations with POST (create), GET (list), /api/invitations/[token] with GET (validate), DELETE (revoke) | 2h | ⏳ |
+| 3.5c | Invitation Accept Page | Filip | Build page for new users to accept invitation link and complete registration | Page at /invite/[token] showing org name, role, pre-filled email, registration form | 2h | ⏳ |
+| 3.5d | Update Registration Flow | Filip | Modify registration to support both whitelist and invitation token flows | Updated /register API and page to handle invitationToken parameter, join existing org | 1h | ⏳ |
+| 3.6 | Week 3 PR | Filip | Package dashboard, access control, and team management features | Pull request for review | 30min | ⏳ |
 
-**What Filip Creates This Week:** Dashboard homepage showing overview + team management system.
+**What Filip Creates This Week:** Dashboard homepage + access control system (Phase 1: email whitelist, Phase 2: invitation-based team management with role assignment).
 
 ---
 
