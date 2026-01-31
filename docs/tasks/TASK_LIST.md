@@ -36,8 +36,8 @@
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
 | 1.7 | Factory List Page | Filip | Build page showing all factories with search bar | Page at /factories showing factory list, search works | 3h | ✅ |
 | 1.8 | Factory API | Filip | Create backend endpoints to get and create factories | API that returns factory data (GET) and creates new factories (POST) | 2h | ✅ |
-| 1.9 | Factory Create Form | Filip | Build form to add new factory with all details | Page at /factories/new with form to add factory | 3h | ⏳ |
-| 1.10 | Factory Pull Request | Filip | Package all factory work and request code review | Pull request on GitHub ready for Marco to review | 30min | ⏳ |
+| 1.9 | Factory Create Form | Filip | Build form to add new factory with all details | Page at /factories/new with form to add factory | 3h | ✅ |
+| 1.10 | Factory Pull Request | Filip | Package all factory work and request code review | Pull request on GitHub ready for Marco to review | 30min | ✅ |
 
 **What Filip Creates This Week:** Complete factory management - users can view all factories, add new ones, and search for them.
 
