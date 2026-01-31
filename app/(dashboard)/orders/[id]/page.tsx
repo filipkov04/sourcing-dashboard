@@ -351,6 +351,19 @@ export default function OrderDetailPage() {
       (1000 * 60 * 60 * 24)
   );
 
+  // Check if any stage is delayed or blocked
+  const hasBlockedStage = order.stages?.some((s) => s.status === "BLOCKED");
+  const hasDelayedStage = order.stages?.some((s) => s.status === "DELAYED");
+
+  // Determine overall progress bar color based on stage statuses
+  const getOverallProgressColor = () => {
+    if (order.status === "COMPLETED") return "bg-green-600";
+    if (hasBlockedStage) return "bg-red-500";
+    if (hasDelayedStage) return "bg-yellow-500";
+    if (order.status === "DELAYED") return "bg-red-500";
+    return "bg-blue-600";
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -409,16 +422,26 @@ export default function OrderDetailPage() {
             </div>
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${
-                  order.status === "COMPLETED"
-                    ? "bg-green-600"
-                    : order.status === "DELAYED"
-                    ? "bg-red-500"
-                    : "bg-blue-600"
-                }`}
+                className={`h-full rounded-full transition-all ${getOverallProgressColor()}`}
                 style={{ width: `${order.overallProgress}%` }}
               />
             </div>
+            {/* Show warning if any stage is delayed or blocked */}
+            {(hasDelayedStage || hasBlockedStage) && (
+              <div className={`flex items-center gap-2 text-xs mt-2 ${hasBlockedStage ? "text-red-600" : "text-yellow-600"}`}>
+                {hasBlockedStage ? (
+                  <>
+                    <XCircle className="h-3.5 w-3.5" />
+                    <span>One or more stages are blocked</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    <span>One or more stages are delayed</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
