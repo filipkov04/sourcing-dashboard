@@ -1,34 +1,38 @@
 "use client";
 
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
-import type { OrdersOverTimeData } from "@/lib/types";
+import type { OrderSummaryData } from "./orders-over-time-section";
 
-export function OrdersOverTimeChart({ data }: { data: OrdersOverTimeData }) {
+export function OrderSummaryChart({ data }: { data: OrderSummaryData }) {
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+      <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={true} vertical={false} />
         <XAxis
-          dataKey="date"
-          stroke="#6b7280"
-          fontSize={12}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
+          type="number"
           stroke="#6b7280"
           fontSize={12}
           tickLine={false}
           axisLine={false}
           allowDecimals={false}
+        />
+        <YAxis
+          type="category"
+          dataKey="name"
+          stroke="#6b7280"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          width={80}
         />
         <Tooltip
           contentStyle={{
@@ -38,16 +42,14 @@ export function OrdersOverTimeChart({ data }: { data: OrdersOverTimeData }) {
             boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
           }}
           labelStyle={{ color: "#374151", fontWeight: 600 }}
+          formatter={(value: number) => [value, "Orders"]}
         />
-        <Line
-          type="monotone"
-          dataKey="count"
-          stroke="#2563eb"
-          strokeWidth={2}
-          dot={{ fill: "#2563eb", r: 4 }}
-          activeDot={{ r: 6 }}
-        />
-      </LineChart>
+        <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Bar>
+      </BarChart>
     </ResponsiveContainer>
   );
 }
