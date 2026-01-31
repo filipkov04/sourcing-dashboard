@@ -6,7 +6,7 @@ import type { OrdersByStatusData } from "@/lib/types";
 const STATUS_CONFIG = {
   PENDING: { color: "#fbbf24", label: "Pending" },
   IN_PROGRESS: { color: "#3b82f6", label: "In Progress" },
-  DELAYED: { color: "#eab308", label: "Delayed" },
+  DELAYED: { color: "#f97316", label: "Delayed" },
   DISRUPTED: { color: "#ef4444", label: "Disrupted" },
   COMPLETED: { color: "#10b981", label: "Completed" },
   SHIPPED: { color: "#8b5cf6", label: "Shipped" },

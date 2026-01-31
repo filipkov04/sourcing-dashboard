@@ -89,7 +89,7 @@ type Order = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   IN_PROGRESS: "bg-blue-100 text-blue-800",
-  DELAYED: "bg-yellow-100 text-yellow-800",
+  DELAYED: "bg-orange-100 text-orange-800",
   DISRUPTED: "bg-red-100 text-red-800",
   COMPLETED: "bg-green-100 text-green-800",
   SHIPPED: "bg-purple-100 text-purple-800",
@@ -118,7 +118,7 @@ const stageStatusBadgeColors: Record<string, string> = {
   IN_PROGRESS: "bg-blue-100 text-blue-700",
   COMPLETED: "bg-green-100 text-green-700",
   SKIPPED: "bg-gray-100 text-gray-500",
-  DELAYED: "bg-yellow-100 text-yellow-700",
+  DELAYED: "bg-orange-100 text-orange-700",
   BLOCKED: "bg-red-100 text-red-700",
 };
 
@@ -361,8 +361,8 @@ export default function OrderDetailPage() {
   const getOverallProgressColor = () => {
     if (order.status === "COMPLETED") return "bg-green-600";
     if (hasBlockedStage) return "bg-red-500";
-    if (hasDelayedStage) return "bg-yellow-500";
-    if (order.status === "DELAYED") return "bg-red-500";
+    if (hasDelayedStage) return "bg-orange-500";
+    if (order.status === "DELAYED") return "bg-orange-500";
     return "bg-blue-600";
   };
 

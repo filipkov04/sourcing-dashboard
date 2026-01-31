@@ -55,7 +55,7 @@ type Factory = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   IN_PROGRESS: "bg-blue-100 text-blue-800",
-  DELAYED: "bg-yellow-100 text-yellow-800",
+  DELAYED: "bg-orange-100 text-orange-800",
   DISRUPTED: "bg-red-100 text-red-800",
   COMPLETED: "bg-green-100 text-green-800",
   SHIPPED: "bg-purple-100 text-purple-800",
@@ -327,7 +327,7 @@ export default function OrdersPage() {
                               : order.hasBlockedStage
                               ? "bg-red-500"
                               : order.hasDelayedStage
-                              ? "bg-yellow-500"
+                              ? "bg-orange-500"
                               : "bg-blue-600"
                           }`}
                           style={{ width: `${order.overallProgress}%` }}
@@ -337,7 +337,7 @@ export default function OrdersPage() {
                         order.hasBlockedStage
                           ? "text-red-600"
                           : order.hasDelayedStage
-                          ? "text-yellow-600"
+                          ? "text-orange-600"
                           : "text-gray-600"
                       }`}>
                         {order.overallProgress}%

@@ -32,7 +32,7 @@ export async function OrdersOverTimeSection({ organizationId }: { organizationId
     { name: "Total", count: total, color: "#6b7280" },
     { name: "Pending", count: pending, color: "#fbbf24" },
     { name: "In Progress", count: inProgress, color: "#3b82f6" },
-    { name: "Delayed", count: delayed, color: "#eab308" },
+    { name: "Delayed", count: delayed, color: "#f97316" },
     { name: "Disrupted", count: disrupted, color: "#ef4444" },
   ];
 
