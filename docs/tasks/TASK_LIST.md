@@ -35,7 +35,7 @@
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
 | 1.7 | Factory List Page | Filip | Build page showing all factories with search bar | Page at /factories showing factory list, search works | 3h | ⏳ |
-| 1.8 | Factory API | Filip | Create backend endpoints to get and create factories | API that returns factory data (GET) and creates new factories (POST) | 2h | ⏳ |
+| 1.8 | Factory API | Filip | Create backend endpoints to get and create factories | API that returns factory data (GET) and creates new factories (POST) | 2h | ✅ |
 | 1.9 | Factory Create Form | Filip | Build form to add new factory with all details | Page at /factories/new with form to add factory | 3h | ⏳ |
 | 1.10 | Factory Pull Request | Filip | Package all factory work and request code review | Pull request on GitHub ready for Marco to review | 30min | ⏳ |
 
@@ -48,7 +48,7 @@
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
 | 1.11 | Order List Page | Marco | Build page showing all orders with filters (status, factory) and search | Page at /orders showing order list with filters and search | 4h | ⏳ |
-| 1.12 | Order API | Marco | Create backend endpoints to get and create orders | API that returns order data (GET) and creates new orders (POST) | 2h | ⏳ |
+| 1.12 | Order API | Marco | Create backend endpoints to get and create orders | API that returns order data (GET) and creates new orders (POST) | 2h | ✅ |
 | 1.13 | Order Create Form | Marco | Build form to create order with product details and stages | Page at /orders/new with form to create order, select factory, add stages | 4h | ⏳ |
 | 1.14 | Order Pull Request | Marco | Package all order work and request code review | Pull request on GitHub ready for Filip to review | 30min | ⏳ |
 
