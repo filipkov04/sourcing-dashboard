@@ -699,7 +699,15 @@ export default function OrderDetailPage() {
                           <span className="text-sm text-gray-600 w-16">Status:</span>
                           <Select
                             value={editingStatus}
-                            onValueChange={setEditingStatus}
+                            onValueChange={(value) => {
+                              setEditingStatus(value);
+                              // Auto-set progress based on status
+                              if (value === "NOT_STARTED") {
+                                setEditingProgress(0);
+                              } else if (value === "COMPLETED") {
+                                setEditingProgress(100);
+                              }
+                            }}
                           >
                             <SelectTrigger className="w-40 h-8">
                               <SelectValue />
