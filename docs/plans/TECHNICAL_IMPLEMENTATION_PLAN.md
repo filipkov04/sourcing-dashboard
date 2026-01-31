@@ -3674,6 +3674,319 @@ export async function GET() {
 
 ---
 
+## Future Features: Chat & Request System
+
+### Overview
+
+This section documents planned features for real-time communication and request workflows between admins and clients.
+
+### Feature 1: Real-Time Chat System
+
+**Purpose:** Enable instant messaging between admins (brands) and clients for discussing orders, factories, and general communication.
+
+**User Stories:**
+- As an admin, I want to chat with clients in real-time to discuss order details
+- As a client, I want to message admins to ask questions about my orders
+- As a user, I want to see unread message counts in the navigation
+
+**Database Schema:**
+
+```prisma
+model Conversation {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Participants
+  participants    ConversationParticipant[]
+  messages        Message[]
+
+  // Optional: Link to specific order or factory request
+  orderId         String?
+  factoryId       String?
+  requestId       String?
+
+  // Metadata
+  subject         String?
+  lastMessageAt   DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Read status
+  lastReadAt      DateTime?
+  unreadCount     Int      @default(0)
+
+  // Notification preferences for this conversation
+  muted           Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId        String
+  sender          User     @relation(fields: [senderId], references: [id])
+
+  content         String   @db.Text
+  messageType     MessageType @default(TEXT)
+
+  // For request approvals
+  requestAction   RequestAction?
+
+  // Read tracking
+  readBy          MessageRead[]
+
+  createdAt       DateTime @default(now())
+  editedAt        DateTime?
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+enum MessageType {
+  TEXT            // Regular text message
+  SYSTEM          // System-generated (e.g., "User joined")
+  REQUEST         // Request notification
+  APPROVAL        // Approval/rejection of request
+}
+
+enum RequestAction {
+  APPROVED
+  REJECTED
+  PENDING_INFO    // Admin needs more information
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  readAt    DateTime @default(now())
+
+  @@unique([messageId, userId])
+}
+```
+
+**API Endpoints:**
+
+```
+GET    /api/conversations          - List all conversations for user
+POST   /api/conversations          - Create new conversation
+GET    /api/conversations/[id]     - Get conversation with messages
+POST   /api/conversations/[id]/messages - Send message
+PATCH  /api/conversations/[id]/read     - Mark conversation as read
+```
+
+**UI Components:**
+- `components/chat/conversation-list.tsx` - List of all conversations
+- `components/chat/chat-window.tsx` - Active chat with message history
+- `components/chat/message-input.tsx` - Text input with send button
+- `components/chat/message-bubble.tsx` - Individual message display
+
+**Real-Time Updates:**
+- Option 1: Polling every 5 seconds (simple, works everywhere)
+- Option 2: Server-Sent Events (SSE) for push notifications
+- Option 3: WebSocket with Socket.io (most responsive but more complex)
+
+Recommended: Start with polling, upgrade to SSE if needed.
+
+---
+
+### Feature 2: Order/Factory Request System
+
+**Purpose:** Allow clients to request new orders or factories, which admins review and approve via chat.
+
+**User Flow:**
+1. Client clicks "Request New Order" (instead of "Add Order")
+2. Client fills out order request form with all details
+3. Request is submitted and chat thread is created
+4. Admin receives notification of new request
+5. Admin reviews request in chat, can ask questions
+6. Admin approves (creates order) or rejects (with reason)
+7. Client receives notification of decision
+
+**Database Schema:**
+
+```prisma
+model Request {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Who submitted
+  requesterId     String
+  requester       User     @relation(fields: [requesterId], references: [id])
+
+  // Request type and status
+  type            RequestType
+  status          RequestStatus @default(PENDING)
+
+  // Request data (JSON for flexibility)
+  data            Json
+  // For ORDER_REQUEST:
+  // {
+  //   "orderNumber": "PO-123",
+  //   "productName": "Summer T-Shirt",
+  //   "factoryId": "...",
+  //   "quantity": 1000,
+  //   "expectedDate": "2026-03-15",
+  //   ...
+  // }
+  // For FACTORY_REQUEST:
+  // {
+  //   "name": "ABC Factory",
+  //   "location": "Vietnam",
+  //   "contactName": "John",
+  //   ...
+  // }
+
+  // Approval workflow
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNote      String?  @db.Text
+
+  // Link to created entity (after approval)
+  createdOrderId  String?  @unique
+  createdFactoryId String? @unique
+
+  // Link to conversation for discussion
+  conversationId  String?  @unique
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([requesterId])
+}
+
+enum RequestType {
+  ORDER_REQUEST
+  FACTORY_REQUEST
+}
+
+enum RequestStatus {
+  PENDING         // Awaiting review
+  IN_REVIEW       // Admin is reviewing
+  NEEDS_INFO      // Admin requested more information
+  APPROVED        // Approved and entity created
+  REJECTED        // Rejected with reason
+  CANCELLED       // Cancelled by requester
+}
+```
+
+**API Endpoints:**
+
+```
+GET    /api/requests               - List requests (filtered by role)
+POST   /api/requests               - Submit new request
+GET    /api/requests/[id]          - Get request details
+PATCH  /api/requests/[id]          - Update request (add info, edit)
+POST   /api/requests/[id]/approve  - Approve request (admin only)
+POST   /api/requests/[id]/reject   - Reject request (admin only)
+```
+
+**Pages:**
+- `/orders/request` - Order request form for clients
+- `/factories/request` - Factory request form for clients
+- `/requests` - Request management page for admins
+- `/requests/[id]` - Request detail with chat thread
+
+---
+
+### Feature 3: Role-Based Access Control
+
+**Purpose:** Restrict direct create actions to admins; clients must use request workflow.
+
+**User Roles:**
+- `ADMIN` - Can directly create orders/factories, approve requests
+- `MANAGER` - Can view all data, approve some requests
+- `CLIENT` - Can view their orders, must request new ones
+- `VIEWER` - Read-only access
+
+**Implementation:**
+
+```typescript
+// lib/permissions.ts
+export const permissions = {
+  orders: {
+    create: ['ADMIN', 'MANAGER'],
+    request: ['CLIENT'],
+    view: ['ADMIN', 'MANAGER', 'CLIENT', 'VIEWER'],
+    edit: ['ADMIN', 'MANAGER'],
+    delete: ['ADMIN'],
+  },
+  factories: {
+    create: ['ADMIN'],
+    request: ['CLIENT', 'MANAGER'],
+    view: ['ADMIN', 'MANAGER', 'CLIENT', 'VIEWER'],
+    edit: ['ADMIN'],
+    delete: ['ADMIN'],
+  },
+  requests: {
+    approve: ['ADMIN', 'MANAGER'],
+    reject: ['ADMIN', 'MANAGER'],
+    view: ['ADMIN', 'MANAGER', 'CLIENT'],
+  },
+};
+
+export function canUser(user: User, action: string, resource: string): boolean {
+  const allowedRoles = permissions[resource]?.[action] || [];
+  return allowedRoles.includes(user.role);
+}
+```
+
+**UI Conditional Rendering:**
+
+```tsx
+// In orders page header
+{canUser(session.user, 'create', 'orders') ? (
+  <Button href="/orders/new">Add Order</Button>
+) : (
+  <Button href="/orders/request">Request Order</Button>
+)}
+```
+
+---
+
+### Technical Considerations
+
+**Chat System:**
+- Consider using Supabase Realtime for WebSocket connections (already have Supabase)
+- Start simple with polling, add real-time later
+- Store messages in PostgreSQL, not a separate chat service
+- Keep message history indefinitely for audit purposes
+
+**Request Workflow:**
+- Requests are immutable once submitted (create new version if changes needed)
+- All request-related discussion happens in linked chat thread
+- Approval creates the entity and links back to request for traceability
+
+**Performance:**
+- Add indexes on conversation.lastMessageAt for sorting
+- Add indexes on request.status and request.organizationId for filtering
+- Consider pagination for messages (load 50 at a time)
+
+---
+
 ## Conclusion
 
 This plan provides FAANG-level detail for building the sourcing dashboard systematically over 8 weeks. Key principles:

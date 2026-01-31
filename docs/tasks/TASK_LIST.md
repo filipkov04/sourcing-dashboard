@@ -255,20 +255,55 @@
 
 ---
 
+### Filip's Tasks - Real-Time Chat & Messaging
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 5.18 | Chat Database Models | Filip | Add database tables for conversations and messages | Conversation and Message tables in database | 1h | ⏳ |
+| 5.19 | Chat UI Component | Filip | Build real-time chat interface for admin-client conversations | Chat component with message list, input, send button | 4h | ⏳ |
+| 5.20 | Chat API Backend | Filip | Create API endpoints for conversations and messages | API for creating conversations, sending/receiving messages | 3h | ⏳ |
+| 5.21 | Chat List Page | Filip | Build page showing all conversations for the organization | Page at /messages showing all active chats | 2h | ⏳ |
+| 5.22 | Unread Message Badge | Filip | Show unread message count in navigation | Badge on Messages nav item showing unread count | 1h | ⏳ |
+
+**What Filip Creates This Week (Additional):** Real-time chat system for admin-client communication.
+
+---
+
+### Marco's Tasks - Order/Factory Request System
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 5.23 | Request Database Models | Marco | Add database tables for order/factory requests | Request table with status, type, and details | 1h | ⏳ |
+| 5.24 | Order Request Form | Marco | Build form for clients to request new orders | Page at /orders/request for clients to submit order requests | 3h | ⏳ |
+| 5.25 | Factory Request Form | Marco | Build form for clients to request new factories | Page at /factories/request for clients to submit factory requests | 2h | ⏳ |
+| 5.26 | Request Review UI | Marco | Build interface for admins to review and approve/reject requests | Requests page showing pending requests with approve/reject buttons | 3h | ⏳ |
+| 5.27 | Request-to-Chat Integration | Marco | Link requests to chat so admins can discuss with clients | Request approval creates chat thread, notifications sent | 2h | ⏳ |
+| 5.28 | Role-Based Create Buttons | Marco | Hide "Add Order"/"Add Factory" for non-admin users, show "Request" instead | Conditional UI based on user role | 2h | ⏳ |
+
+**What Marco Creates This Week (Additional):** Request workflow where clients request orders/factories, admins approve via chat.
+
+---
+
 ### End of Week 5: Code Review & Testing
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 5.15 | Review Alerts | Marco | Test and review Filip's alert system | Approved PR or feedback | 30min | ⏳ |
-| 5.16 | Review Emails | Filip | Test and review Marco's email notifications | Approved PR or feedback | 30min | ⏳ |
-| 5.17 | Integration Testing | Filip & Marco | Test alerts and emails work together | Verified alert → email flow works | 2h | ⏳ |
+| 5.29 | Review Alerts | Marco | Test and review Filip's alert system | Approved PR or feedback | 30min | ⏳ |
+| 5.30 | Review Emails | Filip | Test and review Marco's email notifications | Approved PR or feedback | 30min | ⏳ |
+| 5.31 | Review Chat System | Marco | Test and review Filip's chat features | Approved PR or feedback | 30min | ⏳ |
+| 5.32 | Review Request System | Filip | Test and review Marco's request workflow | Approved PR or feedback | 30min | ⏳ |
+| 5.33 | Integration Testing | Filip & Marco | Test alerts, emails, chat, and requests work together | Verified all communication flows work | 3h | ⏳ |
 
 **End of Week 5 / Phase 2 Result:**
 - ✅ Alert system catches problems automatically
 - ✅ Email notifications keep team informed
 - ✅ Users can customize notification preferences
 - ✅ Weekly digest emails
-- **MILESTONE: Platform is proactive and helpful!**
+- ✅ Real-time chat between admins and clients
+- ✅ Clients can request new orders/factories
+- ✅ Admins approve requests through chat workflow
+- ✅ Role-based access controls (admin vs client)
+- **MILESTONE: Platform is proactive, collaborative, and secure!**
 
 ---
 
