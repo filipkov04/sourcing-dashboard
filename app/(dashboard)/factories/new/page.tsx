@@ -16,7 +16,7 @@ export default async function NewFactoryPage() {
       {/* Back Button */}
       <Link
         href="/factories"
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+        className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Factories
@@ -24,8 +24,8 @@ export default async function NewFactoryPage() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Add New Factory</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-3xl font-bold text-white">Add New Factory</h1>
+        <p className="mt-1 text-sm text-zinc-400">
           Create a new manufacturing partner or supplier
         </p>
       </div>

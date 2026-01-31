@@ -197,8 +197,8 @@ export default function NewOrderPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">New Order</h1>
-          <p className="text-sm text-gray-500">Create a new production order</p>
+          <h1 className="text-2xl font-bold text-white">New Order</h1>
+          <p className="text-sm text-zinc-400">Create a new production order</p>
         </div>
       </div>
 

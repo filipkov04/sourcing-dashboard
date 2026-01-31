@@ -3,7 +3,7 @@ import { Header } from "./header";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-zinc-900">
       {/* Sidebar */}
       <Sidebar />
 

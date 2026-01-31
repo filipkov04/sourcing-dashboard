@@ -282,8 +282,8 @@ export default function EditOrderPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Order</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-white">Edit Order</h1>
+          <p className="text-sm text-zinc-400">
             Update order {orderNumber}
           </p>
         </div>

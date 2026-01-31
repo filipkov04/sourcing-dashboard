@@ -375,7 +375,7 @@ export default function OrderDetailPage() {
             <Button variant="ghost" size="sm" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-white">
               {order.orderNumber}
             </h1>
             <Badge className={statusColors[order.status]}>

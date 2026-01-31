@@ -19,8 +19,8 @@ export default async function FactoriesPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Factories</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-3xl font-bold text-white">Factories</h1>
+          <p className="mt-1 text-sm text-zinc-400">
             Manage your manufacturing partners and suppliers
           </p>
         </div>

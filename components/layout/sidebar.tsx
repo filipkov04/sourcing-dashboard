@@ -48,18 +48,18 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex h-screen flex-col border-r bg-white transition-all duration-300",
+        "flex h-screen flex-col border-r border-zinc-700 bg-zinc-800 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
+      <div className="flex h-16 items-center justify-between border-b border-zinc-700 px-4">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <Factory className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-semibold">SourceTrack</span>
+            <span className="text-lg font-semibold text-white">SourceTrack</span>
           </Link>
         )}
         {collapsed && (
@@ -82,8 +82,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-blue-600 text-white"
+                  : "text-zinc-300 hover:bg-zinc-700 hover:text-white"
               )}
               title={collapsed ? item.name : undefined}
             >
@@ -95,10 +95,10 @@ export function Sidebar() {
       </nav>
 
       {/* Collapse Toggle */}
-      <div className="border-t p-4">
+      <div className="border-t border-zinc-700 p-4">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-gray-600 hover:bg-gray-50"
+          className="flex w-full items-center justify-center rounded-lg p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronLeft

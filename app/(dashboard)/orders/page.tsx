@@ -145,8 +145,8 @@ export default function OrdersPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-white">Orders</h1>
+          <p className="text-sm text-zinc-400 mt-1">
             Manage and track all your production orders
           </p>
         </div>
@@ -356,7 +356,7 @@ export default function OrdersPage() {
 
       {/* Summary */}
       {orders.length > 0 && (
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-zinc-400">
           Showing {orders.length} order{orders.length !== 1 ? "s" : ""}
         </div>
       )}
