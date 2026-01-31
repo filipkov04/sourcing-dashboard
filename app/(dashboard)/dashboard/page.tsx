@@ -1,6 +1,14 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/db";
+import { DashboardStatsCards } from "./_components/dashboard-stats-cards";
+import { DashboardStatsSkeleton } from "./_components/dashboard-stats-skeleton";
+import { OrdersOverTimeSection } from "./_components/orders-over-time-section";
+import { OrdersOverTimeSkeleton } from "./_components/orders-over-time-skeleton";
+import { OrdersByStatusSection } from "./_components/orders-by-status-section";
+import { OrdersByStatusSkeleton } from "./_components/orders-by-status-skeleton";
+import { DashboardEmptyState } from "./_components/dashboard-empty-state";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -9,79 +17,57 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const organizationId = session.user.organizationId;
+
+  // Check if user has any orders
+  const totalOrders = await prisma.order.count({
+    where: { organizationId },
+  });
+
+  // Show empty state if no orders
+  if (totalOrders === 0) {
+    return (
+      <>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+            Welcome back, {session.user.name || session.user.email}
+          </p>
+        </div>
+        <DashboardEmptyState />
+      </>
+    );
+  }
+
   return (
     <>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
           Dashboard
         </h1>
-        <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+        <p className="mt-1 text-zinc-600 dark:text-zinc-400">
           Welcome back, {session.user.name || session.user.email}
         </p>
       </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader>
-              <CardDescription>Total Orders</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-zinc-500">No orders yet</p>
-            </CardContent>
-          </Card>
+      {/* Stats Cards Grid */}
+      <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Suspense fallback={<DashboardStatsSkeleton />}>
+          <DashboardStatsCards organizationId={organizationId} />
+        </Suspense>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardDescription>Active Orders</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-zinc-500">In progress</p>
-            </CardContent>
-          </Card>
+      {/* Charts Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Suspense fallback={<OrdersOverTimeSkeleton />}>
+          <OrdersOverTimeSection organizationId={organizationId} />
+        </Suspense>
 
-          <Card>
-            <CardHeader>
-              <CardDescription>Factories</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-zinc-500">Connected</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardDescription>Delayed Orders</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-zinc-500">Needs attention</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-8 p-6 bg-white dark:bg-zinc-900 rounded-lg border">
-          <h2 className="text-lg font-semibold mb-4">Session Info</h2>
-          <dl className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <dt className="text-zinc-500">User ID</dt>
-              <dd className="font-mono">{session.user.id}</dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Email</dt>
-              <dd>{session.user.email}</dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Role</dt>
-              <dd>{session.user.role}</dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Organization</dt>
-              <dd>{session.user.organizationName}</dd>
-            </div>
-          </dl>
+        <Suspense fallback={<OrdersByStatusSkeleton />}>
+          <OrdersByStatusSection organizationId={organizationId} />
+        </Suspense>
       </div>
     </>
   );

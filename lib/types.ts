@@ -300,6 +300,37 @@ export type SelectOption = {
 };
 
 // ============================================
+// CHART DATA TYPES
+// ============================================
+
+/**
+ * Chart data for orders over time
+ */
+export type OrdersOverTimeData = Array<{
+  date: string;
+  count: number;
+}>;
+
+/**
+ * Chart data for orders by status
+ */
+export type OrdersByStatusData = Array<{
+  name: string;
+  value: number;
+  color: string;
+}>;
+
+/**
+ * Dashboard metrics
+ */
+export type DashboardMetrics = {
+  totalOrders: number;
+  activeOrders: number;
+  totalFactories: number;
+  delayedOrders: number;
+};
+
+// ============================================
 // HELPER FUNCTIONS (Type Guards)
 // ============================================
 
