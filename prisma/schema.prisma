@@ -123,7 +123,8 @@ model Order {
 enum OrderStatus {
   PENDING     // Order placed, not started
   IN_PROGRESS // Production started
-  DELAYED     // Behind schedule
+  DELAYED     // Behind schedule (one or more stages delayed)
+  DISRUPTED   // Production blocked (one or more stages blocked)
   COMPLETED   // Production complete
   SHIPPED     // Shipped to brand
   DELIVERED   // Received by brand

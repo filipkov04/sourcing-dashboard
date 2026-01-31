@@ -142,15 +142,43 @@ export async function PATCH(
     const totalProgress = allStages.reduce((sum, s) => sum + s.progress, 0);
     const overallProgress = Math.round(totalProgress / allStages.length);
 
-    // Update order's overall progress
-    await prisma.order.update({
+    // Determine order status based on stage statuses
+    const hasBlockedStage = allStages.some((s) => s.status === "BLOCKED");
+    const hasDelayedStage = allStages.some((s) => s.status === "DELAYED");
+    const allCompleted = allStages.every((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
+    const anyInProgress = allStages.some((s) => s.status === "IN_PROGRESS");
+
+    // Only auto-update status for active orders (not completed, shipped, delivered, or cancelled)
+    const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
+    let newOrderStatus: string | undefined;
+
+    if (activeStatuses.includes(order.status)) {
+      if (hasBlockedStage) {
+        newOrderStatus = "DISRUPTED";
+      } else if (hasDelayedStage) {
+        newOrderStatus = "DELAYED";
+      } else if (allCompleted) {
+        newOrderStatus = "COMPLETED";
+      } else if (anyInProgress || overallProgress > 0) {
+        newOrderStatus = "IN_PROGRESS";
+      }
+    }
+
+    // Update order's overall progress and status
+    const orderUpdateData: any = { overallProgress };
+    if (newOrderStatus) {
+      orderUpdateData.status = newOrderStatus;
+    }
+
+    const updatedOrder = await prisma.order.update({
       where: { id: orderId },
-      data: { overallProgress },
+      data: orderUpdateData,
     });
 
     return success({
       stage: updatedStage,
       overallProgress,
+      orderStatus: updatedOrder.status,
     }, "Stage updated successfully");
   } catch (err) {
     return handleError(err);
