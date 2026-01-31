@@ -1,0 +1,144 @@
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/db";
+import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
+import { auth } from "@/lib/auth";
+
+// PATCH /api/orders/[id]/stages/[stageId] - Update a stage's progress
+// NOTE: This is an admin-only feature. Role-based access control will be added in Week 5.
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; stageId: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session) {
+      return unauthorized();
+    }
+
+    // TODO: Add role check when role-based access is implemented (Task 5.28)
+    // if (session.user.role === 'CLIENT' || session.user.role === 'VIEWER') {
+    //   return error("Only admins can update stage progress", 403);
+    // }
+
+    const { id: orderId, stageId } = await params;
+    const body = await request.json();
+
+    // Verify order belongs to organization
+    const order = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        organizationId: session.user.organizationId,
+      },
+    });
+
+    if (!order) {
+      return notFound("Order");
+    }
+
+    // Verify stage belongs to order
+    const existingStage = await prisma.orderStage.findFirst({
+      where: {
+        id: stageId,
+        orderId: orderId,
+      },
+    });
+
+    if (!existingStage) {
+      return notFound("Stage");
+    }
+
+    const { progress, status, notes } = body;
+
+    // Validate progress
+    if (progress !== undefined) {
+      if (typeof progress !== "number" || progress < 0 || progress > 100) {
+        return error("Progress must be a number between 0 and 100", 400);
+      }
+    }
+
+    // Validate status
+    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "SKIPPED"];
+    if (status !== undefined && !validStatuses.includes(status)) {
+      return error("Invalid status", 400);
+    }
+
+    // Build update data
+    const updateData: any = {};
+
+    if (progress !== undefined) {
+      updateData.progress = progress;
+
+      // Auto-update status based on progress
+      if (progress === 0 && status === undefined) {
+        updateData.status = "NOT_STARTED";
+        updateData.startedAt = null;
+        updateData.completedAt = null;
+      } else if (progress > 0 && progress < 100 && status === undefined) {
+        updateData.status = "IN_PROGRESS";
+        if (!existingStage.startedAt) {
+          updateData.startedAt = new Date();
+        }
+        updateData.completedAt = null;
+      } else if (progress === 100 && status === undefined) {
+        updateData.status = "COMPLETED";
+        if (!existingStage.startedAt) {
+          updateData.startedAt = new Date();
+        }
+        updateData.completedAt = new Date();
+      }
+    }
+
+    if (status !== undefined) {
+      updateData.status = status;
+
+      // Update timestamps based on status
+      if (status === "IN_PROGRESS" && !existingStage.startedAt) {
+        updateData.startedAt = new Date();
+      }
+      if (status === "COMPLETED") {
+        if (!existingStage.startedAt) {
+          updateData.startedAt = new Date();
+        }
+        updateData.completedAt = new Date();
+      }
+      if (status === "NOT_STARTED") {
+        updateData.startedAt = null;
+        updateData.completedAt = null;
+        if (progress === undefined) {
+          updateData.progress = 0;
+        }
+      }
+    }
+
+    if (notes !== undefined) {
+      updateData.notes = notes ? notes.trim() : null;
+    }
+
+    // Update stage
+    const updatedStage = await prisma.orderStage.update({
+      where: { id: stageId },
+      data: updateData,
+    });
+
+    // Recalculate overall order progress
+    const allStages = await prisma.orderStage.findMany({
+      where: { orderId: orderId },
+    });
+
+    const totalProgress = allStages.reduce((sum, s) => sum + s.progress, 0);
+    const overallProgress = Math.round(totalProgress / allStages.length);
+
+    // Update order's overall progress
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { overallProgress },
+    });
+
+    return success({
+      stage: updatedStage,
+      overallProgress,
+    }, "Stage updated successfully");
+  } catch (err) {
+    return handleError(err);
+  }
+}

@@ -3922,6 +3922,15 @@ POST   /api/requests/[id]/reject   - Reject request (admin only)
 - `CLIENT` - Can view their orders, must request new ones
 - `VIEWER` - Read-only access
 
+**Admin-Only Features (to be restricted in Week 5):**
+- Create orders directly (clients must use request workflow)
+- Create factories directly (clients must use request workflow)
+- Edit orders
+- Edit factories
+- **Update stage progress** (Task 2.8) - only admins should update production progress
+- Delete orders/factories
+- Approve/reject requests
+
 **Implementation:**
 
 ```typescript
@@ -3933,6 +3942,7 @@ export const permissions = {
     view: ['ADMIN', 'MANAGER', 'CLIENT', 'VIEWER'],
     edit: ['ADMIN', 'MANAGER'],
     delete: ['ADMIN'],
+    updateProgress: ['ADMIN', 'MANAGER'], // Stage progress updates
   },
   factories: {
     create: ['ADMIN'],
@@ -3940,6 +3950,9 @@ export const permissions = {
     view: ['ADMIN', 'MANAGER', 'CLIENT', 'VIEWER'],
     edit: ['ADMIN'],
     delete: ['ADMIN'],
+  },
+  stages: {
+    update: ['ADMIN', 'MANAGER'], // Update stage progress
   },
   requests: {
     approve: ['ADMIN', 'MANAGER'],

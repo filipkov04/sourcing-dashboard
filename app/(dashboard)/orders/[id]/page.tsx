@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -28,6 +29,9 @@ import {
   CheckCircle2,
   Circle,
   Loader2,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 
 type OrderStage = {
@@ -101,6 +105,11 @@ export default function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Stage editing state
+  const [editingStageId, setEditingStageId] = useState<string | null>(null);
+  const [editingProgress, setEditingProgress] = useState<number>(0);
+  const [isSavingStage, setIsSavingStage] = useState(false);
+
   useEffect(() => {
     async function fetchOrder() {
       try {
@@ -154,6 +163,99 @@ export default function OrderDetailPage() {
         return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
       default:
         return <Circle className="h-5 w-5 text-gray-300" />;
+    }
+  };
+
+  // Stage progress editing functions (Admin only - role check will be added in Week 5)
+  const startEditingStage = (stage: OrderStage) => {
+    setEditingStageId(stage.id);
+    setEditingProgress(stage.progress);
+  };
+
+  const cancelEditingStage = () => {
+    setEditingStageId(null);
+    setEditingProgress(0);
+  };
+
+  const saveStageProgress = async (stageId: string) => {
+    if (!order) return;
+
+    setIsSavingStage(true);
+    try {
+      const response = await fetch(
+        `/api/orders/${order.id}/stages/${stageId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ progress: editingProgress }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update local state
+        setOrder({
+          ...order,
+          overallProgress: data.data.overallProgress,
+          stages: order.stages.map((s) =>
+            s.id === stageId
+              ? {
+                  ...s,
+                  progress: data.data.stage.progress,
+                  status: data.data.stage.status,
+                  startedAt: data.data.stage.startedAt,
+                  completedAt: data.data.stage.completedAt,
+                }
+              : s
+          ),
+        });
+        setEditingStageId(null);
+      }
+    } catch (err) {
+      console.error("Failed to update stage:", err);
+    } finally {
+      setIsSavingStage(false);
+    }
+  };
+
+  const quickSetProgress = async (stageId: string, progress: number) => {
+    if (!order) return;
+
+    setIsSavingStage(true);
+    try {
+      const response = await fetch(
+        `/api/orders/${order.id}/stages/${stageId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ progress }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setOrder({
+          ...order,
+          overallProgress: data.data.overallProgress,
+          stages: order.stages.map((s) =>
+            s.id === stageId
+              ? {
+                  ...s,
+                  progress: data.data.stage.progress,
+                  status: data.data.stage.status,
+                  startedAt: data.data.stage.startedAt,
+                  completedAt: data.data.stage.completedAt,
+                }
+              : s
+          ),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to update stage:", err);
+    } finally {
+      setIsSavingStage(false);
     }
   };
 
@@ -434,7 +536,7 @@ export default function OrderDetailPage() {
           <CardHeader>
             <CardTitle>Production Stages</CardTitle>
             <CardDescription>
-              Track progress through each stage of production
+              Track and update progress through each stage of production
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -470,24 +572,159 @@ export default function OrderDetailPage() {
                           {stage.status.replace("_", " ")}
                         </Badge>
                       </div>
-                      <span className="text-sm font-medium">
-                        {stage.progress}%
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {stage.progress}%
+                        </span>
+                        {editingStageId !== stage.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditingStage(stage)}
+                            disabled={isSavingStage}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          stage.status === "COMPLETED"
-                            ? "bg-green-500"
-                            : stage.status === "IN_PROGRESS"
-                            ? "bg-blue-500"
-                            : "bg-gray-300"
-                        }`}
-                        style={{ width: `${stage.progress}%` }}
-                      />
-                    </div>
+                    {/* Progress Bar or Editor */}
+                    {editingStageId === stage.id ? (
+                      <div className="space-y-3 mb-2">
+                        {/* Slider */}
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={editingProgress}
+                            onChange={(e) =>
+                              setEditingProgress(parseInt(e.target.value))
+                            }
+                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                          />
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={editingProgress}
+                            onChange={(e) =>
+                              setEditingProgress(
+                                Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                              )
+                            }
+                            className="w-16 h-8 text-center text-sm"
+                          />
+                          <span className="text-sm text-gray-500">%</span>
+                        </div>
+
+                        {/* Quick buttons */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">Quick set:</span>
+                          {[0, 25, 50, 75, 100].map((val) => (
+                            <Button
+                              key={val}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingProgress(val)}
+                              className={`h-6 px-2 text-xs ${
+                                editingProgress === val
+                                  ? "bg-blue-50 border-blue-300"
+                                  : ""
+                              }`}
+                            >
+                              {val}%
+                            </Button>
+                          ))}
+                        </div>
+
+                        {/* Save/Cancel */}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => saveStageProgress(stage.id)}
+                            disabled={isSavingStage}
+                          >
+                            {isSavingStage ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Save className="h-3.5 w-3.5 mr-1" />
+                                Save
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={cancelEditingStage}
+                            disabled={isSavingStage}
+                          >
+                            <X className="h-3.5 w-3.5 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Progress Bar */}
+                        <div
+                          className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2 cursor-pointer hover:bg-gray-300 transition-colors"
+                          onClick={() => startEditingStage(stage)}
+                          title="Click to edit progress"
+                        >
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              stage.status === "COMPLETED"
+                                ? "bg-green-500"
+                                : stage.status === "IN_PROGRESS"
+                                ? "bg-blue-500"
+                                : "bg-gray-300"
+                            }`}
+                            style={{ width: `${stage.progress}%` }}
+                          />
+                        </div>
+
+                        {/* Quick progress buttons (visible on hover via group) */}
+                        {stage.status !== "COMPLETED" && (
+                          <div className="flex items-center gap-1 mb-2">
+                            <span className="text-xs text-gray-400 mr-1">
+                              Quick update:
+                            </span>
+                            {stage.progress < 100 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  quickSetProgress(
+                                    stage.id,
+                                    Math.min(100, stage.progress + 25)
+                                  )
+                                }
+                                disabled={isSavingStage}
+                                className="h-6 px-2 text-xs"
+                              >
+                                +25%
+                              </Button>
+                            )}
+                            {stage.progress < 100 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => quickSetProgress(stage.id, 100)}
+                                disabled={isSavingStage}
+                                className="h-6 px-2 text-xs text-green-600 hover:text-green-700"
+                              >
+                                Complete
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
 
                     {/* Stage Dates */}
                     <div className="flex items-center gap-4 text-xs text-gray-500">

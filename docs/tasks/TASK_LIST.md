@@ -93,7 +93,7 @@
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
 | 2.6 | Order Detail Page | Marco | Build page showing one order's complete details, stages, progress | Page at /orders/[id] showing all order info, stage progress bars | 4h | ✅ |
 | 2.7 | Order Edit Form | Marco | Build form to edit existing order | Page at /orders/[id]/edit with pre-filled form | 2h | ✅ |
-| 2.8 | Stage Progress Update | Marco | Add ability to update each stage's progress (0-100%) | UI to update stage progress with slider or input | 2h | ⏳ |
+| 2.8 | Stage Progress Update | Marco | Add ability to update each stage's progress (0-100%) - Admin only | UI to update stage progress with slider or input (admin-only feature) | 2h | ✅ |
 | 2.9 | Order Timeline | Marco | Create timeline showing all updates and changes to order | Timeline component showing history of changes | 3h | ⏳ |
 | 2.10 | Order PR Week 2 | Marco | Package week 2 order work for review | Pull request with all order improvements | 30min | ⏳ |
 
