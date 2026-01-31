@@ -174,7 +174,7 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 4.1 | Chart Library Setup | Filip | Install and configure chart library (Recharts) | Chart components ready to use | 1h | ⏳ |
+| 4.1 | Chart Library Setup | Filip | Install and configure chart library (Recharts) | Chart components ready to use | 1h | ✅ |
 | 4.2 | Orders by Status Chart | Filip | Create pie chart showing order breakdown by status | Pie chart showing pending/in progress/completed orders | 2h | ⏳ |
 | 4.3 | Orders Over Time Chart | Filip | Create line chart showing order trends over time | Line chart showing orders created per month | 3h | ⏳ |
 | 4.4 | Factory Performance Chart | Filip | Create bar chart comparing factory performance | Bar chart showing on-time delivery rate per factory | 3h | ⏳ |
