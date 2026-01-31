@@ -22,7 +22,7 @@
 | 1.3 | Shared Types | Filip & Marco | Create data formats that both developers will use | TypeScript types file that ensures consistent data | 1h | ✅ |
 | 1.4 | Authentication | Filip & Marco | Build login/logout system so users can sign in securely | Working login page with email/password | 2h | ✅ |
 | 1.5 | Layout & Navigation | Filip & Marco | Create the app shell (sidebar, header, navigation menu) | App layout with sidebar and header that works on all pages | 3h | ✅ |
-| 1.6 | API Helpers | Filip & Marco | Create tools to make API responses consistent | Helper functions for API success/error responses | 1h | ⏳ |
+| 1.6 | API Helpers | Filip & Marco | Create tools to make API responses consistent | Helper functions for API success/error responses | 1h | ✅ |
 
 **End of Day 2:** Foundation is solid, ready to split up work
 
