@@ -60,11 +60,11 @@ const statusColors: Record<string, string> = {
   COMPLETED: "bg-green-100 text-green-800",
   SHIPPED: "bg-purple-100 text-purple-800",
   DELIVERED: "bg-gray-100 text-gray-800",
-  CANCELLED: "bg-gray-100 text-gray-500",
+  CANCELLED: "bg-gray-100 text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-gray-100 text-gray-600",
+  LOW: "bg-gray-100 text-zinc-400",
   NORMAL: "bg-blue-100 text-blue-600",
   HIGH: "bg-orange-100 text-orange-600",
   URGENT: "bg-red-100 text-red-600",
@@ -159,8 +159,8 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg border shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+      <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-zinc-300">
           <Filter className="h-4 w-4" />
           Filters
         </div>
@@ -237,15 +237,15 @@ export default function OrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-lg border shadow-sm">
+      <div className="bg-zinc-800 rounded-lg border border-zinc-700 shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-            <Package className="h-12 w-12 mb-4 text-gray-300" />
-            <p className="text-lg font-medium">No orders found</p>
+          <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+            <Package className="h-12 w-12 mb-4 text-zinc-600" />
+            <p className="text-lg font-medium text-zinc-300">No orders found</p>
             <p className="text-sm">
               {hasActiveFilters
                 ? "Try adjusting your filters"
@@ -278,7 +278,7 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="cursor-pointer hover:bg-gray-50"
+                  className="cursor-pointer hover:bg-zinc-700"
                   onClick={() => router.push(`/orders/${order.id}`)}
                 >
                   <TableCell>
@@ -290,7 +290,7 @@ export default function OrdersPage() {
                     <div>
                       <div className="font-medium">{order.productName}</div>
                       {order.productSKU && (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-zinc-400">
                           SKU: {order.productSKU}
                         </div>
                       )}
@@ -299,7 +299,7 @@ export default function OrdersPage() {
                   <TableCell>
                     <div>
                       <div>{order.factory.name}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-zinc-400">
                         {order.factory.location}
                       </div>
                     </div>
@@ -338,13 +338,13 @@ export default function OrdersPage() {
                           ? "text-red-600"
                           : order.hasDelayedStage
                           ? "text-orange-600"
-                          : "text-gray-600"
+                          : "text-zinc-400"
                       }`}>
                         {order.overallProgress}%
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-600">
+                  <TableCell className="text-zinc-400">
                     {formatDate(order.expectedDate)}
                   </TableCell>
                 </TableRow>

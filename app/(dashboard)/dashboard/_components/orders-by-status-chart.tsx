@@ -29,16 +29,17 @@ export function OrdersByStatusChart({ data }: { data: OrdersByStatusData }) {
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: "white",
-            border: "1px solid #e5e7eb",
+            backgroundColor: "#27272a",
+            border: "1px solid #3f3f46",
             borderRadius: "8px",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
+            color: "#fafafa",
           }}
         />
         <Legend
           verticalAlign="bottom"
           height={36}
-          formatter={(value) => value}
+          formatter={(value) => <span style={{ color: "#a1a1aa" }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

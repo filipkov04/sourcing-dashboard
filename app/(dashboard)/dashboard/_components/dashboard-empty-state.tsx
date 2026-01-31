@@ -12,11 +12,11 @@ export function DashboardEmptyState() {
           <Package className="h-12 w-12 text-blue-600" />
         </div>
 
-        <h2 className="mb-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+        <h2 className="mb-2 text-2xl font-semibold text-white">
           No orders yet
         </h2>
 
-        <p className="mb-8 max-w-md text-center text-zinc-600 dark:text-zinc-400">
+        <p className="mb-8 max-w-md text-center text-zinc-400">
           Get started by creating your first order. Track production progress,
           monitor deadlines, and manage your supply chain all in one place.
         </p>
@@ -32,7 +32,7 @@ export function DashboardEmptyState() {
 
           <Link
             href="/factories/new"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-700"
           >
             Add Factory
           </Link>
@@ -40,19 +40,19 @@ export function DashboardEmptyState() {
 
         <div className="mt-12 grid w-full max-w-3xl gap-6 md:grid-cols-3">
           <div className="text-center">
-            <TrendingUp className="mx-auto mb-3 h-8 w-8 text-blue-600" />
-            <h3 className="mb-1 font-medium">Track Progress</h3>
-            <p className="text-sm text-zinc-500">Monitor order status in real-time</p>
+            <TrendingUp className="mx-auto mb-3 h-8 w-8 text-blue-500" />
+            <h3 className="mb-1 font-medium text-zinc-200">Track Progress</h3>
+            <p className="text-sm text-zinc-400">Monitor order status in real-time</p>
           </div>
           <div className="text-center">
-            <Bell className="mx-auto mb-3 h-8 w-8 text-blue-600" />
-            <h3 className="mb-1 font-medium">Get Alerts</h3>
-            <p className="text-sm text-zinc-500">Notifications for delays and updates</p>
+            <Bell className="mx-auto mb-3 h-8 w-8 text-blue-500" />
+            <h3 className="mb-1 font-medium text-zinc-200">Get Alerts</h3>
+            <p className="text-sm text-zinc-400">Notifications for delays and updates</p>
           </div>
           <div className="text-center">
-            <FileText className="mx-auto mb-3 h-8 w-8 text-blue-600" />
-            <h3 className="mb-1 font-medium">Generate Reports</h3>
-            <p className="text-sm text-zinc-500">Insights and analytics on demand</p>
+            <FileText className="mx-auto mb-3 h-8 w-8 text-blue-500" />
+            <h3 className="mb-1 font-medium text-zinc-200">Generate Reports</h3>
+            <p className="text-sm text-zinc-400">Insights and analytics on demand</p>
           </div>
         </div>
       </CardContent>
