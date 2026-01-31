@@ -150,6 +150,7 @@ export async function PATCH(
     const hasDelayedStage = allStages.some((s) => s.status === "DELAYED");
     const allCompleted = allStages.every((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
     const anyInProgress = allStages.some((s) => s.status === "IN_PROGRESS");
+    const allNotStarted = allStages.every((s) => s.status === "NOT_STARTED");
 
     // Only auto-update status for active orders (not completed, shipped, delivered, or cancelled)
     const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
@@ -162,6 +163,8 @@ export async function PATCH(
         newOrderStatus = "DELAYED";
       } else if (allCompleted) {
         newOrderStatus = "COMPLETED";
+      } else if (allNotStarted && overallProgress === 0) {
+        newOrderStatus = "PENDING";
       } else if (anyInProgress || overallProgress > 0) {
         newOrderStatus = "IN_PROGRESS";
       }
