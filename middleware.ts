@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
+// Use Node.js runtime instead of Edge (required for bcrypt/crypto)
+export const runtime = "nodejs";
+
 export default async function middleware(request: NextRequest) {
   const session = await auth();
   const { pathname } = request.nextUrl;

@@ -10,16 +10,15 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Dashboard
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-            Welcome back, {session.user.name || session.user.email}
-          </p>
-        </div>
+    <>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+          Dashboard
+        </h1>
+        <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+          Welcome back, {session.user.name || session.user.email}
+        </p>
+      </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -83,8 +82,7 @@ export default async function DashboardPage() {
               <dd>{session.user.organizationName}</dd>
             </div>
           </dl>
-        </div>
       </div>
-    </div>
+    </>
   );
 }
