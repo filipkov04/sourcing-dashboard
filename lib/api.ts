@@ -61,14 +61,13 @@ export function validationError(
     message: issue.message,
   }));
 
-  return NextResponse.json(
-    {
-      success: false,
-      error: "Validation failed",
-      details: formattedErrors,
-    },
-    { status: 400 }
-  );
+  const response: ApiErrorResponse = {
+    success: false,
+    error: "Validation failed",
+    details: formattedErrors,
+  };
+
+  return NextResponse.json(response, { status: 400 });
 }
 
 /**
