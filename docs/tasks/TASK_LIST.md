@@ -60,8 +60,8 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 1.15 | Review Factory Code | Marco | Test Filip's factory features and review code quality | Feedback on factory PR, approve or request changes | 30min | ⏳ |
-| 1.16 | Review Order Code | Filip | Test Marco's order features and review code quality | Feedback on order PR, approve or request changes | 30min | ⏳ |
+| 1.15 | Review Factory Code | Marco | Test Filip's factory features and review code quality | Feedback on factory PR, approve or request changes | 30min | ✅ |
+| 1.16 | Review Order Code | Filip | Test Marco's order features and review code quality | Feedback on order PR, approve or request changes | 30min | ✅ |
 
 **End of Week 1 Result:**
 - ✅ Users can log in
