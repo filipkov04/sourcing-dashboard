@@ -288,7 +288,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{order.productName}</div>
+                      <div className="font-medium text-zinc-100">{order.productName}</div>
                       {order.productSKU && (
                         <div className="text-sm text-zinc-400">
                           SKU: {order.productSKU}
@@ -298,7 +298,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div>{order.factory.name}</div>
+                      <div className="text-zinc-100">{order.factory.name}</div>
                       <div className="text-sm text-zinc-400">
                         {order.factory.location}
                       </div>
