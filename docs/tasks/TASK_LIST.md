@@ -47,9 +47,9 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 1.11 | Order List Page | Marco | Build page showing all orders with filters (status, factory) and search | Page at /orders showing order list with filters and search | 4h | ⏳ |
+| 1.11 | Order List Page | Marco | Build page showing all orders with filters (status, factory) and search | Page at /orders showing order list with filters and search | 4h | ✅ |
 | 1.12 | Order API | Marco | Create backend endpoints to get and create orders | API that returns order data (GET) and creates new orders (POST) | 2h | ✅ |
-| 1.13 | Order Create Form | Marco | Build form to create order with product details and stages | Page at /orders/new with form to create order, select factory, add stages | 4h | ⏳ |
+| 1.13 | Order Create Form | Marco | Build form to create order with product details and stages | Page at /orders/new with form to create order, select factory, add stages | 4h | ✅ |
 | 1.14 | Order Pull Request | Marco | Package all order work and request code review | Pull request on GitHub ready for Filip to review | 30min | ⏳ |
 
 **What Marco Creates This Week:** Complete order management - users can view all orders, create new ones, filter by status/factory, and search.
