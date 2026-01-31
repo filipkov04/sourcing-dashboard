@@ -57,7 +57,7 @@ export async function PATCH(
     }
 
     // Validate status
-    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "SKIPPED"];
+    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "SKIPPED", "DELAYED", "BLOCKED"];
     if (status !== undefined && !validStatuses.includes(status)) {
       return error("Invalid status", 400);
     }
@@ -65,26 +65,33 @@ export async function PATCH(
     // Build update data
     const updateData: any = {};
 
+    // Check if stage is in a "problem" state (DELAYED or BLOCKED)
+    const isProblemStatus = existingStage.status === "DELAYED" || existingStage.status === "BLOCKED";
+    const isSettingProblemStatus = status === "DELAYED" || status === "BLOCKED";
+
     if (progress !== undefined) {
       updateData.progress = progress;
 
-      // Auto-update status based on progress
-      if (progress === 0 && status === undefined) {
-        updateData.status = "NOT_STARTED";
-        updateData.startedAt = null;
-        updateData.completedAt = null;
-      } else if (progress > 0 && progress < 100 && status === undefined) {
-        updateData.status = "IN_PROGRESS";
-        if (!existingStage.startedAt) {
-          updateData.startedAt = new Date();
+      // Only auto-update status based on progress if NOT in a problem state
+      // and NOT explicitly setting a problem status
+      if (!isProblemStatus && !isSettingProblemStatus && status === undefined) {
+        if (progress === 0) {
+          updateData.status = "NOT_STARTED";
+          updateData.startedAt = null;
+          updateData.completedAt = null;
+        } else if (progress > 0 && progress < 100) {
+          updateData.status = "IN_PROGRESS";
+          if (!existingStage.startedAt) {
+            updateData.startedAt = new Date();
+          }
+          updateData.completedAt = null;
+        } else if (progress === 100) {
+          updateData.status = "COMPLETED";
+          if (!existingStage.startedAt) {
+            updateData.startedAt = new Date();
+          }
+          updateData.completedAt = new Date();
         }
-        updateData.completedAt = null;
-      } else if (progress === 100 && status === undefined) {
-        updateData.status = "COMPLETED";
-        if (!existingStage.startedAt) {
-          updateData.startedAt = new Date();
-        }
-        updateData.completedAt = new Date();
       }
     }
 
@@ -107,6 +114,13 @@ export async function PATCH(
         if (progress === undefined) {
           updateData.progress = 0;
         }
+      }
+      // DELAYED and BLOCKED keep existing timestamps but don't auto-complete
+      if (status === "DELAYED" || status === "BLOCKED") {
+        if (!existingStage.startedAt) {
+          updateData.startedAt = new Date();
+        }
+        updateData.completedAt = null;
       }
     }
 

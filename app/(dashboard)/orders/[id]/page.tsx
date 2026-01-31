@@ -6,6 +6,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -32,6 +40,10 @@ import {
   Pencil,
   Save,
   X,
+  AlertTriangle,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 type OrderStage = {
@@ -96,6 +108,17 @@ const stageStatusColors: Record<string, string> = {
   IN_PROGRESS: "text-blue-600",
   COMPLETED: "text-green-600",
   SKIPPED: "text-gray-400",
+  DELAYED: "text-yellow-600",
+  BLOCKED: "text-red-600",
+};
+
+const stageStatusBadgeColors: Record<string, string> = {
+  NOT_STARTED: "bg-gray-100 text-gray-600",
+  IN_PROGRESS: "bg-blue-100 text-blue-700",
+  COMPLETED: "bg-green-100 text-green-700",
+  SKIPPED: "bg-gray-100 text-gray-500",
+  DELAYED: "bg-yellow-100 text-yellow-700",
+  BLOCKED: "bg-red-100 text-red-700",
 };
 
 export default function OrderDetailPage() {
@@ -108,7 +131,12 @@ export default function OrderDetailPage() {
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<string | null>(null);
   const [editingProgress, setEditingProgress] = useState<number>(0);
+  const [editingStatus, setEditingStatus] = useState<string>("");
+  const [editingNotes, setEditingNotes] = useState<string>("");
   const [isSavingStage, setIsSavingStage] = useState(false);
+
+  // Expanded stages (for viewing notes/delay info)
+  const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function fetchOrder() {
@@ -161,20 +189,40 @@ export default function OrderDetailPage() {
         return <CheckCircle2 className="h-5 w-5 text-green-600" />;
       case "IN_PROGRESS":
         return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
+      case "DELAYED":
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case "BLOCKED":
+        return <XCircle className="h-5 w-5 text-red-500" />;
       default:
         return <Circle className="h-5 w-5 text-gray-300" />;
     }
+  };
+
+  const toggleStageExpanded = (stageId: string) => {
+    setExpandedStages((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(stageId)) {
+        newSet.delete(stageId);
+      } else {
+        newSet.add(stageId);
+      }
+      return newSet;
+    });
   };
 
   // Stage progress editing functions (Admin only - role check will be added in Week 5)
   const startEditingStage = (stage: OrderStage) => {
     setEditingStageId(stage.id);
     setEditingProgress(stage.progress);
+    setEditingStatus(stage.status);
+    setEditingNotes(stage.notes || "");
   };
 
   const cancelEditingStage = () => {
     setEditingStageId(null);
     setEditingProgress(0);
+    setEditingStatus("");
+    setEditingNotes("");
   };
 
   const saveStageProgress = async (stageId: string) => {
@@ -187,7 +235,11 @@ export default function OrderDetailPage() {
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ progress: editingProgress }),
+          body: JSON.stringify({
+            progress: editingProgress,
+            status: editingStatus,
+            notes: editingNotes,
+          }),
         }
       );
 
@@ -206,11 +258,12 @@ export default function OrderDetailPage() {
                   status: data.data.stage.status,
                   startedAt: data.data.stage.startedAt,
                   completedAt: data.data.stage.completedAt,
+                  notes: data.data.stage.notes,
                 }
               : s
           ),
         });
-        setEditingStageId(null);
+        cancelEditingStage();
       }
     } catch (err) {
       console.error("Failed to update stage:", err);
@@ -566,11 +619,25 @@ export default function OrderDetailPage() {
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{stage.name}</h4>
                         <Badge
-                          variant="outline"
-                          className={stageStatusColors[stage.status]}
+                          className={stageStatusBadgeColors[stage.status] || "bg-gray-100 text-gray-600"}
                         >
                           {stage.status.replace("_", " ")}
                         </Badge>
+                        {/* Expand button for stages with notes (especially delayed/blocked) */}
+                        {stage.notes && editingStageId !== stage.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleStageExpanded(stage.id)}
+                            className="h-6 px-1"
+                          >
+                            {expandedStages.has(stage.id) ? (
+                              <ChevronUp className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                            )}
+                          </Button>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
@@ -583,6 +650,7 @@ export default function OrderDetailPage() {
                             onClick={() => startEditingStage(stage)}
                             disabled={isSavingStage}
                             className="h-7 w-7 p-0"
+                            title="Edit stage (Admin)"
                           >
                             <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
                           </Button>
@@ -592,9 +660,41 @@ export default function OrderDetailPage() {
 
                     {/* Progress Bar or Editor */}
                     {editingStageId === stage.id ? (
-                      <div className="space-y-3 mb-2">
-                        {/* Slider */}
+                      <div className="space-y-3 mb-2 p-3 bg-white rounded-lg border">
+                        {/* Status Selector */}
                         <div className="flex items-center gap-3">
+                          <span className="text-sm text-gray-600 w-16">Status:</span>
+                          <Select
+                            value={editingStatus}
+                            onValueChange={setEditingStatus}
+                          >
+                            <SelectTrigger className="w-40 h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                              <SelectItem value="COMPLETED">Completed</SelectItem>
+                              <SelectItem value="DELAYED">
+                                <span className="flex items-center gap-2">
+                                  <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                                  Delayed
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="BLOCKED">
+                                <span className="flex items-center gap-2">
+                                  <XCircle className="h-3 w-3 text-red-500" />
+                                  Blocked
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="SKIPPED">Skipped</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Progress Slider */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-gray-600 w-16">Progress:</span>
                           <input
                             type="range"
                             min="0"
@@ -641,8 +741,30 @@ export default function OrderDetailPage() {
                           ))}
                         </div>
 
+                        {/* Notes/Reason - especially useful for DELAYED/BLOCKED */}
+                        <div className="space-y-1">
+                          <label className="text-sm text-gray-600">
+                            Notes / Reason {(editingStatus === "DELAYED" || editingStatus === "BLOCKED") && (
+                              <span className="text-yellow-600">(explain the issue)</span>
+                            )}
+                          </label>
+                          <Textarea
+                            value={editingNotes}
+                            onChange={(e) => setEditingNotes(e.target.value)}
+                            placeholder={
+                              editingStatus === "DELAYED"
+                                ? "Explain what's causing the delay..."
+                                : editingStatus === "BLOCKED"
+                                ? "Explain what's blocking this stage..."
+                                : "Optional notes about this stage..."
+                            }
+                            rows={2}
+                            className="text-sm"
+                          />
+                        </div>
+
                         {/* Save/Cancel */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 pt-2 border-t">
                           <Button
                             size="sm"
                             onClick={() => saveStageProgress(stage.id)}
@@ -653,7 +775,7 @@ export default function OrderDetailPage() {
                             ) : (
                               <>
                                 <Save className="h-3.5 w-3.5 mr-1" />
-                                Save
+                                Save Changes
                               </>
                             )}
                           </Button>
@@ -680,6 +802,10 @@ export default function OrderDetailPage() {
                             className={`h-full rounded-full transition-all ${
                               stage.status === "COMPLETED"
                                 ? "bg-green-500"
+                                : stage.status === "DELAYED"
+                                ? "bg-yellow-500"
+                                : stage.status === "BLOCKED"
+                                ? "bg-red-500"
                                 : stage.status === "IN_PROGRESS"
                                 ? "bg-blue-500"
                                 : "bg-gray-300"
@@ -688,41 +814,85 @@ export default function OrderDetailPage() {
                           />
                         </div>
 
-                        {/* Quick progress buttons (visible on hover via group) */}
-                        {stage.status !== "COMPLETED" && (
-                          <div className="flex items-center gap-1 mb-2">
-                            <span className="text-xs text-gray-400 mr-1">
-                              Quick update:
-                            </span>
-                            {stage.progress < 100 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  quickSetProgress(
-                                    stage.id,
-                                    Math.min(100, stage.progress + 25)
-                                  )
-                                }
-                                disabled={isSavingStage}
-                                className="h-6 px-2 text-xs"
-                              >
-                                +25%
-                              </Button>
-                            )}
-                            {stage.progress < 100 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => quickSetProgress(stage.id, 100)}
-                                disabled={isSavingStage}
-                                className="h-6 px-2 text-xs text-green-600 hover:text-green-700"
-                              >
-                                Complete
-                              </Button>
-                            )}
+                        {/* Expandable notes section (for delay/block reasons) */}
+                        {stage.notes && expandedStages.has(stage.id) && (
+                          <div
+                            className={`p-3 rounded-md mb-2 text-sm ${
+                              stage.status === "DELAYED"
+                                ? "bg-yellow-50 border border-yellow-200"
+                                : stage.status === "BLOCKED"
+                                ? "bg-red-50 border border-red-200"
+                                : "bg-gray-50 border border-gray-200"
+                            }`}
+                          >
+                            <div className="flex items-start gap-2">
+                              {stage.status === "DELAYED" && (
+                                <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                              )}
+                              {stage.status === "BLOCKED" && (
+                                <XCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                              )}
+                              <p className="text-gray-700 whitespace-pre-wrap">
+                                {stage.notes}
+                              </p>
+                            </div>
                           </div>
                         )}
+
+                        {/* Auto-expand for delayed/blocked stages with notes */}
+                        {stage.notes &&
+                          !expandedStages.has(stage.id) &&
+                          (stage.status === "DELAYED" || stage.status === "BLOCKED") && (
+                            <button
+                              onClick={() => toggleStageExpanded(stage.id)}
+                              className={`text-xs mb-2 flex items-center gap-1 ${
+                                stage.status === "DELAYED"
+                                  ? "text-yellow-600 hover:text-yellow-700"
+                                  : "text-red-600 hover:text-red-700"
+                              }`}
+                            >
+                              <AlertTriangle className="h-3 w-3" />
+                              Click to see reason
+                              <ChevronDown className="h-3 w-3" />
+                            </button>
+                          )}
+
+                        {/* Quick progress buttons (visible on hover via group) */}
+                        {stage.status !== "COMPLETED" &&
+                          stage.status !== "BLOCKED" && (
+                            <div className="flex items-center gap-1 mb-2">
+                              <span className="text-xs text-gray-400 mr-1">
+                                Quick update:
+                              </span>
+                              {stage.progress < 100 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    quickSetProgress(
+                                      stage.id,
+                                      Math.min(100, stage.progress + 25)
+                                    )
+                                  }
+                                  disabled={isSavingStage}
+                                  className="h-6 px-2 text-xs"
+                                >
+                                  +25%
+                                </Button>
+                              )}
+                              {stage.progress < 100 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => quickSetProgress(stage.id, 100)}
+                                  disabled={isSavingStage}
+                                  className="h-6 px-2 text-xs text-green-600 hover:text-green-700"
+                                >
+                                  Complete
+                                </Button>
+                              )}
+                            </div>
+                          )}
                       </>
                     )}
 

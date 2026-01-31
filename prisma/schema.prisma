@@ -163,4 +163,6 @@ enum StageStatus {
   IN_PROGRESS
   COMPLETED
   SKIPPED
+  DELAYED      // Stage is behind schedule (yellow)
+  BLOCKED      // Stage is completely disrupted/stopped (red)
 }
