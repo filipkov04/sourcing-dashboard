@@ -3928,8 +3928,16 @@ POST   /api/requests/[id]/reject   - Reject request (admin only)
 - Edit orders
 - Edit factories
 - **Update stage progress** (Task 2.8) - only admins should update production progress
+- **Set stage status to DELAYED/BLOCKED** (Task 2.8) - only admins can mark stages as delayed (yellow) or blocked (red)
+- **Add stage notes/reasons** - only admins can add explanations for delays or blocks (clients can VIEW these notes by expanding the stage)
 - Delete orders/factories
 - Approve/reject requests
+
+**Client-Viewable Features:**
+- View order details and stage progress
+- View stage status (including delayed/blocked indicators)
+- Expand stages to see admin-written notes explaining delays or blocks
+- Request new orders/factories (goes through approval workflow)
 
 **Implementation:**
 
@@ -3953,6 +3961,9 @@ export const permissions = {
   },
   stages: {
     update: ['ADMIN', 'MANAGER'], // Update stage progress
+    setStatus: ['ADMIN', 'MANAGER'], // Set DELAYED/BLOCKED status
+    addNotes: ['ADMIN', 'MANAGER'], // Add notes explaining issues
+    viewNotes: ['ADMIN', 'MANAGER', 'CLIENT', 'VIEWER'], // View stage notes
   },
   requests: {
     approve: ['ADMIN', 'MANAGER'],
