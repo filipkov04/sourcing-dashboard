@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,7 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [factories, setFactories] = useState<Factory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -270,14 +272,15 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
-                <TableRow key={order.id} className="cursor-pointer hover:bg-gray-50">
+                <TableRow
+                  key={order.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => router.push(`/orders/${order.id}`)}
+                >
                   <TableCell>
-                    <Link
-                      href={`/orders/${order.id}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
+                    <span className="font-medium text-blue-600">
                       {order.orderNumber}
-                    </Link>
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div>
