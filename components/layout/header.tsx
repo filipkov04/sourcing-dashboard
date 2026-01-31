@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, Search, User, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +11,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export function Header() {
-  // TODO: Get user data from session (Task 1.4)
+  const { data: session } = useSession();
+
   const user = {
-    name: "Filip Vrablik",
-    email: "filip@example.com",
-    initials: "FV",
+    name: session?.user?.name || "User",
+    email: session?.user?.email || "",
+    initials: getInitials(session?.user?.name),
   };
 
   return (
