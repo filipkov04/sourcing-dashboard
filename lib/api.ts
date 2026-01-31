@@ -16,14 +16,14 @@ export function success<T>(
   message?: string,
   status: number = 200
 ): NextResponse<ApiSuccessResponse<T>> {
-  return NextResponse.json(
-    {
-      success: true,
-      data,
-      ...(message && { message }),
-    },
-    { status }
-  );
+  const response: ApiSuccessResponse<T> = {
+    success: true,
+    data,
+  };
+  if (message) {
+    response.message = message;
+  }
+  return NextResponse.json(response, { status });
 }
 
 /**
@@ -39,14 +39,14 @@ export function error(
 ): NextResponse<ApiErrorResponse> {
   const errorMessage = error instanceof Error ? error.message : error;
 
-  return NextResponse.json(
-    {
-      success: false,
-      error: errorMessage,
-      ...(details && { details }),
-    },
-    { status }
-  );
+  const response: ApiErrorResponse = {
+    success: false,
+    error: errorMessage,
+  };
+  if (details !== undefined) {
+    response.details = details;
+  }
+  return NextResponse.json(response, { status });
 }
 
 /**
@@ -56,9 +56,9 @@ export function error(
 export function validationError(
   zodError: ZodError
 ): NextResponse<ApiErrorResponse> {
-  const formattedErrors = zodError.errors.map((err) => ({
-    field: err.path.join("."),
-    message: err.message,
+  const formattedErrors = zodError.issues.map((issue) => ({
+    field: issue.path.join("."),
+    message: issue.message,
   }));
 
   return NextResponse.json(
