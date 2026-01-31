@@ -43,6 +43,8 @@ type Order = {
   _count: {
     stages: number;
   };
+  hasBlockedStage?: boolean;
+  hasDelayedStage?: boolean;
 };
 
 type Factory = {
@@ -317,11 +319,25 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-600 rounded-full"
+                          className={`h-full rounded-full ${
+                            order.status === "COMPLETED"
+                              ? "bg-green-600"
+                              : order.hasBlockedStage
+                              ? "bg-red-500"
+                              : order.hasDelayedStage
+                              ? "bg-yellow-500"
+                              : "bg-blue-600"
+                          }`}
                           style={{ width: `${order.overallProgress}%` }}
                         />
                       </div>
-                      <span className="text-sm text-gray-600">
+                      <span className={`text-sm ${
+                        order.hasBlockedStage
+                          ? "text-red-600"
+                          : order.hasDelayedStage
+                          ? "text-yellow-600"
+                          : "text-gray-600"
+                      }`}>
                         {order.overallProgress}%
                       </span>
                     </div>

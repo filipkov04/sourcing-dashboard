@@ -54,6 +54,11 @@ export async function GET(request: NextRequest) {
             location: true,
           },
         },
+        stages: {
+          select: {
+            status: true,
+          },
+        },
         _count: {
           select: { stages: true },
         },
@@ -63,7 +68,14 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return success(orders);
+    // Add computed fields for stage status summary
+    const ordersWithStageStatus = orders.map((order) => ({
+      ...order,
+      hasBlockedStage: order.stages.some((s) => s.status === "BLOCKED"),
+      hasDelayedStage: order.stages.some((s) => s.status === "DELAYED"),
+    }));
+
+    return success(ordersWithStageStatus);
   } catch (err) {
     return handleError(err);
   }
