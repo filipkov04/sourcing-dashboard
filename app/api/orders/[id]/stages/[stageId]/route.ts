@@ -107,6 +107,9 @@ export async function PATCH(
           updateData.startedAt = new Date();
         }
         updateData.completedAt = new Date();
+        if (progress === undefined) {
+          updateData.progress = 100;
+        }
       }
       if (status === "NOT_STARTED") {
         updateData.startedAt = null;
