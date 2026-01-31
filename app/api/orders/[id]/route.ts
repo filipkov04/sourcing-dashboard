@@ -85,13 +85,13 @@ export async function PATCH(
     } = body;
 
     // Validate required fields if provided
-    if (orderNumber !== undefined && !orderNumber.trim()) {
+    if (orderNumber !== undefined && orderNumber !== null && !orderNumber.trim()) {
       return error("Order number cannot be empty", 400);
     }
-    if (productName !== undefined && !productName.trim()) {
+    if (productName !== undefined && productName !== null && !productName.trim()) {
       return error("Product name cannot be empty", 400);
     }
-    if (quantity !== undefined && quantity <= 0) {
+    if (quantity !== undefined && quantity !== null && quantity <= 0) {
       return error("Quantity must be greater than 0", 400);
     }
 
@@ -110,9 +110,9 @@ export async function PATCH(
 
     // Build update data
     const updateData: any = {};
-    if (orderNumber !== undefined) updateData.orderNumber = orderNumber.trim();
-    if (productName !== undefined) updateData.productName = productName.trim();
-    if (productSKU !== undefined) updateData.productSKU = productSKU.trim() || null;
+    if (orderNumber !== undefined && orderNumber !== null) updateData.orderNumber = orderNumber.trim();
+    if (productName !== undefined && productName !== null) updateData.productName = productName.trim();
+    if (productSKU !== undefined) updateData.productSKU = productSKU ? productSKU.trim() : null;
     if (quantity !== undefined) updateData.quantity = quantity;
     if (unit !== undefined) updateData.unit = unit;
     if (factoryId !== undefined) updateData.factoryId = factoryId;
@@ -120,7 +120,7 @@ export async function PATCH(
     if (expectedDate !== undefined) updateData.expectedDate = new Date(expectedDate);
     if (priority !== undefined) updateData.priority = priority;
     if (status !== undefined) updateData.status = status;
-    if (notes !== undefined) updateData.notes = notes.trim() || null;
+    if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;
     if (tags !== undefined) updateData.tags = tags;
 
     // Handle stages update
