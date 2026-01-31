@@ -1573,6 +1573,98 @@ export class FactoryService {
 
 **Critical:** NEVER trust client-provided organizationId. Always use session.
 
+### Access Control & Team Management
+
+**Two-Phase Implementation:**
+- **Phase 1:** Email Whitelist (Immediate - 2-4 hours)
+- **Phase 2:** Invitation System (Later - 1-2 days)
+
+#### Phase 1: Email Whitelist Implementation
+
+Restrict registration to approved internal Gmail accounts (3-5 team members).
+
+**Access Control Utility:**
+```typescript
+// lib/access-control.ts
+export function getWhitelistedEmails(): string[] {
+  const emails = process.env.ALLOWED_EMAILS || '';
+  return emails.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+}
+
+export function isWhitelistEnabled(): boolean {
+  return process.env.REQUIRE_EMAIL_WHITELIST === 'true';
+}
+
+export function isEmailWhitelisted(email: string): boolean {
+  if (!isWhitelistEnabled()) return true;
+  const whitelisted = getWhitelistedEmails();
+  return whitelisted.includes(email.trim().toLowerCase());
+}
+```
+
+**Registration Route Update:**
+```typescript
+// app/api/auth/register/route.ts
+import { isEmailWhitelisted } from '@/lib/access-control';
+
+export async function POST(request: Request) {
+  const { email, password, name } = await request.json();
+
+  // Check email whitelist
+  if (!isEmailWhitelisted(email)) {
+    return NextResponse.json(
+      { error: 'Registration restricted to authorized team members.' },
+      { status: 403 }
+    );
+  }
+  // ... continue registration
+}
+```
+
+**Environment Configuration:**
+```env
+ALLOWED_EMAILS="user1@gmail.com,user2@gmail.com,user3@gmail.com"
+REQUIRE_EMAIL_WHITELIST="true"
+```
+
+#### Phase 2: Invitation System
+
+Professional team management with invitation-based onboarding.
+
+**Database Schema:**
+```prisma
+model UserInvitation {
+  id             String   @id @default(cuid())
+  email          String
+  token          String   @unique
+  role           UserRole @default(MEMBER)
+  invitedById    String
+  invitedBy      User     @relation("InvitedBy", fields: [invitedById], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, email])
+}
+```
+
+**Key API Routes:**
+- `POST /api/invitations` - Create invitation (ADMIN/OWNER only)
+- `GET /api/invitations` - List pending invitations
+- `GET /api/invitations/[token]` - Validate invitation token
+- `DELETE /api/invitations/[token]` - Revoke invitation
+
+**Security Features:**
+- UUID v4 tokens (cryptographically secure)
+- 7-day expiration
+- One-time use (marked accepted)
+- Role-based permissions (cannot invite OWNER)
+- Organization isolation
+
+**See detailed implementation in Week 3 tasks: 3.4a-3.5d**
+
 ---
 
 ## Integration Framework (Phase 3)
