@@ -21,7 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, Package } from "lucide-react";
+import { ArrowLeft, Plus, Package } from "lucide-react";
+import { SortableStageList } from "@/components/sortable-stage-list";
 
 type Factory = {
   id: string;
@@ -260,8 +261,8 @@ export default function EditOrderPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-          <Package className="h-12 w-12 mb-4 text-gray-300" />
+        <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+          <Package className="h-12 w-12 mb-4 text-zinc-500" />
           <p className="text-lg font-medium">{fetchError}</p>
           <Link href="/orders" className="mt-4">
             <Button>View All Orders</Button>
@@ -292,7 +293,7 @@ export default function EditOrderPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Error Message */}
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+          <div className="rounded-md bg-red-900/50 border border-red-700 p-4 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -478,31 +479,13 @@ export default function EditOrderPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {stages.map((stage, index) => (
-              <div key={stage.id} className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-sm font-medium">
-                  {index + 1}
-                </div>
-                <Input
-                  placeholder="Stage name (e.g., Cutting, Sewing)"
-                  value={stage.name}
-                  onChange={(e) => updateStageName(stage.id, e.target.value)}
-                  className="flex-1"
-                  disabled={isLoading}
-                />
-                {stages.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeStage(stage.id)}
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-500" />
-                  </Button>
-                )}
-              </div>
-            ))}
+            <SortableStageList
+              stages={stages}
+              onReorder={setStages}
+              onNameChange={updateStageName}
+              onRemove={removeStage}
+              isLoading={isLoading}
+            />
 
             <Button
               type="button"
@@ -517,7 +500,7 @@ export default function EditOrderPage() {
 
             {/* Quick add default stages */}
             <div className="pt-2 border-t">
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-zinc-400 mb-2">
                 Quick add common stages:
               </p>
               <div className="flex flex-wrap gap-2">
@@ -581,7 +564,7 @@ export default function EditOrderPage() {
                 onChange={(e) => setTagsInput(e.target.value)}
                 disabled={isLoading}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-zinc-400">
                 Separate multiple tags with commas
               </p>
             </div>
