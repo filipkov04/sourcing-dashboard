@@ -20,6 +20,7 @@ A web dashboard for fashion/manufacturing brands to track real-time production s
 - **Styling:** Tailwind CSS 4 with dark theme
 - **UI Components:** shadcn/ui (Radix primitives)
 - **Charts:** Recharts
+- **Drag & Drop:** @dnd-kit (core, sortable, utilities)
 - **Deployment:** Vercel
 
 ---
@@ -47,7 +48,9 @@ app/
 components/
 ├── layout/                # AppLayout, Sidebar, Header
 ├── ui/                    # shadcn/ui components
-└── providers/             # Session provider
+├── providers/             # Session provider
+├── sortable-stage-item.tsx    # Draggable stage row component
+└── sortable-stage-list.tsx    # DnD container for stage reordering
 
 lib/
 ├── auth.ts                # NextAuth config
@@ -164,6 +167,7 @@ When status changes to COMPLETED → progress auto-sets to 100%
 - [x] Clickable order rows in list
 - [x] Order summary bar chart on dashboard (Total, Pending, In Progress, Delayed, Disrupted)
 - [x] DELAYED color changed from yellow to orange for distinction
+- [x] Drag-and-drop stage reordering in order forms (new & edit)
 
 ---
 
@@ -245,7 +249,7 @@ export async function PATCH(
 
 ## Session History
 
-### Session 1 (Current)
+### Session 1
 - Completed Task 2.6, 2.7, 2.8
 - Added DELAYED/BLOCKED stage statuses with color indicators
 - Added DISRUPTED order status
@@ -255,6 +259,27 @@ export async function PATCH(
 - Changed DELAYED color from yellow to orange
 - Implemented full dark theme
 - Fixed text visibility issues in tables
+
+### Session 2 (Continuation)
+- Fixed text visibility across all pages:
+  - Updated factory form inputs with bg-zinc-800, text-zinc-100, placeholder-zinc-500
+  - Updated factories table skeleton to dark theme
+  - Fixed remaining bg-gray colors in orders page progress bar
+  - Updated error messages in orders/new, orders/[id]/edit, and factories/new to dark theme
+  - Fixed expandable notes section in order detail for delayed/blocked stages
+  - Fixed quick set button colors in order detail page
+  - Updated factory table icon backgrounds from bg-blue-50 to bg-blue-900/30
+  - Updated dashboard empty state icon background
+  - Fixed chart tooltip text visibility (added itemStyle with white text color to both bar chart and pie chart tooltips)
+
+### Session 3
+- Implemented drag-and-drop stage reordering using @dnd-kit:
+  - Created `SortableStageItem` component with drag handle (GripVertical icon)
+  - Created `SortableStageList` container with DndContext and sensors
+  - Updated order edit page (`/orders/[id]/edit`) to use sortable stages
+  - Updated new order page (`/orders/new`) to use sortable stages
+  - Supports mouse, touch, and keyboard navigation (Tab, Space, Arrow keys)
+  - Sequence numbers auto-update when stages are reordered
 
 ---
 
