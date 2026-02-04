@@ -143,15 +143,15 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Orders</h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Orders</h1>
+          <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
             Manage and track all your production orders
           </p>
         </div>
-        <Link href="/orders/new">
-          <Button>
+        <Link href="/orders/new" className="sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Order
           </Button>
@@ -159,8 +159,8 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-zinc-300">
+      <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300">
           <Filter className="h-4 w-4" />
           Filters
         </div>
@@ -237,15 +237,15 @@ export default function OrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-zinc-800 rounded-lg border border-zinc-700 shadow-sm">
+      <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm overflow-x-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+          <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">
             <Package className="h-12 w-12 mb-4 text-zinc-600" />
-            <p className="text-lg font-medium text-zinc-300">No orders found</p>
+            <p className="text-lg font-medium text-gray-700 dark:text-zinc-300">No orders found</p>
             <p className="text-sm">
               {hasActiveFilters
                 ? "Try adjusting your filters"
@@ -261,7 +261,8 @@ export default function OrdersPage() {
             )}
           </div>
         ) : (
-          <Table>
+          <div className="min-w-max">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Order #</TableHead>
@@ -278,7 +279,7 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="cursor-pointer hover:bg-zinc-700"
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700/50"
                   onClick={() => router.push(`/orders/${order.id}`)}
                 >
                   <TableCell>
@@ -288,9 +289,9 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium text-zinc-100">{order.productName}</div>
+                      <div className="font-medium text-gray-900 dark:text-zinc-100">{order.productName}</div>
                       {order.productSKU && (
-                        <div className="text-sm text-zinc-400">
+                        <div className="text-sm text-gray-600 dark:text-zinc-400">
                           SKU: {order.productSKU}
                         </div>
                       )}
@@ -298,8 +299,8 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="text-zinc-100">{order.factory.name}</div>
-                      <div className="text-sm text-zinc-400">
+                      <div className="text-gray-900 dark:text-zinc-100">{order.factory.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-zinc-400">
                         {order.factory.location}
                       </div>
                     </div>
@@ -344,19 +345,20 @@ export default function OrdersPage() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-zinc-400">
+                  <TableCell className="text-gray-600 dark:text-zinc-400">
                     {formatDate(order.expectedDate)}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </div>
 
       {/* Summary */}
       {orders.length > 0 && (
-        <div className="text-sm text-zinc-400">
+        <div className="text-sm text-gray-600 dark:text-zinc-400">
           Showing {orders.length} order{orders.length !== 1 ? "s" : ""}
         </div>
       )}

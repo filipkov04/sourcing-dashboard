@@ -213,35 +213,35 @@ export default function FactoryDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+            className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">Back</span>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{factory.name}</h1>
-            <p className="text-gray-600 dark:text-zinc-400 flex items-center mt-1">
-              <MapPin className="h-4 w-4 mr-1" />
-              {factory.location}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">{factory.name}</h1>
+            <p className="text-sm text-gray-600 dark:text-zinc-400 flex items-center mt-1">
+              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{factory.location}</span>
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Button
             variant="outline"
             onClick={handleDeleteClick}
-            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-gray-900 dark:text-white"
+            className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-400 justify-center"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
-          <Link href={`/factories/${factory.id}/edit`}>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+          <Link href={`/factories/${factory.id}/edit`} className="flex-1 sm:flex-initial">
+            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
               <Edit className="mr-2 h-4 w-4" />
               Edit Factory
             </Button>
@@ -397,7 +397,7 @@ export default function FactoryDetailPage() {
                     <tr
                       key={order.id}
                       onClick={() => router.push(`/orders/${order.id}`)}
-                      className="border-b border-gray-200 dark:border-zinc-700/50 hover:bg-gray-100 dark:bg-zinc-700/30 cursor-pointer transition-colors"
+                      className="border-b border-gray-200 dark:border-zinc-700/50 hover:bg-gray-50 dark:hover:bg-zinc-700/30 cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
                         {order.orderNumber}

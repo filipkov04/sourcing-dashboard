@@ -41,25 +41,42 @@ const navigation = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div
-      className={cn(
-        "flex h-screen flex-col border-r border-zinc-700 bg-zinc-800 transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onMobileClose}
+        />
       )}
-    >
+
+      {/* Sidebar */}
+      <div
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-800",
+          collapsed ? "w-16" : "w-64",
+          // Mobile: hide by default, show when mobileOpen
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-zinc-700 px-4">
+      <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-zinc-700">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <Factory className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-semibold text-white">SourceTrack</span>
+            <span className="text-lg font-semibold text-gray-900 dark:text-white">SourceTrack</span>
           </Link>
         )}
         {collapsed && (
@@ -79,11 +96,12 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => onMobileClose?.()}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-blue-600 text-white"
-                  : "text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
               )}
               title={collapsed ? item.name : undefined}
             >
@@ -95,10 +113,10 @@ export function Sidebar() {
       </nav>
 
       {/* Collapse Toggle */}
-      <div className="border-t border-zinc-700 p-4">
+      <div className="border-t border-gray-200 p-4 dark:border-zinc-700">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+          className="flex w-full items-center justify-center rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-white"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronLeft
@@ -110,5 +128,6 @@ export function Sidebar() {
         </button>
       </div>
     </div>
+    </>
   );
 }

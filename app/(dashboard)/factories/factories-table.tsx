@@ -82,14 +82,14 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
   // Empty state - no factories at all
   if (factories.length === 0) {
     return (
-      <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-12 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
-          <Package className="h-8 w-8 text-blue-600" />
+      <div className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-12 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30">
+          <Package className="h-8 w-8 text-blue-600 dark:text-blue-400" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-white">
+        <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
           No factories yet
         </h3>
-        <p className="mt-2 text-sm text-zinc-400">
+        <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
           Get started by adding your first manufacturing partner
         </p>
         <Link
@@ -107,20 +107,20 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
     <div className="space-y-4">
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-zinc-500" />
         <input
           type="text"
           placeholder="Search factories by name, location, or contact..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-zinc-600 bg-zinc-800 py-2 pl-10 pr-4 text-sm text-zinc-100 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
       </div>
 
       {/* No results after search */}
       {filteredFactories.length === 0 && searchQuery && (
-        <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-8 text-center">
-          <p className="text-sm text-zinc-400">
+        <div className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-8 text-center">
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
             No factories found matching "{searchQuery}"
           </p>
         </div>
@@ -128,33 +128,33 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
       {/* Factories Table */}
       {filteredFactories.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-800">
-          <table className="min-w-full divide-y divide-zinc-700">
-            <thead className="bg-zinc-700">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+            <thead className="bg-gray-50 dark:bg-zinc-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Factory Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Location
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Orders
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-700 bg-zinc-800">
+            <tbody className="divide-y divide-gray-200 dark:divide-zinc-700 bg-white dark:bg-zinc-800">
               {filteredFactories.map((factory) => (
                 <tr
                   key={factory.id}
                   onClick={() => router.push(`/factories/${factory.id}`)}
-                  className="hover:bg-zinc-700/50 cursor-pointer transition-colors"
+                  className="hover:bg-gray-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-colors"
                 >
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center">
@@ -164,7 +164,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                       <div className="ml-4">
                         <Link
                           href={`/factories/${factory.id}`}
-                          className="text-sm font-medium text-white hover:text-blue-600"
+                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600"
                         >
                           {factory.name}
                         </Link>
@@ -172,23 +172,23 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-zinc-400">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-400">
                       <MapPin className="h-4 w-4" />
                       {factory.location}
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
                     {factory.contactName ? (
-                      <div className="flex items-center gap-2 text-sm text-white">
-                        <User className="h-4 w-4 text-zinc-500" />
+                      <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                        <User className="h-4 w-4 text-gray-500 dark:text-zinc-500" />
                         {factory.contactName}
                       </div>
                     ) : (
-                      <span className="text-sm text-zinc-500">No contact</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">No contact</span>
                     )}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
-                    <span className="inline-flex items-center rounded-full bg-zinc-700 px-2.5 py-0.5 text-xs font-medium text-zinc-200">
+                    <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-zinc-700 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-zinc-300">
                       {factory._count.orders} {factory._count.orders === 1 ? "order" : "orders"}
                     </span>
                   </td>
@@ -197,13 +197,13 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                       <Link
                         href={`/factories/${factory.id}/edit`}
                         onClick={(e) => e.stopPropagation()}
-                        className="rounded p-1 text-zinc-500 hover:bg-zinc-700 hover:text-blue-600"
+                        className="rounded p-1 text-gray-500 dark:text-zinc-500 hover:bg-gray-50 dark:bg-zinc-700 hover:text-blue-600"
                         title="Edit factory"
                       >
                         <Pencil className="h-4 w-4" />
                       </Link>
                       <button
-                        className="rounded p-1 text-zinc-500 hover:bg-zinc-700 hover:text-red-600"
+                        className="rounded p-1 text-gray-500 dark:text-zinc-500 hover:bg-gray-50 dark:bg-zinc-700 hover:text-red-600"
                         title="Delete factory"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -223,7 +223,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
       {/* Results count */}
       {filteredFactories.length > 0 && (
-        <div className="text-sm text-zinc-400">
+        <div className="text-sm text-gray-600 dark:text-zinc-400">
           Showing {filteredFactories.length} of {factories.length}{" "}
           {factories.length === 1 ? "factory" : "factories"}
         </div>
@@ -231,12 +231,12 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-zinc-800 border-zinc-700">
+        <DialogContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Delete Factory</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogTitle className="text-gray-900 dark:text-white">Delete Factory</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-zinc-400">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {factoryToDelete?.name}
               </span>
               ? This action cannot be undone.
@@ -254,7 +254,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
               variant="outline"
               onClick={handleDeleteCancel}
               disabled={isDeleting}
-              className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+              className="border-gray-300 dark:border-zinc-600 text-zinc-300 hover:bg-gray-50 dark:bg-zinc-700"
             >
               Cancel
             </Button>

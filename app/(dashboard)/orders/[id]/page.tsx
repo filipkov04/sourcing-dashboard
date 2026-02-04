@@ -195,7 +195,7 @@ export default function OrderDetailPage() {
       case "BLOCKED":
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <Circle className="h-5 w-5 text-zinc-600" />;
+        return <Circle className="h-5 w-5 text-gray-400 dark:text-zinc-600" />;
     }
   };
 
@@ -337,8 +337,8 @@ export default function OrderDetailPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
-          <Package className="h-12 w-12 mb-4 text-zinc-600" />
+        <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">
+          <Package className="h-12 w-12 mb-4 text-gray-400 dark:text-zinc-600" />
           <p className="text-lg font-medium">{error || "Order not found"}</p>
           <Link href="/orders" className="mt-4">
             <Button>View All Orders</Button>
@@ -375,7 +375,7 @@ export default function OrderDetailPage() {
             <Button variant="ghost" size="sm" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {order.orderNumber}
             </h1>
             <Badge className={statusColors[order.status]}>
@@ -385,7 +385,7 @@ export default function OrderDetailPage() {
               {order.priority}
             </Badge>
           </div>
-          <p className="text-zinc-400 ml-10">{order.productName}</p>
+          <p className="text-gray-600 dark:text-zinc-400 ml-10">{order.productName}</p>
         </div>
         <Link href={`/orders/${order.id}/edit`}>
           <Button>
@@ -403,7 +403,7 @@ export default function OrderDetailPage() {
         <CardContent>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-400">
+              <span className="text-gray-600 dark:text-zinc-400">
                 {order.overallProgress}% Complete
               </span>
               <span
@@ -422,7 +422,7 @@ export default function OrderDetailPage() {
                   : `${daysUntilDue} days remaining`}
               </span>
             </div>
-            <div className="w-full h-3 bg-zinc-600 rounded-full overflow-hidden">
+            <div className="w-full h-3 bg-gray-200 dark:bg-zinc-600 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${getOverallProgressColor()}`}
                 style={{ width: `${order.overallProgress}%` }}
@@ -460,23 +460,23 @@ export default function OrderDetailPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-zinc-400">Product Name</p>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Product Name</p>
                 <p className="font-medium">{order.productName}</p>
               </div>
               {order.productSKU && (
                 <div>
-                  <p className="text-sm text-zinc-400">SKU</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">SKU</p>
                   <p className="font-medium">{order.productSKU}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-zinc-400">Quantity</p>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Quantity</p>
                 <p className="font-medium">
                   {order.quantity.toLocaleString()} {order.unit}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-zinc-400">Order Number</p>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Order Number</p>
                 <p className="font-medium">{order.orderNumber}</p>
               </div>
             </div>
@@ -485,16 +485,16 @@ export default function OrderDetailPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-start gap-2">
-                <Calendar className="h-4 w-4 mt-0.5 text-zinc-500" />
+                <Calendar className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                 <div>
-                  <p className="text-sm text-zinc-400">Order Date</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Order Date</p>
                   <p className="font-medium">{formatDate(order.orderDate)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <Clock className="h-4 w-4 mt-0.5 text-zinc-500" />
+                <Clock className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                 <div>
-                  <p className="text-sm text-zinc-400">Expected Date</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Expected Date</p>
                   <p className="font-medium">{formatDate(order.expectedDate)}</p>
                 </div>
               </div>
@@ -502,7 +502,7 @@ export default function OrderDetailPage() {
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 mt-0.5 text-green-500" />
                   <div>
-                    <p className="text-sm text-zinc-400">Actual Completion</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">Actual Completion</p>
                     <p className="font-medium">{formatDate(order.actualDate)}</p>
                   </div>
                 </div>
@@ -513,9 +513,9 @@ export default function OrderDetailPage() {
               <>
                 <hr className="my-4" />
                 <div className="flex items-start gap-2">
-                  <Tag className="h-4 w-4 mt-0.5 text-zinc-500" />
+                  <Tag className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                   <div>
-                    <p className="text-sm text-zinc-400 mb-2">Tags</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Tags</p>
                     <div className="flex flex-wrap gap-2">
                       {order.tags.map((tag, index) => (
                         <Badge key={index} variant="outline">
@@ -532,10 +532,10 @@ export default function OrderDetailPage() {
               <>
                 <hr className="my-4" />
                 <div className="flex items-start gap-2">
-                  <FileText className="h-4 w-4 mt-0.5 text-zinc-500" />
+                  <FileText className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                   <div>
-                    <p className="text-sm text-zinc-400">Notes</p>
-                    <p className="mt-1 text-zinc-300 whitespace-pre-wrap">
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">Notes</p>
+                    <p className="mt-1 text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                       {order.notes}
                     </p>
                   </div>
@@ -561,7 +561,7 @@ export default function OrderDetailPage() {
               >
                 {order.factory.name}
               </Link>
-              <div className="flex items-center gap-1 text-sm text-zinc-400 mt-1">
+              <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-zinc-400 mt-1">
                 <MapPin className="h-4 w-4" />
                 {order.factory.location}
               </div>
@@ -569,7 +569,7 @@ export default function OrderDetailPage() {
 
             {order.factory.address && (
               <div>
-                <p className="text-sm text-zinc-400">Address</p>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Address</p>
                 <p className="text-sm">{order.factory.address}</p>
               </div>
             )}
@@ -580,16 +580,16 @@ export default function OrderDetailPage() {
               <>
                 <hr />
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-zinc-300">Contact</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-zinc-300">Contact</p>
                   {order.factory.contactName && (
                     <div className="flex items-center gap-2 text-sm">
-                      <User className="h-4 w-4 text-zinc-500" />
+                      <User className="h-4 w-4 text-gray-500 dark:text-zinc-500" />
                       {order.factory.contactName}
                     </div>
                   )}
                   {order.factory.contactEmail && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-zinc-500" />
+                      <Mail className="h-4 w-4 text-gray-500 dark:text-zinc-500" />
                       <a
                         href={`mailto:${order.factory.contactEmail}`}
                         className="text-blue-600 hover:underline"
@@ -600,7 +600,7 @@ export default function OrderDetailPage() {
                   )}
                   {order.factory.contactPhone && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-zinc-500" />
+                      <Phone className="h-4 w-4 text-gray-500 dark:text-zinc-500" />
                       <a
                         href={`tel:${order.factory.contactPhone}`}
                         className="text-blue-600 hover:underline"
@@ -630,7 +630,7 @@ export default function OrderDetailPage() {
               {order.stages.map((stage, index) => (
                 <div
                   key={stage.id}
-                  className="flex items-start gap-4 p-4 rounded-lg border bg-zinc-800"
+                  className="flex items-start gap-4 p-4 rounded-lg border bg-white dark:bg-zinc-800"
                 >
                   {/* Stage Icon */}
                   <div className="flex flex-col items-center">
@@ -665,9 +665,9 @@ export default function OrderDetailPage() {
                             className="h-6 px-1"
                           >
                             {expandedStages.has(stage.id) ? (
-                              <ChevronUp className="h-4 w-4 text-zinc-500" />
+                              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-zinc-500" />
                             ) : (
-                              <ChevronDown className="h-4 w-4 text-zinc-500" />
+                              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-zinc-500" />
                             )}
                           </Button>
                         )}
@@ -685,7 +685,7 @@ export default function OrderDetailPage() {
                             className="h-7 w-7 p-0"
                             title="Edit stage (Admin)"
                           >
-                            <Pencil className="h-3.5 w-3.5 text-zinc-500 hover:text-zinc-400" />
+                            <Pencil className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400" />
                           </Button>
                         )}
                       </div>
@@ -693,10 +693,10 @@ export default function OrderDetailPage() {
 
                     {/* Progress Bar or Editor */}
                     {editingStageId === stage.id ? (
-                      <div className="space-y-3 mb-2 p-3 bg-zinc-800 rounded-lg border">
+                      <div className="space-y-3 mb-2 p-3 bg-white dark:bg-zinc-800 rounded-lg border">
                         {/* Status Selector */}
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-zinc-400 w-16">Status:</span>
+                          <span className="text-sm text-gray-600 dark:text-zinc-400 w-16">Status:</span>
                           <Select
                             value={editingStatus}
                             onValueChange={(value) => {
@@ -735,7 +735,7 @@ export default function OrderDetailPage() {
 
                         {/* Progress Slider */}
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-zinc-400 w-16">Progress:</span>
+                          <span className="text-sm text-gray-600 dark:text-zinc-400 w-16">Progress:</span>
                           <input
                             type="range"
                             min="0"
@@ -744,7 +744,7 @@ export default function OrderDetailPage() {
                             onChange={(e) =>
                               setEditingProgress(parseInt(e.target.value))
                             }
-                            className="flex-1 h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                            className="flex-1 h-2 bg-gray-200 dark:bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-600"
                           />
                           <Input
                             type="number"
@@ -758,12 +758,12 @@ export default function OrderDetailPage() {
                             }
                             className="w-16 h-8 text-center text-sm"
                           />
-                          <span className="text-sm text-zinc-400">%</span>
+                          <span className="text-sm text-gray-600 dark:text-zinc-400">%</span>
                         </div>
 
                         {/* Quick buttons */}
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-zinc-400">Quick set:</span>
+                          <span className="text-xs text-gray-600 dark:text-zinc-400">Quick set:</span>
                           {[0, 25, 50, 75, 100].map((val) => (
                             <Button
                               key={val}
@@ -784,7 +784,7 @@ export default function OrderDetailPage() {
 
                         {/* Notes/Reason - especially useful for DELAYED/BLOCKED */}
                         <div className="space-y-1">
-                          <label className="text-sm text-zinc-400">
+                          <label className="text-sm text-gray-600 dark:text-zinc-400">
                             Notes / Reason {(editingStatus === "DELAYED" || editingStatus === "BLOCKED") && (
                               <span className="text-yellow-600">(explain the issue)</span>
                             )}
@@ -835,7 +835,7 @@ export default function OrderDetailPage() {
                       <>
                         {/* Progress Bar */}
                         <div
-                          className="w-full h-2 bg-zinc-600 rounded-full overflow-hidden mb-2 cursor-pointer hover:bg-zinc-500 transition-colors"
+                          className="w-full h-2 bg-gray-200 dark:bg-zinc-600 rounded-full overflow-hidden mb-2 cursor-pointer hover:bg-gray-300 dark:hover:bg-zinc-500 transition-colors"
                           onClick={() => startEditingStage(stage)}
                           title="Click to edit progress"
                         >
@@ -873,7 +873,7 @@ export default function OrderDetailPage() {
                               {stage.status === "BLOCKED" && (
                                 <XCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                               )}
-                              <p className="text-zinc-300 whitespace-pre-wrap">
+                              <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                                 {stage.notes}
                               </p>
                             </div>
@@ -902,7 +902,7 @@ export default function OrderDetailPage() {
                         {stage.status !== "COMPLETED" &&
                           stage.status !== "BLOCKED" && (
                             <div className="flex items-center gap-1 mb-2">
-                              <span className="text-xs text-zinc-500 mr-1">
+                              <span className="text-xs text-gray-500 dark:text-zinc-500 mr-1">
                                 Quick update:
                               </span>
                               {stage.progress < 100 && (
@@ -938,7 +938,7 @@ export default function OrderDetailPage() {
                     )}
 
                     {/* Stage Dates */}
-                    <div className="flex items-center gap-4 text-xs text-zinc-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-zinc-400">
                       {stage.startedAt && (
                         <span>Started: {formatDateTime(stage.startedAt)}</span>
                       )}
@@ -951,7 +951,7 @@ export default function OrderDetailPage() {
 
                     {/* Stage Notes */}
                     {stage.notes && (
-                      <p className="mt-2 text-sm text-zinc-400">{stage.notes}</p>
+                      <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">{stage.notes}</p>
                     )}
                   </div>
                 </div>
@@ -962,7 +962,7 @@ export default function OrderDetailPage() {
       )}
 
       {/* Metadata */}
-      <div className="text-xs text-zinc-500 flex items-center gap-4">
+      <div className="text-xs text-gray-500 dark:text-zinc-500 flex items-center gap-4">
         <span>Created: {formatDateTime(order.createdAt)}</span>
         <span>Last updated: {formatDateTime(order.updatedAt)}</span>
       </div>

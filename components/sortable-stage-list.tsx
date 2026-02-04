@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -38,6 +39,12 @@ export function SortableStageList<T extends BaseStage>({
   onRemove,
   isLoading,
 }: SortableStageListProps<T>) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -60,6 +67,25 @@ export function SortableStageList<T extends BaseStage>({
 
       onReorder(withUpdatedSequence);
     }
+  }
+
+  // Render without DnD on server side to prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="space-y-4">
+        {stages.map((stage, index) => (
+          <SortableStageItem
+            key={stage.id}
+            stage={stage}
+            index={index}
+            onNameChange={onNameChange}
+            onRemove={onRemove}
+            canRemove={stages.length > 1}
+            isLoading={isLoading}
+          />
+        ))}
+      </div>
+    );
   }
 
   return (

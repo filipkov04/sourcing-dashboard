@@ -1,20 +1,26 @@
+"use client";
+
+import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { PageTransition } from "@/components/page-transition";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-900">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-zinc-900">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <Header />
+        <Header onMenuClick={() => setMobileMenuOpen(true)} />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
+        <main className="flex-1 overflow-y-auto">
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     </div>

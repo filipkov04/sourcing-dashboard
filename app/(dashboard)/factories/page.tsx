@@ -17,19 +17,19 @@ export default async function FactoriesPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Factories</h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Factories</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
             Manage your manufacturing partners and suppliers
           </p>
         </div>
         <Link
           href="/factories/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          Add Factory
+          <span>Add Factory</span>
         </Link>
       </div>
 

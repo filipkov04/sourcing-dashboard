@@ -1,51 +1,54 @@
-import { prisma } from "@/lib/db";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
+import { useEffect, useState } from "react";
 import { OrdersByStatusChart } from "./orders-by-status-chart";
 import type { OrdersByStatusData } from "@/lib/types";
 
-const STATUS_CONFIG = {
-  PENDING: { color: "#fbbf24", label: "Pending" },
-  IN_PROGRESS: { color: "#3b82f6", label: "In Progress" },
-  DELAYED: { color: "#f97316", label: "Delayed" },
-  DISRUPTED: { color: "#ef4444", label: "Disrupted" },
-  COMPLETED: { color: "#10b981", label: "Completed" },
-  SHIPPED: { color: "#8b5cf6", label: "Shipped" },
-  DELIVERED: { color: "#6b7280", label: "Delivered" },
-  CANCELLED: { color: "#9ca3af", label: "Cancelled" },
-} as const;
+export function OrdersByStatusSection() {
+  const [statusData, setStatusData] = useState<OrdersByStatusData>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-function processStatusData(
-  data: { status: string; _count: { _all: number } }[]
-): OrdersByStatusData {
-  return data.map((item) => ({
-    name:
-      STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG]?.label ||
-      item.status,
-    value: item._count._all,
-    color:
-      STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG]?.color ||
-      "#9ca3af",
-  }));
-}
-
-export async function OrdersByStatusSection({ organizationId }: { organizationId: string }) {
-  const ordersByStatus = await prisma.order.groupBy({
-    by: ["status"],
-    where: { organizationId },
-    _count: { _all: true },
-  });
-
-  const chartData = processStatusData(ordersByStatus);
+  useEffect(() => {
+    async function fetchStatusBreakdown() {
+      try {
+        const response = await fetch("/api/dashboard/status-breakdown");
+        const data = await response.json();
+        if (data.success) {
+          // Transform API data to match chart format
+          const chartData = data.data.map((item: any) => ({
+            name: item.status,
+            value: item.count,
+            color: item.color,
+            percentage: item.percentage,
+          }));
+          setStatusData(chartData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch status breakdown:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchStatusBreakdown();
+  }, []);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Orders by Status</CardTitle>
-        <CardDescription>Current breakdown</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <OrdersByStatusChart data={chartData} />
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-zinc-800 dark:border-zinc-700">
+      <div className="mb-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">Orders by Status</h3>
+        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Current breakdown</p>
+      </div>
+      {isLoading ? (
+        <div className="h-[240px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        </div>
+      ) : statusData.length > 0 ? (
+        <OrdersByStatusChart data={statusData} />
+      ) : (
+        <div className="h-[240px] flex items-center justify-center text-gray-500 dark:text-zinc-400">
+          No order status data available
+        </div>
+      )}
+    </div>
   );
 }

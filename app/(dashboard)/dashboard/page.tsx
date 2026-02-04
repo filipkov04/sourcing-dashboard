@@ -1,14 +1,8 @@
-import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { DashboardStatsCards } from "./_components/dashboard-stats-cards";
-import { DashboardStatsSkeleton } from "./_components/dashboard-stats-skeleton";
-import { OrdersOverTimeSection } from "./_components/orders-over-time-section";
-import { OrdersOverTimeSkeleton } from "./_components/orders-over-time-skeleton";
+import { OrdersTrendSection } from "./_components/orders-trend-section";
 import { OrdersByStatusSection } from "./_components/orders-by-status-section";
-import { OrdersByStatusSkeleton } from "./_components/orders-by-status-skeleton";
-import { DashboardEmptyState } from "./_components/dashboard-empty-state";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -17,58 +11,31 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const organizationId = session.user.organizationId;
-
-  // Check if user has any orders
-  const totalOrders = await prisma.order.count({
-    where: { organizationId },
-  });
-
-  // Show empty state if no orders
-  if (totalOrders === 0) {
-    return (
-      <>
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Dashboard
-          </h1>
-          <p className="mt-1 text-zinc-400">
-            Welcome back, {session.user.name || session.user.email}
-          </p>
-        </div>
-        <DashboardEmptyState />
-      </>
-    );
-  }
-
   return (
-    <>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 dark:bg-zinc-900">
+      {/* Page Header */}
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           Dashboard
         </h1>
-        <p className="mt-1 text-zinc-400">
+        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
           Welcome back, {session.user.name || session.user.email}
         </p>
       </div>
 
-      {/* Stats Cards Grid */}
-      <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Suspense fallback={<DashboardStatsSkeleton />}>
-          <DashboardStatsCards organizationId={organizationId} />
-        </Suspense>
+      {/* Stats Cards Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <DashboardStatsCards />
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Suspense fallback={<OrdersOverTimeSkeleton />}>
-          <OrdersOverTimeSection organizationId={organizationId} />
-        </Suspense>
+      <div className="grid gap-4 sm:gap-6">
+        {/* Full width trend chart */}
+        <OrdersTrendSection />
 
-        <Suspense fallback={<OrdersByStatusSkeleton />}>
-          <OrdersByStatusSection organizationId={organizationId} />
-        </Suspense>
+        {/* Status breakdown chart */}
+        <OrdersByStatusSection />
       </div>
-    </>
+    </div>
   );
 }

@@ -1,17 +1,18 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 export function OrdersByStatusSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <div className="h-5 w-32 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
-        <div className="mt-1 h-4 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
-      </CardHeader>
-      <CardContent>
-        <div className="flex h-[350px] w-full items-center justify-center">
-          <div className="h-48 w-48 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800" />
-        </div>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="mb-6">
+        <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="mt-1 h-4 w-28 animate-pulse rounded bg-gray-200" />
+      </div>
+      <div className="space-y-3">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="space-y-1.5">
+            <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+            <div className="h-8 w-full animate-pulse rounded-full bg-gray-100" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

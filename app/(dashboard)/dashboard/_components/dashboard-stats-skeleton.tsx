@@ -1,19 +1,20 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 export function DashboardStatsSkeleton() {
   return (
     <>
       {[...Array(4)].map((_, i) => (
-        <Card key={i}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
-            <div className="h-4 w-4 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
-          </CardHeader>
-          <CardContent>
-            <div className="h-8 w-16 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700 mb-2" />
-            <div className="h-3 w-32 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
-          </CardContent>
-        </Card>
+        <div
+          key={i}
+          className="bg-white rounded-xl border border-gray-200 p-4"
+          style={{ minHeight: "110px" }}
+        >
+          <div className="flex items-start justify-between">
+            <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+            <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+          </div>
+          <div className="mt-3">
+            <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
+          </div>
+        </div>
       ))}
     </>
   );
