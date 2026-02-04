@@ -77,9 +77,9 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 2.1 | Factory Detail Page | Filip | Build page showing one factory's full information and all its orders | Page at /factories/[id] showing factory details and order list | 3h | ⏳ |
-| 2.2 | Factory Edit Form | Filip | Build form to edit existing factory information | Page at /factories/[id]/edit with pre-filled form | 2h | ⏳ |
-| 2.3 | Factory Delete | Filip | Add ability to delete factory with confirmation dialog | Delete button with "Are you sure?" confirmation | 1h | ⏳ |
+| 2.1 | Factory Detail Page | Filip | Build page showing one factory's full information and all its orders | Page at /factories/[id] showing factory details and order list | 3h | ✅ |
+| 2.2 | Factory Edit Form | Filip | Build form to edit existing factory information | Page at /factories/[id]/edit with pre-filled form | 2h | ✅ |
+| 2.3 | Factory Delete | Filip | Add ability to delete factory with confirmation dialog | Delete button with "Are you sure?" confirmation | 1h | ✅ |
 | 2.4 | Factory Search/Filter | Filip | Improve factory list with better search and filters | Enhanced search that works on name, location, contact | 2h | ⏳ |
 | 2.5 | Factory PR Week 2 | Filip | Package week 2 factory work for review | Pull request with all factory improvements | 30min | ⏳ |
 

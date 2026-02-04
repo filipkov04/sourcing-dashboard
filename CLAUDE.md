@@ -158,7 +158,10 @@ When status changes to COMPLETED → progress auto-sets to 100%
 - [x] 2.7 Order Edit Form
 - [x] 2.8 Stage Progress Update (slider, status, notes - admin only)
 - [ ] 2.9 Order Timeline (showing history of changes)
-- [ ] 2.1-2.5 Factory detail/edit/delete (Filip's tasks)
+- [x] 2.1 Factory Detail Page (full info, orders list, clickable rows)
+- [x] 2.2 Factory Edit Form (pre-filled form, validation, dark theme)
+- [x] 2.3 Factory Delete (confirmation dialog, prevents deletion with orders)
+- [ ] 2.4-2.5 Factory search/filter (Filip's remaining tasks)
 
 ### Additional Implementations
 - [x] Dark theme throughout the app
@@ -280,6 +283,38 @@ export async function PATCH(
   - Updated new order page (`/orders/new`) to use sortable stages
   - Supports mouse, touch, and keyboard navigation (Tab, Space, Arrow keys)
   - Sequence numbers auto-update when stages are reordered
+
+### Session 4
+- Completed Task 2.1: Factory Detail Page
+  - Created API endpoint `/api/factories/[id]/route.ts` (GET factory with orders)
+  - Created factory detail page at `/app/(dashboard)/factories/[id]/page.tsx`
+  - Displays factory information (name, location, address, contact details)
+  - Shows all orders from the factory in a table with status, priority, and progress
+  - Clickable order rows navigate to order detail page
+  - Added edit button linking to factory edit form (Task 2.2)
+  - Updated factories list table to make entire rows clickable
+  - Removed redundant "View" button from factories table actions
+  - Updated factory icon background to dark theme (`bg-blue-900/30`)
+
+- Completed Task 2.2: Factory Edit Form
+  - Added PATCH endpoint to `/api/factories/[id]/route.ts` for updating factories
+  - Created factory edit page at `/app/(dashboard)/factories/[id]/edit/page.tsx`
+  - Form pre-fills with existing factory data
+  - Updates all factory fields (name, location, address, contact info)
+  - Includes validation and error handling
+  - Full dark theme styling consistent with app design
+  - Redirects to factory detail page after successful update
+  - DELETE endpoint automatically added by linter (will be used for Task 2.3)
+
+- Completed Task 2.3: Factory Delete
+  - Added DELETE endpoint to `/api/factories/[id]/route.ts`
+  - Prevents deletion if factory has existing orders (shows helpful error message)
+  - Added delete confirmation dialog in factories table
+  - Added delete button with confirmation dialog in factory detail page
+  - Shows loading state during deletion
+  - Error handling with user-friendly messages
+  - Redirects to factories list after successful deletion from detail page
+  - Refreshes list after deletion from table
 
 ---
 

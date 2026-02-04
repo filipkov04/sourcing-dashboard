@@ -1,8 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, MapPin, User, Package, Eye, Pencil, Trash2 } from "lucide-react";
+import { Search, MapPin, User, Package, Eye, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import type { FactoryListItem } from "@/lib/types";
 
 interface FactoriesTableProps {
@@ -10,7 +20,54 @@ interface FactoriesTableProps {
 }
 
 export function FactoriesTable({ factories }: FactoriesTableProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [factoryToDelete, setFactoryToDelete] = useState<FactoryListItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeleteClick = (factory: FactoryListItem) => {
+    setFactoryToDelete(factory);
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!factoryToDelete) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const response = await fetch(`/api/factories/${factoryToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setDeleteError(data.error || "Failed to delete factory");
+        setIsDeleting(false);
+        return;
+      }
+
+      // Success - close dialog and refresh
+      setDeleteDialogOpen(false);
+      setIsDeleting(false);
+      setFactoryToDelete(null);
+      router.refresh();
+    } catch (err) {
+      setDeleteError("Failed to delete factory");
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setFactoryToDelete(null);
+    setDeleteError(null);
+  };
 
   // Client-side search filtering
   const filteredFactories = factories.filter((factory) => {
@@ -94,11 +151,15 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
             </thead>
             <tbody className="divide-y divide-zinc-700 bg-zinc-800">
               {filteredFactories.map((factory) => (
-                <tr key={factory.id} className="hover:bg-zinc-700">
+                <tr
+                  key={factory.id}
+                  onClick={() => router.push(`/factories/${factory.id}`)}
+                  className="hover:bg-zinc-700/50 cursor-pointer transition-colors"
+                >
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                        <Package className="h-5 w-5 text-blue-600" />
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-900/30">
+                        <Package className="h-5 w-5 text-blue-400" />
                       </div>
                       <div className="ml-4">
                         <Link
@@ -134,14 +195,8 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                   <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
                       <Link
-                        href={`/factories/${factory.id}`}
-                        className="rounded p-1 text-zinc-500 hover:bg-zinc-700 hover:text-blue-600"
-                        title="View factory"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                      <Link
                         href={`/factories/${factory.id}/edit`}
+                        onClick={(e) => e.stopPropagation()}
                         className="rounded p-1 text-zinc-500 hover:bg-zinc-700 hover:text-blue-600"
                         title="Edit factory"
                       >
@@ -150,9 +205,9 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                       <button
                         className="rounded p-1 text-zinc-500 hover:bg-zinc-700 hover:text-red-600"
                         title="Delete factory"
-                        onClick={() => {
-                          // TODO: Implement delete in future task
-                          alert("Delete functionality coming soon!");
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(factory);
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -173,6 +228,57 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
           {factories.length === 1 ? "factory" : "factories"}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-zinc-800 border-zinc-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Delete Factory</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-white">
+                {factoryToDelete?.name}
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteError && (
+            <div className="rounded-lg bg-red-900/20 border border-red-800 p-3">
+              <p className="text-sm text-red-400">{deleteError}</p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleDeleteCancel}
+              disabled={isDeleting}
+              className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Factory
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
