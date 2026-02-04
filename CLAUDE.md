@@ -2,26 +2,29 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 4, 2026 - Session 4
+**Last Updated:** February 4, 2026 - Session 5
 
 **Current Week:** Week 2 of 8
 
-**Completed Today (Session 4):**
-- ✅ Task 2.1: Factory Detail Page
-- ✅ Task 2.2: Factory Edit Form (completed in parallel window)
-- ✅ Task 2.3: Factory Delete with confirmation
-- ✅ Task 2.4: Factory Search/Filter with advanced options
-- ✅ Added page transition animations (slide effect)
-- ✅ Added smart loading screen (logo + progress bar)
+**Completed Today (Session 5):**
+- ✅ Redesigned dashboard charts (modern analytics style)
+- ✅ Implemented complete dark/light/system mode
+- ✅ Fixed light mode visibility issues (white text on white background)
+- ✅ Connected dashboard to real database data via API endpoints
+- ✅ Fixed hydration errors
+- ✅ Created 3 dashboard API endpoints (stats, trends, status-breakdown)
+- ✅ Updated all dashboard components with loading states
+- ✅ Committed and pushed to GitHub (92492b2)
 
-**Next Task:** Task 2.5 - Create Pull Request for Week 2 Factory Work
+**Next Task:** Task 2.5 - Create Pull Request for Week 2 Factory Work OR Task 2.9 - Order Timeline
 
 **How to Continue:**
-When starting next session, say: "Continue with Task 2.5" or "Start where we left off"
+When starting next session, say: "Start where we left off according to CLAUDE.md"
 
 **Week 2 Progress:**
 - Filip's Tasks: 4/5 complete (2.1, 2.2, 2.3, 2.4 ✅ | 2.5 ⏳)
 - Marco's Tasks: 3/4 complete (2.6, 2.7, 2.8 ✅ | 2.9 ⏳)
+- Dashboard: Real data connected ✅
 
 ---
 
@@ -197,6 +200,9 @@ When status changes to COMPLETED → progress auto-sets to 100%
 - [x] Order summary bar chart on dashboard (Total, Pending, In Progress, Delayed, Disrupted)
 - [x] DELAYED color changed from yellow to orange for distinction
 - [x] Drag-and-drop stage reordering in order forms (new & edit)
+- [x] Dark/light/system mode with theme toggle
+- [x] Dashboard connected to real database data
+- [x] Page transition animations with smart loading
 
 ---
 
@@ -260,7 +266,6 @@ export async function PATCH(
 
 ## Known Issues / TODOs
 
-- [ ] Table text needs explicit colors for dark theme visibility
 - [ ] Production stages styling was changed - may need review
 - [ ] Role-based access control (Week 5)
 - [ ] Email notifications (Week 5)
