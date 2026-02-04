@@ -1,5 +1,30 @@
 # SourceTrack - Sourcing Dashboard
 
+## 🎯 Current Status & Next Steps
+
+**Last Updated:** February 4, 2026 - Session 4
+
+**Current Week:** Week 2 of 8
+
+**Completed Today (Session 4):**
+- ✅ Task 2.1: Factory Detail Page
+- ✅ Task 2.2: Factory Edit Form (completed in parallel window)
+- ✅ Task 2.3: Factory Delete with confirmation
+- ✅ Task 2.4: Factory Search/Filter with advanced options
+- ✅ Added page transition animations (slide effect)
+- ✅ Added smart loading screen (logo + progress bar)
+
+**Next Task:** Task 2.5 - Create Pull Request for Week 2 Factory Work
+
+**How to Continue:**
+When starting next session, say: "Continue with Task 2.5" or "Start where we left off"
+
+**Week 2 Progress:**
+- Filip's Tasks: 4/5 complete (2.1, 2.2, 2.3, 2.4 ✅ | 2.5 ⏳)
+- Marco's Tasks: 3/4 complete (2.6, 2.7, 2.8 ✅ | 2.9 ⏳)
+
+---
+
 ## Project Overview
 
 A web dashboard for fashion/manufacturing brands to track real-time production status from all their factories without sending emails. Think Shopify for production tracking.
@@ -161,7 +186,8 @@ When status changes to COMPLETED → progress auto-sets to 100%
 - [x] 2.1 Factory Detail Page (full info, orders list, clickable rows)
 - [x] 2.2 Factory Edit Form (pre-filled form, validation, dark theme)
 - [x] 2.3 Factory Delete (confirmation dialog, prevents deletion with orders)
-- [ ] 2.4-2.5 Factory search/filter (Filip's remaining tasks)
+- [x] 2.4 Factory Search/Filter (advanced filters, sorting, clear button)
+- [ ] 2.5 Factory PR Week 2 (Filip's remaining task)
 
 ### Additional Implementations
 - [x] Dark theme throughout the app
@@ -316,6 +342,150 @@ export async function PATCH(
   - Redirects to factories list after successful deletion from detail page
   - Refreshes list after deletion from table
 
+- Completed Task 2.4: Factory Search/Filter
+  - Enhanced search to include email in search queries
+  - Added order count filter (All, No Orders, Has Orders, 5+ Orders)
+  - Added sorting options (Name A-Z/Z-A, Most/Least Orders, Newest/Oldest)
+  - Clear search button (X icon) in search input
+  - "Clear All" button when filters are active
+  - Active filters indicator showing applied filters as badges
+  - Improved UX with visual feedback for active filters
+  - Responsive design with proper mobile layout
+
+- Added Page Transition Animations
+  - Installed framer-motion for smooth animations
+  - Created PageTransition component with slide effect
+  - Created PageLoader component with logo and progress bar
+  - Smart loading: Only shows loader if page takes > 200ms to load
+  - Fast navigation shows slide transition only
+  - Slow navigation shows loading screen with logo
+  - Improved overall user experience with smooth animations
+
+### Session 5 (Current)
+- Redesigned Dashboard Charts (Modern Analytics Style)
+  - Updated stats cards to clean white background with dark mode support
+  - Created stacked area chart for order trends (last 12 weeks)
+  - Created horizontal bar chart for orders by status breakdown
+  - Applied Stripe/Shopify-inspired clean design system
+  - All charts use mock data initially (later connected to real data)
+
+- Implemented Complete Dark/Light Mode System
+  - Created `ThemeProvider` with React Context for theme management
+  - Supports 3 modes: Light, Dark, System (follows device preference)
+  - Theme persists to localStorage
+  - System mode updates live when device theme changes
+  - Created `ThemeToggle` dropdown component (Sun/Moon/Monitor icons)
+  - Added to header for easy access
+  - Updated `app/layout.tsx` with suppressHydrationWarning for proper SSR
+
+- Fixed Light Mode Visibility Issues
+  - **Root cause**: `app/globals.css` :root selector had dark theme colors
+  - Fixed CSS variables for light mode:
+    - --background: dark → white `oklch(1 0 0)`
+    - --foreground: white → dark `oklch(0.09 0 0)`
+    - --popover: dark → white
+    - --popover-foreground: white → dark
+    - --muted-foreground: adjusted for better contrast
+  - Fixed white text on white background in Select dropdowns
+  - Updated 160+ color classes across factories and orders pages
+  - Applied pattern: `text-gray-900 dark:text-white`, `bg-white dark:bg-zinc-800`
+  - Used sed commands for batch replacements across 4 page files
+  - Fixed `factories-table.tsx` component individually
+  - All components now support both themes properly
+
+- Connected Dashboard to Real Database Data
+  - **Created 3 new API endpoints:**
+    - `/api/dashboard/stats` - Returns aggregated statistics
+      - Total orders, active orders, completed orders
+      - Delayed orders, disrupted orders
+      - Average progress across all orders
+      - Trend calculations (last 30 days vs previous 30 days)
+    - `/api/dashboard/trends` - Returns order trends over time
+      - Groups orders by week for last 12 weeks
+      - Breaks down by status (Pending, In Progress, Completed, Delayed, Disrupted)
+      - Formats data for area chart visualization
+    - `/api/dashboard/status-breakdown` - Returns orders by status
+      - Uses Prisma groupBy for efficient aggregation
+      - Calculates count and percentage for each status
+      - Includes color mapping for chart visualization
+
+  - **Updated Frontend Components:**
+    - `dashboard-stats-cards.tsx`: Fetches real stats, shows loading skeleton, displays trends
+    - `orders-trend-section.tsx`: Fetches 12-week trend data with loading state
+    - `orders-by-status-section.tsx`: Fetches status breakdown with loading state
+    - Updated `OrderTrendData` type to include delayed/disrupted fields
+    - All components handle loading and error states gracefully
+
+  - **Data Architecture:**
+    - Organization-scoped: Each org only sees their own data
+    - Real-time calculations from database
+    - Supports current manual data entry system
+    - Prepared for future factory system API integrations
+    - Auto-updates when orders/stages change
+
+- Fixed Technical Issues
+  - Fixed hydration mismatch error from Radix UI ID generation
+  - Added `suppressHydrationWarning` to body element in layout
+  - Fixed sidebar JSX fragment closing tag
+  - Fixed API import pattern: changed from `apiResponse` object to `* as api`
+  - Cleared Next.js cache and restarted dev server for clean build
+
+- **Commit:** `92492b2` - "Implement dark/light mode system and connect dashboard to real data"
+  - 34 files changed, 1,510 insertions(+), 400 deletions(-)
+  - Pushed to GitHub successfully
+
+**Key Technical Decisions:**
+- Theme: React Context + localStorage + window.matchMedia for system detection
+- Charts: Recharts library with theme-aware colors via useTheme hook
+- API: Standard REST endpoints with organization-based filtering
+- Data Flow: Frontend fetches from API → API queries Prisma → Real-time aggregation
+- Future-ready: Architecture supports both manual entry and automated integrations
+
+**Current State:**
+- Dashboard fully functional with real data
+- Dark/light/system mode working across entire app
+- All visibility issues resolved
+- Loading states and error handling implemented
+- Dev server running on http://localhost:3000
+
+**Next Steps (for tomorrow):**
+- Consider adding refresh button to dashboard
+- Add date range filter for trend chart
+- Implement caching strategy for dashboard data
+- Continue with Week 2 tasks (Order Timeline 2.9)
+
+---
+
+## 📋 Quick Start Guide for New Sessions
+
+### Starting a New Session:
+1. Say: **"Start where we left off"** or **"Continue from CLAUDE.md"**
+2. Claude will check the "Current Status" section (top of this file)
+3. Claude will continue with the next pending task or suggested improvements
+
+### Checking Progress:
+- **Current Status** section (top of file) shows latest work and next steps
+- **Session History** section (below) has detailed work log
+- **Completed Tasks** section shows all finished features
+- `docs/tasks/TASK_LIST.md` has full task breakdown by week
+
+### Common Resumption Phrases:
+- "Start where we left off" → Continue from Current Status
+- "What's next?" → Show next pending task
+- "Show progress" → Display completed vs pending tasks
+- "Work on Task X.X" → Start specific task
+- "Push to git" → Commit and push changes
+
+### Important Files to Reference:
+- **CLAUDE.md** (this file) - Session context, progress, decisions
+- **docs/tasks/TASK_LIST.md** - Week-by-week task breakdown
+- **docs/plans/TECHNICAL_IMPLEMENTATION_PLAN.md** - Architecture details
+
+### Task Status Symbols:
+- ✅ = Completed
+- 🔄 = In Progress
+- ⏳ = Not Started
+
 ---
 
 ## Commands Reference
@@ -342,3 +512,28 @@ pkill -f "next dev"
 ## Contact
 
 For questions about this project, refer to the technical implementation plan or ask the development team (Filip & Marco).
+
+### Session 6 - UI Responsiveness & Spacing Fixes
+- **Comprehensive UI Responsiveness Overhaul:**
+  - Mobile Navigation: Hamburger menu, slide-in sidebar with overlay
+  - Responsive Padding: Added p-4 sm:p-6 lg:p-8 to main content area
+  - Page Headers: Stack vertically on mobile, horizontal on desktop
+  - Tables: Horizontal scroll on mobile devices
+  - All pages fully responsive (mobile/tablet/desktop)
+
+- **Cosmetic Fixes:**
+  - Fixed hover states: dark:bg → dark:hover:bg (3 locations)
+  - Fixed badge colors for better contrast
+  - Fixed empty state icons for dark mode
+  - Fixed text cut-off and alignment issues
+
+- **Files Modified:** 8 files (layouts, pages, components)
+- **Git Commit:** 5faab96 - "Fix content padding and spacing issues"
+- **Status:** All responsive and cosmetic issues resolved ✅
+
+**To Continue Next Session:**
+Say "start where we ended last time" and I will:
+1. Review completed tasks (2.1-2.4 + responsive fixes)
+2. Suggest next task (2.5 PR or 2.9 Timeline)
+3. Continue from current state
+
