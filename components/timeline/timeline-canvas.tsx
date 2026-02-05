@@ -102,7 +102,7 @@ export function TimelineCanvas({ children }: TimelineCanvasProps) {
       {/* Viewport - clips the visible area */}
       <div
         ref={viewportRef}
-        className={`h-[300px] overflow-hidden timeline-canvas ${
+        className={`h-[300px] overflow-hidden timeline-canvas select-none ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         onMouseDown={handleMouseDown}
@@ -116,7 +116,9 @@ export function TimelineCanvas({ children }: TimelineCanvasProps) {
       >
         {/* Canvas - transforms to pan/zoom */}
         <div
-          className="min-w-full min-h-full p-8 transition-transform duration-100"
+          className={`min-w-full min-h-full p-8 ${
+            isDragging ? "" : "transition-transform duration-100"
+          }`}
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: "0 0",

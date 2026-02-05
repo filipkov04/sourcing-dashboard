@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { TimelineNode } from "./timeline-node";
 import { TimelineConnector } from "./timeline-connector";
-import { TimelineExpansionPanel } from "./timeline-expansion-panel";
+import { TimelineInlinePanel } from "./timeline-inline-panel";
 import { TimelineCanvas } from "./timeline-canvas";
 import { type StageStatus, type TimelineStage } from "./timeline-types";
 import { type OrderEvent } from "@/lib/history-utils";
@@ -21,7 +21,7 @@ export function HorizontalTimeline({
   orderStatus,
   orderPriority,
 }: HorizontalTimelineProps) {
-  const [expandedNodeId, setExpandedNodeId] = useState<string | null>(null);
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
   const [events, setEvents] = useState<OrderEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetchedEvents, setHasFetchedEvents] = useState(false);
@@ -49,18 +49,16 @@ export function HorizontalTimeline({
     fetchEvents();
   }, [orderId]);
 
-  // Filter events for the expanded node
-  const filteredEvents = useMemo(() => {
-    if (!expandedNodeId) return [];
-
-    if (expandedNodeId === "order-info") {
-      // Order-level events (stageId is null)
-      return events.filter((e) => e.stageId === null);
-    }
-
-    // Stage-specific events
-    return events.filter((e) => e.stageId === expandedNodeId);
-  }, [expandedNodeId, events]);
+  // Get events for a specific node
+  const getEventsForNode = useCallback(
+    (nodeId: string) => {
+      if (nodeId === "order-info") {
+        return events.filter((e) => e.stageId === null);
+      }
+      return events.filter((e) => e.stageId === nodeId);
+    },
+    [events]
+  );
 
   // Count events per node for badges
   const eventCounts = useMemo(() => {
@@ -83,16 +81,34 @@ export function HorizontalTimeline({
     return counts;
   }, [events, stages]);
 
-  // Get the name of the expanded node
-  const expandedNodeName = useMemo(() => {
-    if (!expandedNodeId) return "";
-    if (expandedNodeId === "order-info") return "Order";
-    const stage = stages.find((s) => s.id === expandedNodeId);
-    return stage?.name || "Stage";
-  }, [expandedNodeId, stages]);
+  // Get the name of a node
+  const getNodeName = useCallback(
+    (nodeId: string) => {
+      if (nodeId === "order-info") return "Order";
+      const stage = stages.find((s) => s.id === nodeId);
+      return stage?.name || "Stage";
+    },
+    [stages]
+  );
 
   const handleNodeClick = useCallback((nodeId: string) => {
-    setExpandedNodeId((current) => (current === nodeId ? null : nodeId));
+    setExpandedNodeIds((current) => {
+      const newSet = new Set(current);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handlePanelClose = useCallback((nodeId: string) => {
+    setExpandedNodeIds((current) => {
+      const newSet = new Set(current);
+      newSet.delete(nodeId);
+      return newSet;
+    });
   }, []);
 
   // Sort stages by sequence
@@ -103,64 +119,102 @@ export function HorizontalTimeline({
 
   return (
     <TimelineCanvas>
-      <div className="flex flex-col items-center gap-8 p-4">
+      <div className="flex flex-col items-start gap-4 p-4">
         {/* Timeline nodes row */}
-        <div className="flex items-start gap-2">
-          {/* Order Info Node */}
-          <TimelineNode
-            type="order-info"
-            orderStatus={orderStatus}
-            orderPriority={orderPriority}
-            isExpanded={expandedNodeId === "order-info"}
-            onClick={() => handleNodeClick("order-info")}
-            eventCount={eventCounts["order-info"]}
-          />
+        <div className="flex items-start">
+          {/* Order Info Node + Connector */}
+          <div className="flex flex-col">
+            <div className="flex items-start">
+              <TimelineNode
+                type="order-info"
+                orderStatus={orderStatus}
+                orderPriority={orderPriority}
+                isExpanded={expandedNodeIds.has("order-info")}
+                onClick={() => handleNodeClick("order-info")}
+                eventCount={eventCounts["order-info"]}
+              />
 
-          {/* Connector from Order Info to first stage */}
-          {sortedStages.length > 0 && (
-            <TimelineConnector
-              sourceStatus="ORDER"
-              targetStatus={(sortedStages[0].status || "NOT_STARTED") as StageStatus}
-              sourceProgress={100} // Order info is always "complete"
-              isActive={false}
-            />
-          )}
+              {/* Connector from Order Info to first stage */}
+              {sortedStages.length > 0 && (
+                <TimelineConnector
+                  sourceStatus="ORDER"
+                  targetStatus={
+                    (sortedStages[0].status || "NOT_STARTED") as StageStatus
+                  }
+                  sourceProgress={100}
+                  isActive={false}
+                />
+              )}
+            </div>
+
+            {/* Order Info expansion panel - below connector */}
+            {expandedNodeIds.has("order-info") && sortedStages.length > 0 && (
+              <div className="ml-14 mt-2">
+                <TimelineInlinePanel
+                  events={getEventsForNode("order-info")}
+                  nodeName="Order"
+                  nodeType="order-info"
+                  onClose={() => handlePanelClose("order-info")}
+                  isLoading={isLoading && !hasFetchedEvents}
+                />
+              </div>
+            )}
+          </div>
 
           {/* Stage Nodes with Connectors */}
           {sortedStages.map((stage, index) => (
-            <div key={stage.id} className="flex items-start">
-              <TimelineNode
-                type="stage"
-                stage={stage}
-                isExpanded={expandedNodeId === stage.id}
-                onClick={() => handleNodeClick(stage.id)}
-                eventCount={eventCounts[stage.id]}
-              />
-
-              {/* Connector to next stage */}
-              {index < sortedStages.length - 1 && (
-                <TimelineConnector
-                  sourceStatus={(stage.status || "NOT_STARTED") as StageStatus}
-                  targetStatus={
-                    (sortedStages[index + 1].status || "NOT_STARTED") as StageStatus
-                  }
-                  sourceProgress={stage.progress}
-                  isActive={stage.status === "IN_PROGRESS"}
+            <div key={stage.id} className="flex flex-col">
+              <div className="flex items-start">
+                <TimelineNode
+                  type="stage"
+                  stage={stage}
+                  isExpanded={expandedNodeIds.has(stage.id)}
+                  onClick={() => handleNodeClick(stage.id)}
+                  eventCount={eventCounts[stage.id]}
                 />
+
+                {/* Connector to next stage */}
+                {index < sortedStages.length - 1 && (
+                  <TimelineConnector
+                    sourceStatus={(stage.status || "NOT_STARTED") as StageStatus}
+                    targetStatus={
+                      (sortedStages[index + 1].status ||
+                        "NOT_STARTED") as StageStatus
+                    }
+                    sourceProgress={stage.progress}
+                    isActive={stage.status === "IN_PROGRESS"}
+                  />
+                )}
+              </div>
+
+              {/* Stage expansion panel - below connector */}
+              {expandedNodeIds.has(stage.id) && index < sortedStages.length - 1 && (
+                <div className="ml-14 mt-2">
+                  <TimelineInlinePanel
+                    events={getEventsForNode(stage.id)}
+                    nodeName={getNodeName(stage.id)}
+                    nodeType="stage"
+                    onClose={() => handlePanelClose(stage.id)}
+                    isLoading={isLoading && !hasFetchedEvents}
+                  />
+                </div>
+              )}
+
+              {/* Last stage panel - below the node itself */}
+              {expandedNodeIds.has(stage.id) && index === sortedStages.length - 1 && (
+                <div className="mt-2">
+                  <TimelineInlinePanel
+                    events={getEventsForNode(stage.id)}
+                    nodeName={getNodeName(stage.id)}
+                    nodeType="stage"
+                    onClose={() => handlePanelClose(stage.id)}
+                    isLoading={isLoading && !hasFetchedEvents}
+                  />
+                </div>
               )}
             </div>
           ))}
         </div>
-
-        {/* Expansion panel appears below nodes, inside canvas */}
-        <TimelineExpansionPanel
-          isExpanded={!!expandedNodeId}
-          events={filteredEvents}
-          nodeName={expandedNodeName}
-          nodeType={expandedNodeId === "order-info" ? "order-info" : "stage"}
-          onClose={() => setExpandedNodeId(null)}
-          isLoading={isLoading && !hasFetchedEvents}
-        />
       </div>
     </TimelineCanvas>
   );
