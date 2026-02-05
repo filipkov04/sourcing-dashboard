@@ -50,7 +50,7 @@ export function OrdersByFactoryChart({ data }: { data: OrdersByFactoryData }) {
             dataKey="count"
             position="right"
             style={{ fill: "#a1a1aa", fontSize: "13px", fontWeight: 500 }}
-            formatter={(value: number) => `${value} orders`}
+            formatter={(value) => `${value} orders`}
           />
           {topFactories.map((_, index) => (
             <Cell key={`cell-${index}`} fill="#60a5fa" />

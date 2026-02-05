@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { logOrderEvent } from "@/lib/history";
 
 // PATCH /api/orders/[id]/stages/[stageId] - Update a stage's progress
 // NOTE: This is an admin-only feature. Role-based access control will be added in Week 5.
@@ -136,6 +137,59 @@ export async function PATCH(
       where: { id: stageId },
       data: updateData,
     });
+
+    // Log events for changed fields
+    const eventPromises: Promise<any>[] = [];
+
+    // Log status change
+    if (updateData.status !== undefined && updateData.status !== existingStage.status) {
+      eventPromises.push(
+        logOrderEvent(
+          orderId,
+          "STATUS_CHANGE",
+          "status",
+          existingStage.status,
+          updateData.status,
+          stageId,
+          existingStage.name
+        )
+      );
+    }
+
+    // Log progress change
+    if (updateData.progress !== undefined && updateData.progress !== existingStage.progress) {
+      eventPromises.push(
+        logOrderEvent(
+          orderId,
+          "PROGRESS_CHANGE",
+          "progress",
+          String(existingStage.progress),
+          String(updateData.progress),
+          stageId,
+          existingStage.name
+        )
+      );
+    }
+
+    // Log notes change
+    if (updateData.notes !== undefined && updateData.notes !== existingStage.notes) {
+      eventPromises.push(
+        logOrderEvent(
+          orderId,
+          "NOTE_CHANGE",
+          "notes",
+          existingStage.notes,
+          updateData.notes,
+          stageId,
+          existingStage.name
+        )
+      );
+    }
+
+    // Execute all event logging in parallel
+    if (eventPromises.length > 0) {
+      await Promise.all(eventPromises);
+    }
 
     // Recalculate overall order progress
     const allStages = await prisma.orderStage.findMany({

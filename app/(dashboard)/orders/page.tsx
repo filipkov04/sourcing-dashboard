@@ -59,12 +59,12 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-100 text-red-800",
   COMPLETED: "bg-green-100 text-green-800",
   SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-gray-100 text-gray-800",
-  CANCELLED: "bg-gray-100 text-zinc-400",
+  DELIVERED: "bg-zinc-700 text-zinc-200",
+  CANCELLED: "bg-zinc-700 text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-gray-100 text-zinc-400",
+  LOW: "bg-zinc-700 text-zinc-400",
   NORMAL: "bg-blue-100 text-blue-600",
   HIGH: "bg-orange-100 text-orange-600",
   URGENT: "bg-red-100 text-red-600",
@@ -168,7 +168,7 @@ export default function OrdersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="lg:col-span-2 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
             <Input
               placeholder="Search orders..."
               value={search}
@@ -320,7 +320,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-24 h-2 bg-zinc-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             order.status === "COMPLETED"

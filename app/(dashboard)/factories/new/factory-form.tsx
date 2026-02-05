@@ -83,7 +83,7 @@ export function FactoryForm() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-zinc-300 mb-1"
                 >
                   Factory Name <span className="text-red-500">*</span>
                 </label>
@@ -91,7 +91,7 @@ export function FactoryForm() {
                   {...register("name")}
                   type="text"
                   id="name"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="e.g., Shenzhen Manufacturing Co."
                 />
                 {errors.name && (
@@ -103,7 +103,7 @@ export function FactoryForm() {
               <div>
                 <label
                   htmlFor="location"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-zinc-300 mb-1"
                 >
                   Location <span className="text-red-500">*</span>
                 </label>
@@ -111,7 +111,7 @@ export function FactoryForm() {
                   {...register("location")}
                   type="text"
                   id="location"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="e.g., Guangzhou, China"
                 />
                 {errors.location && (
@@ -125,7 +125,7 @@ export function FactoryForm() {
               <div>
                 <label
                   htmlFor="address"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-zinc-300 mb-1"
                 >
                   Full Address
                 </label>
@@ -133,7 +133,7 @@ export function FactoryForm() {
                   {...register("address")}
                   id="address"
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="Street address, building number, etc."
                 />
                 {errors.address && (
@@ -158,7 +158,7 @@ export function FactoryForm() {
               <div>
                 <label
                   htmlFor="contactName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-zinc-300 mb-1"
                 >
                   Contact Name
                 </label>
@@ -166,7 +166,7 @@ export function FactoryForm() {
                   {...register("contactName")}
                   type="text"
                   id="contactName"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="e.g., Zhang Wei"
                 />
                 {errors.contactName && (
@@ -180,7 +180,7 @@ export function FactoryForm() {
               <div>
                 <label
                   htmlFor="contactEmail"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-zinc-300 mb-1"
                 >
                   Email
                 </label>
@@ -188,7 +188,7 @@ export function FactoryForm() {
                   {...register("contactEmail")}
                   type="email"
                   id="contactEmail"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="contact@factory.com"
                 />
                 {errors.contactEmail && (
@@ -202,7 +202,7 @@ export function FactoryForm() {
               <div>
                 <label
                   htmlFor="contactPhone"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-zinc-300 mb-1"
                 >
                   Phone
                 </label>
@@ -210,7 +210,7 @@ export function FactoryForm() {
                   {...register("contactPhone")}
                   type="tel"
                   id="contactPhone"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="+86 138 0000 0000"
                 />
                 {errors.contactPhone && (
@@ -235,7 +235,7 @@ export function FactoryForm() {
             </CardHeader>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
+                <div className="rounded-lg bg-red-900/50 border border-red-700 p-3 text-sm text-red-300">
                   {error}
                 </div>
               )}
@@ -259,7 +259,7 @@ export function FactoryForm() {
                 type="button"
                 onClick={() => router.push("/factories")}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -271,7 +271,7 @@ export function FactoryForm() {
             <CardHeader>
               <CardTitle className="text-base">Need help?</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-gray-600">
+            <CardContent className="text-sm text-zinc-400">
               <ul className="space-y-2">
                 <li>• Factory name and location are required</li>
                 <li>• Contact info is optional but recommended</li>

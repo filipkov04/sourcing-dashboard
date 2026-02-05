@@ -8,8 +8,8 @@ export function DashboardEmptyState() {
   return (
     <Card>
       <CardContent className="flex flex-col items-center justify-center py-16">
-        <div className="mb-6 rounded-full bg-blue-50 p-6 dark:bg-blue-950">
-          <Package className="h-12 w-12 text-blue-600" />
+        <div className="mb-6 rounded-full bg-blue-900/30 p-6">
+          <Package className="h-12 w-12 text-blue-400" />
         </div>
 
         <h2 className="mb-2 text-2xl font-semibold text-white">

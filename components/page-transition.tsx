@@ -14,8 +14,8 @@ export function PageTransition({ children }: PageTransitionProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [previousPath, setPreviousPath] = useState(pathname);
-  const loaderDelayTimer = useRef<NodeJS.Timeout>();
-  const loadingCompleteTimer = useRef<NodeJS.Timeout>();
+  const loaderDelayTimer = useRef<NodeJS.Timeout>(undefined);
+  const loadingCompleteTimer = useRef<NodeJS.Timeout>(undefined);
 
   useEffect(() => {
     // Detect route change

@@ -44,7 +44,9 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
+  History,
 } from "lucide-react";
+import { HorizontalTimeline } from "@/components/timeline";
 
 type OrderStage = {
   id: string;
@@ -773,7 +775,7 @@ export default function OrderDetailPage() {
                               onClick={() => setEditingProgress(val)}
                               className={`h-6 px-2 text-xs ${
                                 editingProgress === val
-                                  ? "bg-blue-50 border-blue-300"
+                                  ? "bg-blue-900/50 border-blue-500"
                                   : ""
                               }`}
                             >
@@ -860,9 +862,9 @@ export default function OrderDetailPage() {
                           <div
                             className={`p-3 rounded-md mb-2 text-sm ${
                               stage.status === "DELAYED"
-                                ? "bg-yellow-50 border border-yellow-200"
+                                ? "bg-orange-900/30 border border-orange-700"
                                 : stage.status === "BLOCKED"
-                                ? "bg-red-50 border border-red-200"
+                                ? "bg-red-900/30 border border-red-700"
                                 : "bg-zinc-800 border border-zinc-600"
                             }`}
                           >
@@ -948,11 +950,6 @@ export default function OrderDetailPage() {
                         </span>
                       )}
                     </div>
-
-                    {/* Stage Notes */}
-                    {stage.notes && (
-                      <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">{stage.notes}</p>
-                    )}
                   </div>
                 </div>
               ))}
@@ -960,6 +957,27 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Activity Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Activity Timeline
+          </CardTitle>
+          <CardDescription>
+            Click on any stage to see its history of changes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <HorizontalTimeline
+            orderId={order.id}
+            stages={order.stages}
+            orderStatus={order.status}
+            orderPriority={order.priority}
+          />
+        </CardContent>
+      </Card>
 
       {/* Metadata */}
       <div className="text-xs text-gray-500 dark:text-zinc-500 flex items-center gap-4">

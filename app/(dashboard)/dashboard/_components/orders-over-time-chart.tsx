@@ -42,7 +42,8 @@ export function OrderSummaryChart({ data }: { data: OrderSummaryData }) {
             boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
           }}
           labelStyle={{ color: "#fafafa", fontWeight: 600 }}
-          formatter={(value: number) => [value, "Orders"]}
+          itemStyle={{ color: "#fafafa" }}
+          formatter={(value) => [value ?? 0, "Orders"]}
         />
         <Bar dataKey="count" radius={[0, 4, 4, 0]}>
           {data.map((entry, index) => (

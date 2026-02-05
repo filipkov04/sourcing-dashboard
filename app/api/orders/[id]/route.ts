@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { logOrderEvent, OrderEventType } from "@/lib/history";
 
 // GET /api/orders/[id] - Get a single order with all details
 export async function GET(
@@ -155,6 +156,124 @@ export async function PATCH(
         },
       },
     });
+
+    // Log events for changed fields
+    const eventPromises: Promise<any>[] = [];
+
+    // Track field changes
+    const fieldsToTrack: { field: string; oldValue: any; newValue: any; eventType: OrderEventType }[] = [];
+
+    // Status change
+    if (status !== undefined && status !== existingOrder.status) {
+      fieldsToTrack.push({
+        field: "status",
+        oldValue: existingOrder.status,
+        newValue: status,
+        eventType: "STATUS_CHANGE",
+      });
+    }
+
+    // Priority change
+    if (priority !== undefined && priority !== existingOrder.priority) {
+      fieldsToTrack.push({
+        field: "priority",
+        oldValue: existingOrder.priority,
+        newValue: priority,
+        eventType: "FIELD_CHANGE",
+      });
+    }
+
+    // Expected date change
+    if (expectedDate !== undefined) {
+      const oldDate = existingOrder.expectedDate.toISOString().split("T")[0];
+      const newDate = new Date(expectedDate).toISOString().split("T")[0];
+      if (oldDate !== newDate) {
+        fieldsToTrack.push({
+          field: "expectedDate",
+          oldValue: existingOrder.expectedDate.toISOString(),
+          newValue: new Date(expectedDate).toISOString(),
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Notes change
+    if (notes !== undefined) {
+      const newNotes = notes ? notes.trim() : null;
+      if (newNotes !== existingOrder.notes) {
+        fieldsToTrack.push({
+          field: "notes",
+          oldValue: existingOrder.notes,
+          newValue: newNotes,
+          eventType: "NOTE_CHANGE",
+        });
+      }
+    }
+
+    // Product name change
+    if (productName !== undefined && productName !== null) {
+      const newProductName = productName.trim();
+      if (newProductName !== existingOrder.productName) {
+        fieldsToTrack.push({
+          field: "productName",
+          oldValue: existingOrder.productName,
+          newValue: newProductName,
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Quantity change
+    if (quantity !== undefined && quantity !== existingOrder.quantity) {
+      fieldsToTrack.push({
+        field: "quantity",
+        oldValue: String(existingOrder.quantity),
+        newValue: String(quantity),
+        eventType: "FIELD_CHANGE",
+      });
+    }
+
+    // Log all field changes
+    for (const change of fieldsToTrack) {
+      eventPromises.push(
+        logOrderEvent(
+          id,
+          change.eventType,
+          change.field,
+          change.oldValue,
+          change.newValue
+        )
+      );
+    }
+
+    // Track stage changes
+    if (stages !== undefined) {
+      const existingStageNames = existingOrder.stages.map(s => s.name);
+      const newStageNames = stages.map((s: { name: string }) => s.name);
+
+      // Find removed stages
+      for (const stageName of existingStageNames) {
+        if (!newStageNames.includes(stageName)) {
+          eventPromises.push(
+            logOrderEvent(id, "STAGE_REMOVED", null, stageName, null)
+          );
+        }
+      }
+
+      // Find added stages
+      for (const stageName of newStageNames) {
+        if (!existingStageNames.includes(stageName)) {
+          eventPromises.push(
+            logOrderEvent(id, "STAGE_ADDED", null, null, stageName)
+          );
+        }
+      }
+    }
+
+    // Execute all event logging in parallel
+    if (eventPromises.length > 0) {
+      await Promise.all(eventPromises);
+    }
 
     return success(updatedOrder, "Order updated successfully");
   } catch (err) {

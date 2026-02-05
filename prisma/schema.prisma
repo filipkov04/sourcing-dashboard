@@ -109,6 +109,7 @@ model Order {
   factoryId      String
   factory        Factory      @relation(fields: [factoryId], references: [id], onDelete: Cascade)
   stages         OrderStage[]
+  events         OrderEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -166,4 +167,23 @@ enum StageStatus {
   SKIPPED
   DELAYED      // Stage is behind schedule (yellow)
   BLOCKED      // Stage is completely disrupted/stopped (red)
+}
+
+// ============================================
+// HISTORY & AUDIT TRACKING
+// ============================================
+
+model OrderEvent {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  stageId     String?  // Nullable - only set for stage-level changes
+  eventType   String   // STATUS_CHANGE, PROGRESS_CHANGE, FIELD_CHANGE, NOTE_CHANGE, STAGE_ADDED, STAGE_REMOVED
+  field       String?  // Which field changed (e.g., "status", "progress", "expectedDate", "priority")
+  oldValue    String?  // Previous value (as string)
+  newValue    String?  // New value (as string)
+  stageName   String?  // For stage events, store the stage name for display
+  createdAt   DateTime @default(now())
+
+  @@index([orderId, createdAt])
 }
