@@ -2,11 +2,19 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 5, 2026 - Session 7 (multiple parallel tasks)
+**Last Updated:** February 5, 2026 - Session 8
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 7):**
+**Completed Today (Session 8):**
+- ✅ Fixed timeline canvas text selection during drag (added `select-none`)
+- ✅ Fixed laggy panning (made transitions conditional - only when NOT dragging)
+- ✅ Extended connector width from 60px to 240px for inline history panels
+- ✅ Added support for multiple expanded stage histories simultaneously
+- ✅ Created `TimelineInlinePanel` component for compact inline display
+- ✅ Pushed changes to GitHub (commit `3607d09`)
+
+**Previously Completed (Session 7):**
 - ✅ **COMPLETED TASK 2.9 - Order Timeline (Marco's task)**
 - ✅ Implemented zoomable/pannable timeline canvas
 - ✅ Created TimelineCanvas component with pan/zoom (50%-200% range)
@@ -767,4 +775,46 @@ Say "start where we ended last time" and I will:
   - Pushed to GitHub successfully
 
 **Week 2 Status:** All Marco's tasks complete (2.6, 2.7, 2.8, 2.9 ✅)
+
+### Session 8 - Timeline Canvas UX Improvements
+- **Fixed Timeline Canvas Issues:**
+  - Added `select-none` class to viewport to prevent text selection during drag
+  - Made transitions conditional (only when NOT dragging) for instant panning response
+  - Panning is now smooth and immediate, no more lag
+
+- **Extended Timeline for Multiple History Panels:**
+  - Increased connector width from 60px to 240px to fit inline history panels
+  - Changed from single expanded panel to multiple simultaneous panels (Set<string> instead of string | null)
+  - Created new `TimelineInlinePanel` component - compact 220px wide panel
+  - Each stage's history panel now appears below its connector
+  - Users can open multiple stage histories at once
+
+- **Files Modified:**
+  - `timeline-canvas.tsx` - text selection & smooth panning fixes
+  - `timeline-connector.tsx` - wider connectors (240px)
+  - `horizontal-timeline.tsx` - restructured for multi-panel support
+  - `timeline-inline-panel.tsx` - new compact panel component (created)
+  - `index.ts` - added export
+
+- **Git Commit:** `3607d09` - "Improve timeline canvas UX and add multi-panel support"
+  - 5 files changed, 281 insertions(+), 71 deletions(-)
+  - Pushed to GitHub successfully
+
+---
+
+## Future Enhancements (Next Session)
+
+### Timeline Visual Improvements
+- [ ] **Enlarge stage icons** - Make the timeline node icons bigger for better visibility
+- [ ] **Add directional arrows** - Add arrow tips at the end of connector lines pointing to the next stage
+
+### Admin Stage Details Feature
+- [ ] **Admin-only stage info panel** - Allow admins to add more detailed information or specific changes to each stage in the production process
+- [ ] This feature should be visible only to admin users
+- [ ] Could include:
+  - Custom notes per stage
+  - Specific change logs
+  - Internal comments for admins
+  - Detailed status explanations
+- [ ] Location: Could be added to the order detail page's production stages section or within the timeline view
 
