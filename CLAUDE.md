@@ -2,29 +2,32 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 4, 2026 - Session 5
+**Last Updated:** February 5, 2026 - Session 7
 
 **Current Week:** Week 2 of 8
 
-**Completed Today (Session 5):**
-- ✅ Redesigned dashboard charts (modern analytics style)
-- ✅ Implemented complete dark/light/system mode
-- ✅ Fixed light mode visibility issues (white text on white background)
-- ✅ Connected dashboard to real database data via API endpoints
-- ✅ Fixed hydration errors
-- ✅ Created 3 dashboard API endpoints (stats, trends, status-breakdown)
-- ✅ Updated all dashboard components with loading states
-- ✅ Committed and pushed to GitHub (92492b2)
+**Completed Today (Session 7):**
+- ✅ Implemented zoomable/pannable timeline canvas (Task 2.9)
+- ✅ Created TimelineCanvas component with pan/zoom (50%-200% range)
+- ✅ Created TimelineControls with zoom buttons, slider, reset
+- ✅ Created horizontal timeline with stage nodes and connectors
+- ✅ Added expansion panel showing event history per stage
+- ✅ Created API endpoint `/api/orders/[id]/timeline` for events
+- ✅ Added OrderEvent model to Prisma schema for tracking changes
+- ✅ Updated stage API to record events on changes
+- ✅ Resolved merge conflicts with remote changes
+- ✅ Committed and pushed to GitHub (094f02b)
 
-**Next Task:** Task 2.5 - Create Pull Request for Week 2 Factory Work OR Task 2.9 - Order Timeline
+**Next Task:** Task 2.5 - Create Pull Request for Week 2 Work
 
 **How to Continue:**
 When starting next session, say: "Start where we left off according to CLAUDE.md"
 
 **Week 2 Progress:**
 - Filip's Tasks: 4/5 complete (2.1, 2.2, 2.3, 2.4 ✅ | 2.5 ⏳)
-- Marco's Tasks: 3/4 complete (2.6, 2.7, 2.8 ✅ | 2.9 ⏳)
+- Marco's Tasks: 4/4 complete (2.6, 2.7, 2.8, 2.9 ✅)
 - Dashboard: Real data connected ✅
+- Timeline: Fully implemented ✅
 
 ---
 
@@ -185,7 +188,7 @@ When status changes to COMPLETED → progress auto-sets to 100%
 - [x] 2.6 Order Detail Page (full info, stage progress)
 - [x] 2.7 Order Edit Form
 - [x] 2.8 Stage Progress Update (slider, status, notes - admin only)
-- [ ] 2.9 Order Timeline (showing history of changes)
+- [x] 2.9 Order Timeline (zoomable/pannable canvas with event history)
 - [x] 2.1 Factory Detail Page (full info, orders list, clickable rows)
 - [x] 2.2 Factory Edit Form (pre-filled form, validation, dark theme)
 - [x] 2.3 Factory Delete (confirmation dialog, prevents deletion with orders)
@@ -541,4 +544,44 @@ Say "start where we ended last time" and I will:
 1. Review completed tasks (2.1-2.4 + responsive fixes)
 2. Suggest next task (2.5 PR or 2.9 Timeline)
 3. Continue from current state
+
+### Session 7 - Zoomable/Pannable Timeline Canvas (Task 2.9)
+- **Implemented Timeline Canvas Feature:**
+  - Created `TimelineCanvas` component with pan/zoom functionality
+  - Pan: Click and drag to move around the canvas
+  - Zoom: Mouse wheel to zoom in/out (50%-200% range)
+  - Touch support for mobile devices
+  - CSS transforms for GPU-accelerated rendering
+
+- **Created Timeline Components:**
+  - `timeline-canvas.tsx` - Viewport wrapper with pan/zoom state
+  - `timeline-controls.tsx` - Zoom buttons, slider, percentage, reset
+  - `timeline-node.tsx` - Stage nodes with icons and progress
+  - `timeline-connector.tsx` - Lines between stages with status colors
+  - `timeline-expansion-panel.tsx` - Event history panel per stage
+  - `horizontal-timeline.tsx` - Main timeline composition
+
+- **Added Order Event Tracking:**
+  - Created `OrderEvent` model in Prisma schema
+  - Tracks: eventType, field, oldValue, newValue, stageId, userId
+  - API endpoint `/api/orders/[id]/timeline` to fetch events
+  - Updated stage PATCH endpoint to record events on changes
+
+- **Technical Details:**
+  - Custom implementation (no new dependencies for canvas)
+  - Added `framer-motion` for page transitions (was missing)
+  - Fixed TypeScript errors in `page-transition.tsx` and `orders-by-factory-chart.tsx`
+  - Resolved 3 merge conflicts with remote changes
+
+- **Files Created:**
+  - `components/timeline/` - 7 new files
+  - `lib/history-utils.ts` - Event formatting utilities
+  - `lib/history.ts` - History types
+  - `app/api/orders/[id]/timeline/route.ts` - Timeline API
+
+- **Git Commit:** `094f02b` - "Add zoomable/pannable timeline canvas and order history tracking"
+  - 26 files changed, 1,833 insertions(+), 87 deletions(-)
+  - Pushed to GitHub successfully
+
+**Week 2 Status:** All Marco's tasks complete (2.6, 2.7, 2.8, 2.9 ✅)
 
