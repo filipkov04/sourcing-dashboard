@@ -80,7 +80,7 @@
 | 2.1 | Factory Detail Page | Filip | Build page showing one factory's full information and all its orders | Page at /factories/[id] showing factory details and order list | 3h | ✅ |
 | 2.2 | Factory Edit Form | Filip | Build form to edit existing factory information | Page at /factories/[id]/edit with pre-filled form | 2h | ✅ |
 | 2.3 | Factory Delete | Filip | Add ability to delete factory with confirmation dialog | Delete button with "Are you sure?" confirmation | 1h | ✅ |
-| 2.4 | Factory Search/Filter | Filip | Improve factory list with better search and filters | Enhanced search that works on name, location, contact | 2h | ⏳ |
+| 2.4 | Factory Search/Filter | Filip | Improve factory list with better search and filters | Enhanced search that works on name, location, contact | 2h | ✅ |
 | 2.5 | Factory PR Week 2 | Filip | Package week 2 factory work for review | Pull request with all factory improvements | 30min | ⏳ |
 
 **What Filip Creates This Week:** Complete factory management - can view details, edit, delete, and advanced search.
@@ -122,10 +122,10 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 3.1 | Dashboard Homepage | Filip | Build main dashboard with key statistics and metrics | Page at /dashboard showing order counts, status breakdown, recent activity | 4h | ⏳ |
-| 3.2 | Dashboard Stats | Filip | Create API to calculate dashboard statistics | API endpoint returning total orders, by status, by factory, etc. | 2h | ⏳ |
-| 3.3 | Recent Activity Feed | Filip | Show recent updates (new orders, progress changes) | Activity feed component showing last 10 updates | 2h | ⏳ |
-| 3.4a | Email Whitelist Access Control | Filip | Create email whitelist system to restrict registration to internal team (3-5 Gmail accounts) | lib/access-control.ts utility + updated registration route with whitelist check | 1h | ⏳ |
+| 3.1 | Dashboard Homepage | Filip | Build main dashboard with key statistics and metrics | Page at /dashboard showing order counts, status breakdown, recent activity | 4h | ✅ |
+| 3.2 | Dashboard Stats | Filip | Create API to calculate dashboard statistics | API endpoint returning total orders, by status, by factory, etc. | 2h | ✅ |
+| 3.3 | Recent Activity Feed | Filip | Show recent updates (new orders, progress changes) | Activity feed component showing last 10 updates | 2h | ✅ |
+| 3.4a | Email Whitelist Access Control | Filip | Create email whitelist system to restrict registration to internal team (3-5 Gmail accounts) | lib/access-control.ts utility + updated registration route with whitelist check | 1h | ✅ |
 | 3.4b | Team Members Page | Filip | Build page to manage team (view members, invite, remove, change roles) | Page at /team showing all users with role badges, invite/remove buttons | 3h | ⏳ |
 | 3.5a | Invitation Database Model | Filip | Add UserInvitation model to Prisma schema for invitation-based access | Prisma schema updated with UserInvitation table, migration created and run | 1h | ⏳ |
 | 3.5b | Invitation API Endpoints | Filip | Create API routes to create, list, validate, and revoke team invitations | /api/invitations with POST (create), GET (list), /api/invitations/[token] with GET (validate), DELETE (revoke) | 2h | ⏳ |

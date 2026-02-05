@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, TrendingUp, CheckCircle, AlertTriangle } from "lucide-react";
+import { Package, TrendingUp, CheckCircle, AlertTriangle, AlertCircle, Activity } from "lucide-react";
 
 type DashboardStats = {
   totalOrders: number;
@@ -47,7 +47,7 @@ export function DashboardStatsCards() {
     {
       label: "Active Orders",
       value: stats?.activeOrders ?? 0,
-      icon: TrendingUp,
+      icon: Activity,
     },
     {
       label: "Completed",
@@ -56,16 +56,28 @@ export function DashboardStatsCards() {
       trend: stats?.trends.completion,
     },
     {
+      label: "Avg Progress",
+      value: `${stats?.averageProgress ?? 0}%`,
+      icon: TrendingUp,
+      isPercentage: true,
+    },
+    {
       label: "Delayed",
       value: stats?.delayedOrders ?? 0,
       icon: AlertTriangle,
+    },
+    {
+      label: "Disrupted",
+      value: stats?.disruptedOrders ?? 0,
+      icon: AlertCircle,
+      highlight: (stats?.disruptedOrders ?? 0) > 0,
     },
   ];
 
   if (isLoading) {
     return (
       <>
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
             className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-zinc-800 dark:border-zinc-700 animate-pulse"
@@ -84,15 +96,24 @@ export function DashboardStatsCards() {
       {statsCards.map((stat, index) => (
         <div
           key={index}
-          className="group relative bg-white rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-750"
+          className={`group relative rounded-xl border p-4 transition-all hover:shadow-md ${
+            stat.highlight
+              ? "bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/50"
+              : "bg-white border-gray-200 hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-750"
+          }`}
           style={{ minHeight: "110px" }}
         >
           <div className="flex items-start justify-between">
-            <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">{stat.label}</p>
-            <stat.icon className="h-4 w-4 text-gray-400 dark:text-zinc-500" strokeWidth={2} />
+            <p className={`text-xs font-medium ${stat.highlight ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-zinc-400"}`}>
+              {stat.label}
+            </p>
+            <stat.icon
+              className={`h-4 w-4 ${stat.highlight ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-zinc-500"}`}
+              strokeWidth={2}
+            />
           </div>
           <div className="mt-3 flex items-end gap-2">
-            <p className="text-[28px] font-semibold text-gray-900 dark:text-white leading-none">
+            <p className={`text-[28px] font-semibold leading-none ${stat.highlight ? "text-red-700 dark:text-red-300" : "text-gray-900 dark:text-white"}`}>
               {stat.value}
             </p>
             {stat.trend !== undefined && stat.trend !== 0 && (

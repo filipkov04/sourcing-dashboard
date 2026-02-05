@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, MapPin, User, Package, Eye, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Search, MapPin, User, Package, Eye, Pencil, Trash2, Loader2, X, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,16 +12,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { FactoryListItem } from "@/lib/types";
 
 interface FactoriesTableProps {
   factories: FactoryListItem[];
 }
 
+type OrderFilter = "all" | "none" | "has-orders" | "5-plus";
+type SortOption = "name-asc" | "name-desc" | "orders-desc" | "orders-asc" | "newest" | "oldest";
+
 export function FactoriesTable({ factories }: FactoriesTableProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [orderFilter, setOrderFilter] = useState<OrderFilter>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [factoryToDelete, setFactoryToDelete] = useState<FactoryListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -69,15 +82,58 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
     setDeleteError(null);
   };
 
-  // Client-side search filtering
-  const filteredFactories = factories.filter((factory) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      factory.name.toLowerCase().includes(query) ||
-      factory.location.toLowerCase().includes(query) ||
-      factory.contactName?.toLowerCase().includes(query)
-    );
-  });
+  // Client-side search filtering and sorting
+  const filteredAndSortedFactories = factories
+    .filter((factory) => {
+      // Search filter
+      const query = searchQuery.toLowerCase();
+      const matchesSearch =
+        factory.name.toLowerCase().includes(query) ||
+        factory.location.toLowerCase().includes(query) ||
+        factory.contactName?.toLowerCase().includes(query) ||
+        factory.contactEmail?.toLowerCase().includes(query);
+
+      if (!matchesSearch) return false;
+
+      // Order count filter
+      const orderCount = factory._count.orders;
+      switch (orderFilter) {
+        case "none":
+          return orderCount === 0;
+        case "has-orders":
+          return orderCount > 0;
+        case "5-plus":
+          return orderCount >= 5;
+        case "all":
+        default:
+          return true;
+      }
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "orders-desc":
+          return b._count.orders - a._count.orders;
+        case "orders-asc":
+          return a._count.orders - b._count.orders;
+        case "newest":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "oldest":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        default:
+          return 0;
+      }
+    });
+
+  const hasActiveFilters = searchQuery !== "" || orderFilter !== "all" || sortBy !== "name-asc";
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setOrderFilter("all");
+    setSortBy("name-asc");
+  };
 
   // Empty state - no factories at all
   if (factories.length === 0) {
@@ -105,29 +161,120 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-zinc-500" />
-        <input
-          type="text"
-          placeholder="Search factories by name, location, or contact..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Search Bar */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Search factories by name, location, or contact..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 py-2 pl-10 pr-10 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Filters and Sort */}
+        <div className="flex items-center gap-2">
+          {/* Order Filter */}
+          <Select value={orderFilter} onValueChange={(value) => setOrderFilter(value as OrderFilter)}>
+            <SelectTrigger className="w-[160px] border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                <SelectValue placeholder="Filter" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+              <SelectItem value="all" className="text-gray-900 dark:text-zinc-100">All Factories</SelectItem>
+              <SelectItem value="none" className="text-gray-900 dark:text-zinc-100">No Orders</SelectItem>
+              <SelectItem value="has-orders" className="text-gray-900 dark:text-zinc-100">Has Orders</SelectItem>
+              <SelectItem value="5-plus" className="text-gray-900 dark:text-zinc-100">5+ Orders</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort */}
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+            <SelectTrigger className="w-[160px] border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4" />
+                <SelectValue placeholder="Sort" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+              <SelectItem value="name-asc" className="text-gray-900 dark:text-zinc-100">Name A-Z</SelectItem>
+              <SelectItem value="name-desc" className="text-gray-900 dark:text-zinc-100">Name Z-A</SelectItem>
+              <SelectItem value="orders-desc" className="text-gray-900 dark:text-zinc-100">Most Orders</SelectItem>
+              <SelectItem value="orders-asc" className="text-gray-900 dark:text-zinc-100">Least Orders</SelectItem>
+              <SelectItem value="newest" className="text-gray-900 dark:text-zinc-100">Newest First</SelectItem>
+              <SelectItem value="oldest" className="text-gray-900 dark:text-zinc-100">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearAllFilters}
+              className="border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-700"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* No results after search */}
-      {filteredFactories.length === 0 && searchQuery && (
+      {/* Active Filters Indicator */}
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-400">
+          <span>Active filters:</span>
+          {searchQuery && (
+            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+              Search: {searchQuery}
+            </Badge>
+          )}
+          {orderFilter !== "all" && (
+            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+              {orderFilter === "none" && "No Orders"}
+              {orderFilter === "has-orders" && "Has Orders"}
+              {orderFilter === "5-plus" && "5+ Orders"}
+            </Badge>
+          )}
+          {sortBy !== "name-asc" && (
+            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+              Sort: {sortBy === "name-desc" && "Name Z-A"}
+              {sortBy === "orders-desc" && "Most Orders"}
+              {sortBy === "orders-asc" && "Least Orders"}
+              {sortBy === "newest" && "Newest"}
+              {sortBy === "oldest" && "Oldest"}
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {/* No results */}
+      {filteredAndSortedFactories.length === 0 && (
         <div className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-8 text-center">
           <p className="text-sm text-gray-600 dark:text-zinc-400">
-            No factories found matching "{searchQuery}"
+            {hasActiveFilters
+              ? "No factories found matching your filters"
+              : "No factories found"}
           </p>
         </div>
       )}
 
       {/* Factories Table */}
-      {filteredFactories.length > 0 && (
+      {filteredAndSortedFactories.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
             <thead className="bg-gray-50 dark:bg-zinc-700">
@@ -150,7 +297,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-zinc-700 bg-white dark:bg-zinc-800">
-              {filteredFactories.map((factory) => (
+              {filteredAndSortedFactories.map((factory) => (
                 <tr
                   key={factory.id}
                   onClick={() => router.push(`/factories/${factory.id}`)}
@@ -222,9 +369,9 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
       )}
 
       {/* Results count */}
-      {filteredFactories.length > 0 && (
+      {filteredAndSortedFactories.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-zinc-400">
-          Showing {filteredFactories.length} of {factories.length}{" "}
+          Showing {filteredAndSortedFactories.length} of {factories.length}{" "}
           {factories.length === 1 ? "factory" : "factories"}
         </div>
       )}

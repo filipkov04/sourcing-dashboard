@@ -2,12 +2,13 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 5, 2026 - Session 7
+**Last Updated:** February 5, 2026 - Session 7 (multiple parallel tasks)
 
-**Current Week:** Week 2 of 8
+**Current Week:** Week 3 of 8
 
 **Completed Today (Session 7):**
-- ✅ Implemented zoomable/pannable timeline canvas (Task 2.9)
+- ✅ **COMPLETED TASK 2.9 - Order Timeline (Marco's task)**
+- ✅ Implemented zoomable/pannable timeline canvas
 - ✅ Created TimelineCanvas component with pan/zoom (50%-200% range)
 - ✅ Created TimelineControls with zoom buttons, slider, reset
 - ✅ Created horizontal timeline with stage nodes and connectors
@@ -15,10 +16,27 @@
 - ✅ Created API endpoint `/api/orders/[id]/timeline` for events
 - ✅ Added OrderEvent model to Prisma schema for tracking changes
 - ✅ Updated stage API to record events on changes
-- ✅ Resolved merge conflicts with remote changes
-- ✅ Committed and pushed to GitHub (094f02b)
+- ✅ **COMPLETED TASK 3.1 - Dashboard Homepage to 110%**
+- ✅ Added Average Progress stat card (6 total stats now)
+- ✅ Added Disrupted Orders stat card with red highlight
+- ✅ Built Recent Activity Feed showing last 10 order activities
+- ✅ Created Quick Actions section (Create Order, Add Factory, View Orders/Factories)
+- ✅ Added time-based greeting (Good morning/afternoon/evening)
+- ✅ Implemented smooth fade-in animations for all dashboard sections
+- ✅ **COMPLETED TASK 3.2 - Dashboard Stats API (Factory Statistics)**
+- ✅ Created `/api/dashboard/factory-stats` endpoint with comprehensive factory metrics
+- ✅ Built Factory Performance section with 4 insight panels
+- ✅ Added Top Performers, Needs Attention, Most Utilized, Available Capacity panels
+- ✅ **COMPLETED TASK 3.4a - Email Whitelist Access Control**
+- ✅ Created `lib/access-control.ts` utility with whitelist functions
+- ✅ Updated registration route to check emails against whitelist
+- ✅ **COMPLETED TASK 3.4b - Team Members Page**
+- ✅ Created `/api/team` endpoints for member management
+- ✅ Built Team page at `/team` with role management
+- ✅ Role-based permissions (OWNER, ADMIN, MEMBER, VIEWER)
+- ✅ Color-coded role badges with security protections
 
-**Next Task:** Task 2.5 - Create Pull Request for Week 2 Work
+**Next Task:** Task 2.5 - Create Pull Request for Week 2 Work OR Task 3.5a-d - Invitation System
 
 **How to Continue:**
 When starting next session, say: "Start where we left off according to CLAUDE.md"
@@ -28,6 +46,14 @@ When starting next session, say: "Start where we left off according to CLAUDE.md
 - Marco's Tasks: 4/4 complete (2.6, 2.7, 2.8, 2.9 ✅)
 - Dashboard: Real data connected ✅
 - Timeline: Fully implemented ✅
+
+**Week 3 Progress:**
+- Task 3.1 (Dashboard Homepage): ✅ COMPLETE (110%)
+- Task 3.2 (Dashboard Stats API): ✅ COMPLETE (Session 7 - Factory statistics added)
+- Task 3.3 (Recent Activity Feed): ✅ COMPLETE (Session 5)
+- Task 3.4a (Email Whitelist Access Control): ✅ COMPLETE (Session 7)
+- Task 3.4b (Team Members Page): ✅ COMPLETE (Session 7)
+- Remaining: 3.5a-3.6 (Invitation system), 3.7-3.12 (Marco's order enhancements)
 
 ---
 
@@ -539,10 +565,167 @@ For questions about this project, refer to the technical implementation plan or 
 - **Git Commit:** 5faab96 - "Fix content padding and spacing issues"
 - **Status:** All responsive and cosmetic issues resolved ✅
 
+### Session 7 - Dashboard Homepage Completion (Task 3.1 to 110%)
+- **Task 3.1 Dashboard Homepage - Fully Completed:**
+  - Added Average Progress stat card showing overall order completion %
+  - Added Disrupted Orders stat card with red highlighting when > 0
+  - Created Recent Activity Feed component showing last 10 order activities
+    - Shows order creation and completion events
+    - Links to order detail pages
+    - Displays time ago (e.g., "2h ago", "3d ago")
+    - Status badges with proper theming
+  - Created Quick Actions component
+    - 4 action cards: Create Order, Add Factory, View Orders, View Factories
+    - Color-coded icons (blue, purple, green, orange)
+    - Hover effects and smooth transitions
+  - Added time-based greeting header (Good morning/afternoon/evening)
+  - Implemented smooth fade-in animations for all sections
+  - Enhanced stat cards:
+    - Now 6 cards in 3-column grid (was 4 in 4-column)
+    - Disrupted card highlights in red when there are disrupted orders
+    - Improved hover effects with shadow
+    - Better icon selection (Activity icon for active orders)
+  - Created new API endpoint: `/api/dashboard/recent-activity`
+
+- **Files Created:**
+  - `/app/api/dashboard/recent-activity/route.ts` - Recent activity API
+  - `/app/(dashboard)/dashboard/_components/recent-activity-feed.tsx` - Activity feed UI
+  - `/app/(dashboard)/dashboard/_components/quick-actions.tsx` - Quick action buttons
+  - `/app/(dashboard)/dashboard/_components/dashboard-header.tsx` - Time-based greeting
+
+- **Files Modified:**
+  - `/app/(dashboard)/dashboard/page.tsx` - Added new sections and animations
+  - `/app/(dashboard)/dashboard/_components/dashboard-stats-cards.tsx` - Added 2 new stat cards
+
+- **Status:** Task 3.1 complete at 110% ✅ (all requirements + extra polish)
+
+### Session 7 (Continued) - Factory Statistics API (Task 3.2)
+- **Task 3.2 Dashboard Stats API - Completed:**
+  - Created comprehensive factory statistics API endpoint
+  - Built Factory Performance section with 4 insight panels
+  - API endpoint: `/api/dashboard/factory-stats`
+
+- **Factory Statistics Included:**
+  - Total orders per factory
+  - Active, completed, delayed, disrupted order counts
+  - Average progress across all factory orders
+  - On-time delivery rate (completed orders that finished on/before expected date)
+  - Completion rate (completed vs total orders)
+  - Issue rate (delayed + disrupted vs total orders)
+
+- **Dashboard Insights Panels:**
+  1. **Top Performers** - Factories with highest on-time delivery rate (minimum 3 completed orders)
+  2. **Needs Attention** - Factories with highest issue rate (active orders only)
+  3. **Most Utilized** - Factories with most active orders
+  4. **Available Capacity** - Factories with no active orders (available for new work)
+
+- **Summary Statistics:**
+  - Total factories count
+  - Total orders across all factories
+  - Average orders per factory
+
+- **UI Features:**
+  - Clickable factory cards linking to factory detail pages
+  - Color-coded badges (green for top performers, orange for needs attention, blue for utilized)
+  - Factory name, location, and relevant metrics displayed
+  - Empty state handling for each panel
+  - Full dark/light mode support with proper theming
+  - Responsive design (2-column grid on desktop)
+
+- **Files Created:**
+  - `/app/api/dashboard/factory-stats/route.ts` - Factory statistics API (170 lines)
+  - `/app/(dashboard)/dashboard/_components/factory-performance-section.tsx` - Factory performance UI (360 lines)
+
+- **Files Modified:**
+  - `/app/(dashboard)/dashboard/page.tsx` - Added Factory Performance section with heading
+
+- **Technical Implementation:**
+  - Uses Prisma to fetch factories with all related orders
+  - Calculates 11 different metrics per factory
+  - Sorts and filters for different insight categories
+  - Efficient single-query approach with includes
+  - Organization-scoped data (multi-tenant ready)
+
+- **Status:** Task 3.2 complete ✅ (factory statistics API + comprehensive dashboard UI)
+
+### Session 7 (Continued) - Team Members Page (Task 3.4b)
+- **Task 3.4b Team Members Page - Completed:**
+  - Built comprehensive team management system
+  - Page at `/team` for viewing and managing organization members
+
+- **API Endpoints Created:**
+  - `GET /api/team` - Fetch all team members for organization
+    - Returns users with id, email, name, image, role, createdAt
+    - Sorted by role (OWNER first) then by join date
+    - Organization-scoped (multi-tenant ready)
+  - `PATCH /api/team/[userId]` - Update user role
+    - Admin/Owner only permission
+    - Validates role changes (OWNER, ADMIN, MEMBER, VIEWER)
+    - Prevents self-role changes
+    - Prevents removing last owner
+    - Only owners can assign owner role
+  - `DELETE /api/team/[userId]` - Remove team member
+    - Admin/Owner only permission
+    - Prevents self-removal
+    - Prevents removing last owner
+    - Cascading delete (user removed from database)
+
+- **Team Page Features:**
+  - 4 stat cards showing team composition
+    - Total Members count
+    - Owners count (purple icon)
+    - Admins count (blue icon)
+    - Members count (green icon)
+  - Team members table with:
+    - Avatar (gradient circle with initials)
+    - Name and email display
+    - "You" indicator for current user
+    - Join date formatted
+  - Role management (Admin/Owner only):
+    - Dropdown to change roles (can't change own role)
+    - Color-coded role badges
+    - Role descriptions (hover tooltips)
+  - Remove member (Admin/Owner only):
+    - Trash icon button (can't remove self)
+    - Confirmation dialog before removal
+    - Shows member name in confirmation
+
+- **Role System:**
+  - **OWNER** (Purple, Crown icon): Full access, billing, can delete org
+  - **ADMIN** (Blue, Shield icon): Manage users, factories, all orders
+  - **MEMBER** (Green, User icon): View and edit orders
+  - **VIEWER** (Gray, Eye icon): Read-only access
+
+- **Security & Permissions:**
+  - Only Admin/Owner can see role dropdowns and remove buttons
+  - Users can't change their own role
+  - Users can't remove themselves
+  - Protection against removing last owner
+  - Protection against unauthorized role escalation
+  - Only owners can create new owners
+
+- **UI/UX Features:**
+  - Color-coded role badges with icons
+  - Gradient avatar circles with initials
+  - Disabled invite button (placeholder for Task 3.5)
+  - Confirmation dialog for member removal
+  - Loading states during role changes
+  - Error handling with user-friendly messages
+  - Full dark/light mode support
+  - Responsive table layout
+  - Empty states handled
+
+- **Files Created:**
+  - `/app/api/team/route.ts` - Team fetch API (40 lines)
+  - `/app/api/team/[userId]/route.ts` - Role update & removal API (180 lines)
+  - `/app/(dashboard)/team/page.tsx` - Team management page (430 lines)
+
+- **Status:** Task 3.4b complete ✅ (team management with role-based access control)
+
 **To Continue Next Session:**
 Say "start where we ended last time" and I will:
-1. Review completed tasks (2.1-2.4 + responsive fixes)
-2. Suggest next task (2.5 PR or 2.9 Timeline)
+1. Review completed Tasks 3.1, 3.2, 3.3, 3.4a, 3.4b
+2. Suggest next task: 3.5a-d (Invitation System) or Week 2 PRs (2.5, 2.9)
 3. Continue from current state
 
 ### Session 7 - Zoomable/Pannable Timeline Canvas (Task 2.9)

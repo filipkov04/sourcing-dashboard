@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { DashboardStatsCards } from "./_components/dashboard-stats-cards";
 import { OrdersTrendSection } from "./_components/orders-trend-section";
 import { OrdersByStatusSection } from "./_components/orders-by-status-section";
+import { RecentActivityFeed } from "./_components/recent-activity-feed";
+import { QuickActions } from "./_components/quick-actions";
+import { DashboardHeader } from "./_components/dashboard-header";
+import { FactoryPerformanceSection } from "./_components/factory-performance-section";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -14,27 +18,37 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-          Welcome back, {session.user.name || session.user.email}
-        </p>
-      </div>
+      <DashboardHeader userName={session.user.name || session.user.email} />
 
-      {/* Stats Cards Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards Grid - 3 columns on desktop, 2 on tablet, 1 on mobile */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-top-4 duration-700">
         <DashboardStatsCards />
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-6">
+      <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
         {/* Full width trend chart */}
         <OrdersTrendSection />
 
         {/* Status breakdown chart */}
         <OrdersByStatusSection />
+      </div>
+
+      {/* Factory Performance Section */}
+      <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Factory Performance
+        </h2>
+        <FactoryPerformanceSection />
+      </div>
+
+      {/* Activity & Quick Actions Grid */}
+      <div className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
+        {/* Recent Activity Feed */}
+        <RecentActivityFeed />
+
+        {/* Quick Actions */}
+        <QuickActions />
       </div>
     </div>
   );
