@@ -13,6 +13,9 @@ type HorizontalTimelineProps = {
   stages: TimelineStage[];
   orderStatus: string;
   orderPriority: string;
+  isAdmin?: boolean;
+  currentUserId?: string;
+  refreshTrigger?: number;
 };
 
 export function HorizontalTimeline({
@@ -20,24 +23,67 @@ export function HorizontalTimeline({
   stages,
   orderStatus,
   orderPriority,
+  isAdmin,
+  currentUserId,
+  refreshTrigger,
 }: HorizontalTimelineProps) {
   const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
   const [events, setEvents] = useState<OrderEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetchedEvents, setHasFetchedEvents] = useState(false);
 
-  // Fetch all events on mount
+  // Fetch all events + admin notes on mount, merge into single timeline
   useEffect(() => {
-    async function fetchEvents() {
+    async function fetchAllEvents() {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/orders/${orderId}/timeline?limit=100`
-        );
-        const data = await response.json();
-        if (data.success) {
-          setEvents(data.data.events || []);
+        const [eventsRes, notesRes] = await Promise.all([
+          fetch(`/api/orders/${orderId}/timeline?limit=100`),
+          fetch(`/api/orders/${orderId}/admin-notes`),
+        ]);
+
+        const eventsData = await eventsRes.json();
+        const notesData = await notesRes.json();
+
+        let allEvents: OrderEvent[] = [];
+
+        if (eventsData.success) {
+          allEvents = eventsData.data.events || [];
         }
+
+        // Merge admin notes as synthetic OrderEvent entries
+        if (notesData.success && Array.isArray(notesData.data)) {
+          const noteEvents: OrderEvent[] = notesData.data.map(
+            (note: {
+              id: string;
+              orderId: string;
+              stageId: string;
+              type: string;
+              content: string;
+              authorName: string | null;
+              createdAt: string;
+            }) => ({
+              id: `note-${note.id}`,
+              orderId: note.orderId,
+              stageId: note.stageId,
+              eventType: "ADMIN_NOTE",
+              field: note.type,
+              oldValue: null,
+              newValue: note.content,
+              stageName: note.authorName,
+              createdAt: note.createdAt,
+            })
+          );
+          allEvents = [...allEvents, ...noteEvents];
+        }
+
+        // Sort all events by date descending (newest first)
+        allEvents.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        setEvents(allEvents);
       } catch (err) {
         console.error("Failed to fetch timeline events:", err);
       } finally {
@@ -46,8 +92,8 @@ export function HorizontalTimeline({
       }
     }
 
-    fetchEvents();
-  }, [orderId]);
+    fetchAllEvents();
+  }, [orderId, refreshTrigger]);
 
   // Get events for a specific node
   const getEventsForNode = useCallback(
@@ -103,6 +149,26 @@ export function HorizontalTimeline({
     });
   }, []);
 
+  // When an admin note is updated in the timeline panel, update the synthetic event
+  const handleNoteUpdated = useCallback(
+    (noteEventId: string, newContent: string) => {
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === noteEventId ? { ...e, newValue: newContent } : e
+        )
+      );
+    },
+    []
+  );
+
+  // When an admin note is deleted in the timeline panel, remove the synthetic event
+  const handleNoteDeleted = useCallback(
+    (noteEventId: string) => {
+      setEvents((prev) => prev.filter((e) => e.id !== noteEventId));
+    },
+    []
+  );
+
   const handlePanelClose = useCallback((nodeId: string) => {
     setExpandedNodeIds((current) => {
       const newSet = new Set(current);
@@ -118,7 +184,7 @@ export function HorizontalTimeline({
   );
 
   return (
-    <TimelineCanvas>
+    <TimelineCanvas stageCount={sortedStages.length}>
       <div className="flex flex-col items-start gap-4 p-4">
         {/* Timeline nodes row */}
         <div className="flex items-start">
@@ -149,13 +215,17 @@ export function HorizontalTimeline({
 
             {/* Order Info expansion panel - below connector */}
             {expandedNodeIds.has("order-info") && sortedStages.length > 0 && (
-              <div className="ml-14 mt-2">
+              <div className="ml-[88px] mt-2">
                 <TimelineInlinePanel
                   events={getEventsForNode("order-info")}
                   nodeName="Order"
                   nodeType="order-info"
                   onClose={() => handlePanelClose("order-info")}
                   isLoading={isLoading && !hasFetchedEvents}
+                  orderId={orderId}
+                  isAdmin={isAdmin}
+                  onNoteUpdated={handleNoteUpdated}
+                  onNoteDeleted={handleNoteDeleted}
                 />
               </div>
             )}
@@ -189,13 +259,17 @@ export function HorizontalTimeline({
 
               {/* Stage expansion panel - below connector */}
               {expandedNodeIds.has(stage.id) && index < sortedStages.length - 1 && (
-                <div className="ml-14 mt-2">
+                <div className="ml-[88px] mt-2">
                   <TimelineInlinePanel
                     events={getEventsForNode(stage.id)}
                     nodeName={getNodeName(stage.id)}
                     nodeType="stage"
                     onClose={() => handlePanelClose(stage.id)}
                     isLoading={isLoading && !hasFetchedEvents}
+                    orderId={orderId}
+                    isAdmin={isAdmin}
+                    onNoteUpdated={handleNoteUpdated}
+                    onNoteDeleted={handleNoteDeleted}
                   />
                 </div>
               )}
@@ -209,6 +283,10 @@ export function HorizontalTimeline({
                     nodeType="stage"
                     onClose={() => handlePanelClose(stage.id)}
                     isLoading={isLoading && !hasFetchedEvents}
+                    orderId={orderId}
+                    isAdmin={isAdmin}
+                    onNoteUpdated={handleNoteUpdated}
+                    onNoteDeleted={handleNoteDeleted}
                   />
                 </div>
               )}

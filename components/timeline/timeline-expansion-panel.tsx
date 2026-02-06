@@ -148,7 +148,7 @@ export function TimelineExpansionPanel({
                       <p className="text-sm text-zinc-300">
                         {formatEventMessage(event)}
                       </p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-zinc-500 mt-0.5" suppressHydrationWarning>
                         {formatTimestamp(event.createdAt)}
                       </p>
                     </div>

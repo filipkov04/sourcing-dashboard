@@ -142,6 +142,7 @@ model Order {
   factory        Factory      @relation(fields: [factoryId], references: [id], onDelete: Cascade)
   stages         OrderStage[]
   events         OrderEvent[]
+  adminNotes     StageAdminNote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -218,4 +219,31 @@ model OrderEvent {
   createdAt   DateTime @default(now())
 
   @@index([orderId, createdAt])
+}
+
+// ============================================
+// ADMIN NOTES (Stage-level admin details)
+// ============================================
+
+model StageAdminNote {
+  id          String        @id @default(cuid())
+  stageId     String
+  orderId     String
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type        AdminNoteType @default(NOTE)
+  content     String        @db.Text
+  authorId    String
+  authorName  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([stageId, createdAt])
+  @@index([orderId])
+}
+
+enum AdminNoteType {
+  NOTE
+  COMMENT
+  STATUS_DETAIL
+  CHANGE_LOG
 }

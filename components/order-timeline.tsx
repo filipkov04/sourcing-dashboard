@@ -264,7 +264,7 @@ export function OrderTimeline({ orderId, initialLimit = 10 }: TimelineProps) {
             {/* Event content */}
             <div className="flex-1 pb-4">
               <p className="text-sm text-zinc-200">{message}</p>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-zinc-500 mt-0.5" suppressHydrationWarning>
                 {formatTimestamp(event.createdAt)}
               </p>
             </div>

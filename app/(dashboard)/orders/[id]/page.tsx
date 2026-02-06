@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -45,8 +46,10 @@ import {
   ChevronDown,
   ChevronUp,
   History,
+  Shield,
 } from "lucide-react";
 import { HorizontalTimeline } from "@/components/timeline";
+import { StageAdminPanel } from "@/components/stage-admin-panel";
 
 type OrderStage = {
   id: string;
@@ -127,9 +130,15 @@ const stageStatusBadgeColors: Record<string, string> = {
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdminOrOwner = session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Admin panel state
+  const [adminPanelStages, setAdminPanelStages] = useState<Set<string>>(new Set());
+  const [stageAdminNotes, setStageAdminNotes] = useState<Record<string, { id: string; content: string; authorName: string | null; createdAt: string; type: string }[]>>({});
 
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<string | null>(null);
@@ -140,6 +149,9 @@ export default function OrderDetailPage() {
 
   // Expanded stages (for viewing notes/delay info)
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set());
+
+  // Timeline refresh trigger — increment to refetch timeline events
+  const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -164,6 +176,31 @@ export default function OrderDetailPage() {
 
     if (params.id) {
       fetchOrder();
+    }
+  }, [params.id]);
+
+  // Fetch admin notes for all stages (visible to everyone as updates)
+  useEffect(() => {
+    async function fetchAdminNotes() {
+      try {
+        const response = await fetch(`/api/orders/${params.id}/admin-notes`);
+        const data = await response.json();
+        if (data.success) {
+          // Group notes by stageId
+          const grouped: Record<string, typeof data.data> = {};
+          for (const note of data.data) {
+            if (!grouped[note.stageId]) grouped[note.stageId] = [];
+            grouped[note.stageId].push(note);
+          }
+          setStageAdminNotes(grouped);
+        }
+      } catch (err) {
+        // Silently fail — notes are supplementary
+      }
+    }
+
+    if (params.id) {
+      fetchAdminNotes();
     }
   }, [params.id]);
 
@@ -267,6 +304,8 @@ export default function OrderDetailPage() {
               : s
           ),
         });
+        // Trigger timeline refresh to show new events
+        setTimelineRefreshKey((k) => k + 1);
         // Close the editing panel
         setEditingStageId(null);
         setEditingProgress(0);
@@ -316,6 +355,8 @@ export default function OrderDetailPage() {
               : s
           ),
         });
+        // Trigger timeline refresh to show new events
+        setTimelineRefreshKey((k) => k + 1);
       }
     } catch (err) {
       console.error("Failed to update stage:", err);
@@ -690,6 +731,27 @@ export default function OrderDetailPage() {
                             <Pencil className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400" />
                           </Button>
                         )}
+                        {isAdminOrOwner && editingStageId !== stage.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAdminPanelStages((prev) => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(stage.id)) {
+                                  newSet.delete(stage.id);
+                                } else {
+                                  newSet.add(stage.id);
+                                }
+                                return newSet;
+                              });
+                            }}
+                            className={`h-7 w-7 p-0 ${adminPanelStages.has(stage.id) ? "text-purple-400" : ""}`}
+                            title="Admin notes"
+                          >
+                            <Shield className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-500 hover:text-purple-400" />
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -950,6 +1012,53 @@ export default function OrderDetailPage() {
                         </span>
                       )}
                     </div>
+
+                    {/* Stage updates from admin notes (visible to everyone) */}
+                    {!isAdminOrOwner && stageAdminNotes[stage.id]?.length > 0 && (
+                      <div className="space-y-1.5 mt-2">
+                        {stageAdminNotes[stage.id].map((note) => (
+                          <div
+                            key={note.id}
+                            className="flex items-start gap-2 text-xs text-gray-600 dark:text-zinc-400"
+                          >
+                            <FileText className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-gray-400 dark:text-zinc-500" />
+                            <div>
+                              <p className="text-gray-700 dark:text-zinc-300">{note.content}</p>
+                              <span className="text-gray-500 dark:text-zinc-500">
+                                {note.authorName || "Team"} &middot;{" "}
+                                {new Date(note.createdAt).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Admin Notes Panel */}
+                    {isAdminOrOwner && adminPanelStages.has(stage.id) && (
+                      <StageAdminPanel
+                        orderId={order.id}
+                        stageId={stage.id}
+                        stageName={stage.name}
+                        variant="full"
+                        currentUserId={session?.user?.id}
+                        onNoteAdded={() => setTimelineRefreshKey((k) => k + 1)}
+                        onNoteUpdated={() => setTimelineRefreshKey((k) => k + 1)}
+                        onNoteDeleted={() => setTimelineRefreshKey((k) => k + 1)}
+                        onClose={() => {
+                          setAdminPanelStages((prev) => {
+                            const newSet = new Set(prev);
+                            newSet.delete(stage.id);
+                            return newSet;
+                          });
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               ))}
@@ -975,6 +1084,9 @@ export default function OrderDetailPage() {
             stages={order.stages}
             orderStatus={order.status}
             orderPriority={order.priority}
+            isAdmin={isAdminOrOwner}
+            currentUserId={session?.user?.id}
+            refreshTrigger={timelineRefreshKey}
           />
         </CardContent>
       </Card>

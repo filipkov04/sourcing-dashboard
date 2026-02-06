@@ -9,7 +9,8 @@ export type OrderEventType =
   | "NOTE_CHANGE"
   | "STAGE_ADDED"
   | "STAGE_REMOVED"
-  | "ORDER_CREATED";
+  | "ORDER_CREATED"
+  | "ADMIN_NOTE";
 
 // Event type for formatting
 export type OrderEvent = {
@@ -124,23 +125,25 @@ export function formatEventMessage(event: OrderEvent): string {
       }
       return `Progress updated from ${formatValue("progress", oldValue)} to ${formatValue("progress", newValue)}`;
 
-    case "NOTE_CHANGE":
+    case "NOTE_CHANGE": {
+      const truncated = newValue && newValue.length > 80 ? newValue.slice(0, 80) + "…" : newValue;
       if (stageName) {
         if (!oldValue && newValue) {
-          return `Note added to ${stageName}`;
+          return `Note added to ${stageName}: "${truncated}"`;
         }
         if (oldValue && !newValue) {
           return `Note removed from ${stageName}`;
         }
-        return `Note updated on ${stageName}`;
+        return `Note updated on ${stageName}: "${truncated}"`;
       }
       if (!oldValue && newValue) {
-        return "Note added to order";
+        return `Note added to order: "${truncated}"`;
       }
       if (oldValue && !newValue) {
         return "Note removed from order";
       }
-      return "Order notes updated";
+      return `Order notes updated: "${truncated}"`;
+    }
 
     case "FIELD_CHANGE":
       const fieldName = formatFieldName(field || "");
@@ -154,13 +157,16 @@ export function formatEventMessage(event: OrderEvent): string {
     case "STAGE_REMOVED":
       return `Stage "${oldValue}" was removed`;
 
+    case "ADMIN_NOTE":
+      return newValue || "Update added";
+
     default:
       return "Order was updated";
   }
 }
 
 // Get the icon type for an event
-export function getEventIconType(event: OrderEvent): "status" | "progress" | "note" | "field" | "stage" | "created" {
+export function getEventIconType(event: OrderEvent): "status" | "progress" | "note" | "field" | "stage" | "created" | "admin" {
   switch (event.eventType) {
     case "ORDER_CREATED":
       return "created";
@@ -173,13 +179,15 @@ export function getEventIconType(event: OrderEvent): "status" | "progress" | "no
     case "STAGE_ADDED":
     case "STAGE_REMOVED":
       return "stage";
+    case "ADMIN_NOTE":
+      return "admin";
     default:
       return "field";
   }
 }
 
 // Get the color theme for an event based on status changes
-export function getEventColor(event: OrderEvent): "green" | "blue" | "orange" | "red" | "gray" {
+export function getEventColor(event: OrderEvent): "green" | "blue" | "orange" | "red" | "purple" | "gray" {
   const { eventType, newValue, field } = event;
 
   // Status changes get colors based on the new status
@@ -215,6 +223,9 @@ export function getEventColor(event: OrderEvent): "green" | "blue" | "orange" | 
 
   // Order created
   if (eventType === "ORDER_CREATED") return "green";
+
+  // Admin notes show as purple (team-authored)
+  if (eventType === "ADMIN_NOTE") return "purple";
 
   // Priority changes
   if (field === "priority") {

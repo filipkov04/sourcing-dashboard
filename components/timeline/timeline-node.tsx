@@ -82,7 +82,7 @@ export function TimelineNode({
   const label = type === "order-info" ? "Order Info" : stage?.name || "Stage";
 
   // Calculate the stroke-dasharray for progress ring
-  const circumference = 2 * Math.PI * 24; // radius = 24
+  const circumference = 2 * Math.PI * 38; // radius = 38
   const progressOffset = circumference - (progress / 100) * circumference;
 
   return (
@@ -91,7 +91,7 @@ export function TimelineNode({
       <button
         onClick={onClick}
         className={`
-          relative w-14 h-14 rounded-full border-2 flex items-center justify-center
+          relative w-[88px] h-[88px] rounded-full border-2 flex items-center justify-center
           transition-all duration-200 cursor-pointer
           ${config.bgColor} ${config.borderColor}
           ${isExpanded ? `shadow-lg ${config.glowColor}` : ""}
@@ -105,12 +105,12 @@ export function TimelineNode({
         {type === "stage" && progress > 0 && progress < 100 && (
           <svg
             className="absolute inset-0 w-full h-full -rotate-90"
-            viewBox="0 0 56 56"
+            viewBox="0 0 88 88"
           >
             <circle
-              cx="28"
-              cy="28"
-              r="24"
+              cx="44"
+              cy="44"
+              r="38"
               fill="none"
               stroke="currentColor"
               strokeWidth="3"
@@ -124,18 +124,18 @@ export function TimelineNode({
         )}
 
         {/* Icon */}
-        <Icon className={`h-6 w-6 ${config.iconColor} relative z-10`} />
+        <Icon className={`h-10 w-10 ${config.iconColor} relative z-10`} />
 
         {/* Event count badge */}
         {eventCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-zinc-700 text-zinc-300 text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center border border-zinc-600">
+          <span className="absolute -top-1 -right-1 bg-zinc-700 text-zinc-300 text-xs font-medium rounded-full w-7 h-7 flex items-center justify-center border border-zinc-600">
             {eventCount > 9 ? "9+" : eventCount}
           </span>
         )}
       </button>
 
       {/* Label */}
-      <span className="mt-2 text-xs text-zinc-400 text-center max-w-16 truncate">
+      <span className="mt-2 text-sm text-zinc-400 text-center max-w-24 truncate">
         {label}
       </span>
 
