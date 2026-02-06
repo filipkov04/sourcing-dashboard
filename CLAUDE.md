@@ -2,11 +2,25 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 6, 2026 - Session 9
+**Last Updated:** February 6, 2026 - Session 10
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 9):**
+**Completed Today (Session 10):**
+- ✅ **Task 3.7 - File Attachments for Orders**
+  - Installed `@supabase/supabase-js` for Supabase Storage
+  - Created `lib/supabase.ts` (server-side client with service role key)
+  - Added `OrderAttachment` model to Prisma schema + relation on Order
+  - Created `POST /api/orders/[id]/attachments` (upload with 10MB limit, type validation)
+  - Created `GET /api/orders/[id]/attachments` (list sorted newest first)
+  - Created `GET /api/orders/[id]/attachments/[attachmentId]` (signed download URL)
+  - Created `DELETE /api/orders/[id]/attachments/[attachmentId]` (admin only)
+  - Created `components/order-attachments.tsx` (drag-and-drop upload, file list, download, delete)
+  - Integrated into order detail page between grid and Production Stages
+  - Added Supabase env vars (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)
+- ✅ **Fixed scroll-to-timeline bug** on order page load (timeline `.focus()` was auto-scrolling)
+
+**Completed Previously (Session 9):**
 - ✅ **Task 3.5a - Invitation Database Model** (UserInvitation + InvitationStatus enum)
 - ✅ **Task 3.5b - Invitation API Endpoints** (POST create, GET list, GET validate, DELETE revoke)
 - ✅ **Task 3.5c - Invitation Accept Page** (/invite/[token] with registration form)
@@ -84,7 +98,8 @@ When starting next session, say: "Start where we left off according to CLAUDE.md
 - Task 3.5b (Invitation API Endpoints): ✅ COMPLETE (Session 9)
 - Task 3.5c (Invitation Accept Page): ✅ COMPLETE (Session 9)
 - Task 3.5d (Update Registration Flow): ✅ COMPLETE (Session 9)
-- Remaining: 3.6 (Week 3 PR), 3.7-3.12 (Marco's order enhancements)
+- Task 3.7 (File Attachments for Orders): ✅ COMPLETE (Session 10)
+- Remaining: 3.6 (Week 3 PR), 3.8-3.12 (Marco's order enhancements)
 
 ---
 

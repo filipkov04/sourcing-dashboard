@@ -94,7 +94,7 @@
 | 2.6 | Order Detail Page | Marco | Build page showing one order's complete details, stages, progress | Page at /orders/[id] showing all order info, stage progress bars | 4h | ✅ |
 | 2.7 | Order Edit Form | Marco | Build form to edit existing order | Page at /orders/[id]/edit with pre-filled form | 2h | ✅ |
 | 2.8 | Stage Progress Update | Marco | Add ability to update each stage's progress (0-100%) and set status (delayed/blocked) - Admin only | UI to update stage progress with slider, status selector (delayed=yellow, blocked=red), and notes for explaining issues. Clients can view but not edit. | 2h | ✅ |
-| 2.9 | Order Timeline | Marco | Create timeline showing all updates and changes to order | Timeline component showing history of changes | 3h | ⏳ |
+| 2.9 | Order Timeline | Marco | Create timeline showing all updates and changes to order | Timeline component showing history of changes | 3h | ✅ |
 | 2.10 | Order PR Week 2 | Marco | Package week 2 order work for review | Pull request with all order improvements | 30min | ⏳ |
 
 **What Marco Creates This Week:** Complete order detail view with progress tracking, timeline, and editing.
@@ -141,7 +141,7 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 3.7 | File Attachments | Marco | Add ability to upload files to orders (photos, documents) | Upload button and file list on order detail page | 3h | ⏳ |
+| 3.7 | File Attachments | Marco | Add ability to upload files to orders (photos, documents) | Upload button and file list on order detail page | 3h | ✅ |
 | 3.8 | Order Notes/Comments | Marco | Add comment system for team to discuss orders | Comments section on order detail page | 2h | ⏳ |
 | 3.9 | Order Status Update | Marco | Make it easy to change order status (pending → in progress → completed) | Status dropdown with one-click updates | 2h | ⏳ |
 | 3.10 | Bulk Actions | Marco | Select multiple orders and update status at once | Checkboxes on order list, bulk update button | 3h | ⏳ |

@@ -267,6 +267,7 @@ export function HorizontalTimeline({
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      hasInteracted.current = true;
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
         setFocusedIndex((prev) => Math.min(prev + 1, allNodeIds.length - 1));
@@ -285,13 +286,14 @@ export function HorizontalTimeline({
     [allNodeIds, focusedIndex, handleNodeClick]
   );
 
-  // Focus the right button when focusedIndex changes
+  // Focus the right button when focusedIndex changes (only after user interaction)
+  const hasInteracted = useRef(false);
   useEffect(() => {
-    if (focusedIndex < -1 || !timelineRef.current) return;
+    if (!hasInteracted.current || focusedIndex < -1 || !timelineRef.current) return;
     const buttons = timelineRef.current.querySelectorAll<HTMLButtonElement>("[data-timeline-node]");
     const idx = focusedIndex + 1; // +1 because order-info is at index 0
     if (buttons[idx]) {
-      buttons[idx].focus();
+      buttons[idx].focus({ preventScroll: true });
     }
   }, [focusedIndex]);
 

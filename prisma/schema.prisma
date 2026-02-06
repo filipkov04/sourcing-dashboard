@@ -143,6 +143,7 @@ model Order {
   stages         OrderStage[]
   events         OrderEvent[]
   adminNotes     StageAdminNote[]
+  attachments    OrderAttachment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -249,4 +250,22 @@ enum AdminNoteType {
   COMMENT
   STATUS_DETAIL
   CHANGE_LOG
+}
+
+// ============================================
+// FILE ATTACHMENTS
+// ============================================
+
+model OrderAttachment {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fileName     String
+  fileType     String   // MIME type
+  fileSize     Int      // bytes
+  storagePath  String   // path in Supabase Storage bucket
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([orderId])
 }

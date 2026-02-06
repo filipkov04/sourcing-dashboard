@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { HorizontalTimeline } from "@/components/timeline";
 import { StageAdminPanel } from "@/components/stage-admin-panel";
+import { OrderAttachments } from "@/components/order-attachments";
 
 type OrderStage = {
   id: string;
@@ -661,6 +662,9 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Attachments */}
+      <OrderAttachments orderId={order.id} isAdmin={isAdminOrOwner} />
 
       {/* Production Stages */}
       {order.stages && order.stages.length > 0 && (
