@@ -4032,3 +4032,1649 @@ This plan provides FAANG-level detail for building the sourcing dashboard system
 5. Execute the plan!
 
 Good luck! 🚀
+
+---
+
+## Phase 4: Procurement & Inventory Management System
+
+**Overview:** This phase transforms the platform from production tracking to a complete procurement and inventory management system.
+
+**Timeline:** Weeks 9-12 (4 weeks, 2 developers, 64 tasks)
+
+**Key Additions:**
+1. Inventory Management & Stock Tracking
+2. Product Catalog with SKU Master Data
+3. Reorder Forecasting & Runway Calculations
+4. Landed Cost Calculator (Freight + Customs)
+5. Supplier Payment & Invoice Management
+6. Inbound Pipeline Visibility
+7. Supplier Communication Hub
+8. Procurement Alerts & Workflow Automation
+
+---
+
+### Inventory Management Architecture
+
+#### Database Schema Extensions
+
+**New Models:**
+
+```prisma
+model Product {
+  id                String   @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Product Identity
+  sku               String   // Stock Keeping Unit (unique per org)
+  name              String
+  description       String?
+  category          String?
+  
+  // Physical Properties
+  weight            Float?   // kg
+  length            Float?   // cm
+  width             Float?   // cm
+  height            Float?   // cm
+  volumeCBM         Float?   // auto-calculated cubic meters
+  isBulkCargo       Boolean  @default(false) // >1 CBM
+  
+  // Procurement Data
+  cogs              Float?   // Cost of Goods Sold per unit
+  currency          String   @default("USD")
+  hsCode            String?  // Harmonized System code for customs
+  originCountry     String?  // Country of manufacture
+  
+  // Inventory Thresholds
+  minStock          Int?     // Reorder point
+  maxStock          Int?     // Max inventory level
+  safetyStock       Int?     // Buffer stock for lead time
+  
+  // Sourcing Metadata
+  tags              String[] // [supplier, season, material, status]
+  leadTimeProdDays  Int?     // Production lead time
+  leadTimeShipDays  Int?     // Shipping lead time
+  moq               Int?     // Minimum order quantity
+  
+  // Relationships
+  stockLevels       Stock[]
+  transactions      InventoryTransaction[]
+  suppliers         ProductSupplier[]
+  orders            OrderLineItem[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([organizationId, sku])
+  @@index([organizationId, sku])
+  @@index([organizationId, category])
+}
+
+model Stock {
+  id                String   @id @default(cuid())
+  organizationId    String
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId        String
+  location          InventoryLocation @relation(fields: [locationId], references: [id])
+  
+  // Stock Quantities
+  onHand            Int      @default(0)  // Physical stock available
+  reserved          Int      @default(0)  // Allocated to orders
+  available         Int      @default(0)  // onHand - reserved
+  inTransit         Int      @default(0)  // Inbound shipments
+  backorder         Int      @default(0)  // Negative stock
+  
+  // Value Tracking
+  avgCost           Float?   // Weighted average cost
+  totalValue        Float?   // onHand * avgCost
+  
+  // Calculated Fields
+  daysOfStock       Float?   // available / dailySalesVelocity
+  runwayStatus      RunwayStatus?  // HEALTHY, WARNING, CRITICAL
+  
+  lastCountDate     DateTime?
+  lastCountBy       String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([productId, locationId])
+  @@index([organizationId, productId])
+  @@index([runwayStatus])
+}
+
+model InventoryLocation {
+  id                String   @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  name              String   // "Main Warehouse", "Factory A", "Store NYC"
+  type              LocationType // WAREHOUSE, FACTORY, STORE, VIRTUAL
+  address           String?
+  isDefault         Boolean  @default(false)
+  
+  stockLevels       Stock[]
+  transactions      InventoryTransaction[]
+  inboundShipments  InboundShipment[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([organizationId])
+}
+
+model InventoryTransaction {
+  id                String   @id @default(cuid())
+  organizationId    String
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id])
+  locationId        String
+  location          InventoryLocation @relation(fields: [locationId], references: [id])
+  
+  // Transaction Details
+  type              TransactionType // RECEIPT, ADJUSTMENT, SALE, TRANSFER, RETURN
+  quantity          Int      // Positive or negative
+  reason            String?  // "Damaged", "Lost", "Found", "Cycle Count"
+  reference         String?  // PO number, shipment ID, etc.
+  
+  // Snapshot
+  balanceBefore     Int
+  balanceAfter      Int
+  costBefore        Float?
+  costAfter         Float?
+  
+  // Audit
+  performedBy       String
+  performedAt       DateTime @default(now())
+  notes             String?
+  
+  @@index([organizationId, productId])
+  @@index([organizationId, type])
+  @@index([performedAt])
+}
+
+model InboundShipment {
+  id                String   @id @default(cuid())
+  organizationId    String
+  shipmentNumber    String   // Unique reference
+  
+  // Source
+  supplierId        String
+  supplier          Supplier @relation(fields: [supplierId], references: [id])
+  factoryId         String?
+  factory           Factory? @relation(fields: [factoryId], references: [id])
+  
+  // Destination
+  locationId        String
+  location          InventoryLocation @relation(fields: [locationId], references: [id])
+  
+  // Shipment Details
+  status            ShipmentStatus // EXPECTED, SHIPPED, IN_TRANSIT, CUSTOMS, DELIVERED, RECEIVED
+  carrier           String?
+  trackingNumber    String?
+  
+  // Quantities
+  lineItems         InboundLineItem[]
+  totalUnits        Int      @default(0)
+  receivedUnits     Int      @default(0)
+  
+  // Dates
+  expectedDate      DateTime
+  shippedDate       DateTime?
+  deliveredDate     DateTime?
+  receivedDate      DateTime?
+  
+  // Costs
+  freightCost       Float?
+  customsDuty       Float?
+  otherCosts        Float?
+  currency          String   @default("USD")
+  
+  // Inspection
+  inspectionStatus  InspectionStatus?
+  inspectionNotes   String?
+  inspectedBy       String?
+  inspectedAt       DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([organizationId, shipmentNumber])
+  @@index([organizationId, status])
+  @@index([expectedDate])
+}
+
+model InboundLineItem {
+  id                String   @id @default(cuid())
+  shipmentId        String
+  shipment          InboundShipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id])
+  
+  expectedQty       Int
+  receivedQty       Int      @default(0)
+  rejectedQty       Int      @default(0)
+  
+  unitCost          Float?
+  totalCost         Float?
+  
+  notes             String?
+  
+  @@index([shipmentId])
+  @@index([productId])
+}
+
+enum RunwayStatus {
+  HEALTHY   // >30 days
+  WARNING   // 15-30 days
+  CRITICAL  // <15 days
+  OUT_OF_STOCK
+}
+
+enum LocationType {
+  WAREHOUSE
+  FACTORY
+  STORE
+  VIRTUAL
+}
+
+enum TransactionType {
+  RECEIPT        // Receiving stock from supplier
+  ADJUSTMENT     // Manual stock correction
+  SALE           // Stock sold
+  TRANSFER       // Move between locations
+  RETURN         // Customer return
+  DAMAGE         // Stock damaged/destroyed
+  RESERVATION    // Reserve for order
+}
+
+enum ShipmentStatus {
+  EXPECTED       // PO placed, awaiting shipment
+  CONFIRMED      // Supplier confirmed
+  SHIPPED        // Left factory/origin
+  IN_TRANSIT     // In route
+  CUSTOMS        // Customs clearance
+  DELIVERED      // Arrived at warehouse
+  RECEIVED       // Inspected and stocked
+  CANCELLED      // Shipment cancelled
+}
+
+enum InspectionStatus {
+  PENDING
+  PASSED
+  FAILED
+  CONDITIONAL  // Partial acceptance
+}
+```
+
+---
+
+### Reorder Forecasting & Runway Calculation Engine
+
+#### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FORECASTING ENGINE                        │
+│  Cron Job: Runs daily at 2am                                │
+│  Calculates: Sales velocity, runway, reorder points         │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│              SALES VELOCITY CALCULATOR                       │
+│  - 7-day velocity (recent trend)                            │
+│  - 30-day velocity (monthly average)                        │
+│  - 90-day velocity (quarterly baseline)                     │
+│  - Weighted average (7d: 50%, 30d: 30%, 90d: 20%)          │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                 RUNWAY CALCULATION                           │
+│  Formula: (available stock - safety stock) / daily velocity │
+│  Result: Days until stockout                                │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│              REORDER POINT DETERMINATION                     │
+│  Trigger: runway < (lead time + safety buffer)             │
+│  Suggested Qty: (lead time * daily velocity) + safety stock│
+│  Respect MOQ: Round up to MOQ if below minimum             │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                 ALERT GENERATION                             │
+│  - CRITICAL: <15 days runway                                │
+│  - WARNING: 15-30 days runway                               │
+│  - HEALTHY: >30 days runway                                 │
+│  - Create notification for procurement team                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Implementation
+
+**File:** `lib/forecasting/runway-calculator.ts`
+
+```typescript
+interface SalesVelocity {
+  daily7d: number;
+  daily30d: number;
+  daily90d: number;
+  weightedAverage: number;
+}
+
+interface RunwayCalculation {
+  productId: string;
+  sku: string;
+  availableStock: number;
+  safetyStock: number;
+  dailyVelocity: number;
+  daysOfStock: number;
+  status: 'HEALTHY' | 'WARNING' | 'CRITICAL' | 'OUT_OF_STOCK';
+  reorderRecommended: boolean;
+  suggestedOrderQty: number;
+  urgency: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+}
+
+export class RunwayCalculator {
+  /**
+   * Calculate sales velocity for a product using exponential smoothing
+   * Gives more weight to recent sales
+   */
+  async calculateSalesVelocity(productId: string): Promise<SalesVelocity> {
+    const now = new Date();
+    const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const date90d = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    
+    // Query sales transactions for this product
+    const sales7d = await prisma.inventoryTransaction.aggregate({
+      where: {
+        productId,
+        type: 'SALE',
+        performedAt: { gte: date7d },
+      },
+      _sum: { quantity: true },
+    });
+    
+    const sales30d = await prisma.inventoryTransaction.aggregate({
+      where: {
+        productId,
+        type: 'SALE',
+        performedAt: { gte: date30d },
+      },
+      _sum: { quantity: true },
+    });
+    
+    const sales90d = await prisma.inventoryTransaction.aggregate({
+      where: {
+        productId,
+        type: 'SALE',
+        performedAt: { gte: date90d },
+      },
+      _sum: { quantity: true },
+    });
+    
+    const daily7d = Math.abs(sales7d._sum.quantity || 0) / 7;
+    const daily30d = Math.abs(sales30d._sum.quantity || 0) / 30;
+    const daily90d = Math.abs(sales90d._sum.quantity || 0) / 90;
+    
+    // Weighted average: prioritize recent data
+    const weightedAverage = (
+      daily7d * 0.5 +
+      daily30d * 0.3 +
+      daily90d * 0.2
+    );
+    
+    return {
+      daily7d,
+      daily30d,
+      daily90d,
+      weightedAverage,
+    };
+  }
+  
+  /**
+   * Calculate runway (days of stock remaining) for a product
+   */
+  async calculateRunway(productId: string): Promise<RunwayCalculation> {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        stockLevels: true,
+      },
+    });
+    
+    if (!product) {
+      throw new Error(`Product ${productId} not found`);
+    }
+    
+    const velocity = await this.calculateSalesVelocity(productId);
+    const totalAvailable = product.stockLevels.reduce(
+      (sum, stock) => sum + stock.available,
+      0
+    );
+    const safetyStock = product.safetyStock || 0;
+    const usableStock = Math.max(0, totalAvailable - safetyStock);
+    
+    // Calculate days of stock remaining
+    const daysOfStock = velocity.weightedAverage > 0
+      ? usableStock / velocity.weightedAverage
+      : Infinity;
+    
+    // Determine status
+    let status: RunwayStatus;
+    if (totalAvailable <= 0) {
+      status = 'OUT_OF_STOCK';
+    } else if (daysOfStock < 15) {
+      status = 'CRITICAL';
+    } else if (daysOfStock < 30) {
+      status = 'WARNING';
+    } else {
+      status = 'HEALTHY';
+    }
+    
+    // Calculate reorder recommendation
+    const leadTimeDays = (product.leadTimeProdDays || 0) + (product.leadTimeShipDays || 0);
+    const reorderPoint = leadTimeDays + 7; // Lead time + 1 week buffer
+    const reorderRecommended = daysOfStock < reorderPoint;
+    
+    // Suggested order quantity: cover lead time + safety stock
+    let suggestedOrderQty = 0;
+    if (reorderRecommended) {
+      const neededForLeadTime = Math.ceil(velocity.weightedAverage * leadTimeDays);
+      suggestedOrderQty = neededForLeadTime + safetyStock;
+      
+      // Respect MOQ
+      if (product.moq && suggestedOrderQty < product.moq) {
+        suggestedOrderQty = product.moq;
+      }
+    }
+    
+    // Determine urgency
+    let urgency: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    if (status === 'OUT_OF_STOCK') {
+      urgency = 'URGENT';
+    } else if (status === 'CRITICAL') {
+      urgency = 'HIGH';
+    } else if (status === 'WARNING' && reorderRecommended) {
+      urgency = 'MEDIUM';
+    } else {
+      urgency = 'LOW';
+    }
+    
+    return {
+      productId,
+      sku: product.sku,
+      availableStock: totalAvailable,
+      safetyStock,
+      dailyVelocity: velocity.weightedAverage,
+      daysOfStock,
+      status,
+      reorderRecommended,
+      suggestedOrderQty,
+      urgency,
+    };
+  }
+  
+  /**
+   * Generate reorder recommendations for all products
+   */
+  async generateReorderReport(organizationId: string) {
+    const products = await prisma.product.findMany({
+      where: { organizationId },
+      include: { stockLevels: true },
+    });
+    
+    const recommendations = await Promise.all(
+      products.map(product => this.calculateRunway(product.id))
+    );
+    
+    // Filter to only products that need reordering
+    const reorderList = recommendations
+      .filter(rec => rec.reorderRecommended)
+      .sort((a, b) => {
+        const urgencyOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+        return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+      });
+    
+    return {
+      totalProducts: products.length,
+      needsReorder: reorderList.length,
+      criticalCount: recommendations.filter(r => r.status === 'CRITICAL').length,
+      warningCount: recommendations.filter(r => r.status === 'WARNING').length,
+      outOfStockCount: recommendations.filter(r => r.status === 'OUT_OF_STOCK').length,
+      recommendations: reorderList,
+    };
+  }
+}
+```
+
+---
+
+### Landed Cost Calculator
+
+#### Cost Breakdown Formula
+
+```
+LANDED COST = Product Cost + Freight + Customs Duty + Insurance + Handling
+
+Where:
+- Product Cost = Unit Price × Quantity × Exchange Rate
+- Freight = Weight-based OR Volume-based (whichever is higher)
+  - Air: Rate per kg × Chargeable Weight
+  - Sea: Rate per CBM × Volume
+  - Chargeable Weight = max(Actual Weight, Volumetric Weight)
+  - Volumetric Weight = (L × W × H) / Divisor
+    - Air Express: Divisor = 5000
+    - Air Standard: Divisor = 6000
+    - Sea: Divisor = 1000000
+- Customs Duty = (Product Cost + Freight) × Duty Rate %
+  - Based on HS Code and Origin Country
+  - Apply trade agreement discounts (e.g., USMCA, EU FTA)
+- Insurance = (Product Cost + Freight) × 0.5% (default)
+- Handling = Per-shipment fee (port charges, documentation)
+```
+
+#### Implementation
+
+**File:** `lib/costing/landed-cost-calculator.ts`
+
+```typescript
+interface CarrierRates {
+  id: string;
+  name: string; // "DHL Express", "FedEx International", "Maersk Sea Freight"
+  mode: 'AIR_EXPRESS' | 'AIR_STANDARD' | 'SEA' | 'TRUCK';
+  volumetricDivisor: number; // 5000, 6000, 1000000
+  ratePerKg?: number; // For air/express
+  ratePerCBM?: number; // For sea freight
+  minimumCharge: number;
+  fuelSurchargePercent: number; // %
+  handlingFee: number; // Flat fee per shipment
+}
+
+interface ProductDimensions {
+  weightKg: number;
+  lengthCm: number;
+  widthCm: number;
+  heightCm: number;
+}
+
+interface CustomsDuty {
+  hsCode: string;
+  originCountry: string;
+  destinationCountry: string;
+  dutyRate: number; // %
+  vat: number; // %
+  tradeAgreement?: string; // "USMCA", "EU-FTA", null
+  dutyWaived: boolean;
+}
+
+interface LandedCostBreakdown {
+  // Product
+  productCostPerUnit: number;
+  quantity: number;
+  productCostTotal: number;
+  
+  // Freight
+  actualWeightKg: number;
+  volumetricWeightKg: number;
+  chargeableWeightKg: number;
+  volumeCBM: number;
+  isBulkCargo: boolean;
+  freightBaseRate: number;
+  fuelSurcharge: number;
+  freightTotal: number;
+  
+  // Customs
+  customsDutyRate: number;
+  customsDutyAmount: number;
+  vatRate: number;
+  vatAmount: number;
+  
+  // Other
+  insurance: number;
+  handling: number;
+  
+  // Totals
+  subtotal: number; // Product + Freight
+  dutyAndTax: number; // Customs + VAT
+  landedCostTotal: number;
+  landedCostPerUnit: number;
+  
+  // Metadata
+  carrier: string;
+  estimatedTransitDays: number;
+}
+
+export class LandedCostCalculator {
+  /**
+   * Calculate volumetric weight based on carrier rules
+   */
+  private calculateVolumetricWeight(
+    dimensions: ProductDimensions,
+    divisor: number
+  ): number {
+    const volumeCm3 = dimensions.lengthCm * dimensions.widthCm * dimensions.heightCm;
+    return volumeCm3 / divisor;
+  }
+  
+  /**
+   * Calculate chargeable weight (higher of actual or volumetric)
+   */
+  private calculateChargeableWeight(
+    dimensions: ProductDimensions,
+    divisor: number
+  ): number {
+    const volumetricWeight = this.calculateVolumetricWeight(dimensions, divisor);
+    return Math.max(dimensions.weightKg, volumetricWeight);
+  }
+  
+  /**
+   * Calculate volume in cubic meters
+   */
+  private calculateVolumeCBM(dimensions: ProductDimensions): number {
+    return (dimensions.lengthCm * dimensions.widthCm * dimensions.heightCm) / 1000000;
+  }
+  
+  /**
+   * Determine if cargo is bulk (>1 CBM triggers different rates)
+   */
+  private isBulkCargo(dimensions: ProductDimensions): boolean {
+    return this.calculateVolumeCBM(dimensions) > 1.0;
+  }
+  
+  /**
+   * Calculate freight cost based on carrier and shipment details
+   */
+  private calculateFreightCost(
+    dimensions: ProductDimensions,
+    quantity: number,
+    carrier: CarrierRates
+  ): {
+    chargeableWeight: number;
+    volumeCBM: number;
+    freightBase: number;
+    fuelSurcharge: number;
+    freightTotal: number;
+  } {
+    const volumeCBM = this.calculateVolumeCBM(dimensions) * quantity;
+    const isBulk = volumeCBM > 1.0;
+    
+    let freightBase = 0;
+    let chargeableWeight = 0;
+    
+    if (carrier.mode === 'SEA' || (carrier.mode === 'AIR_STANDARD' && isBulk)) {
+      // Volume-based pricing
+      freightBase = volumeCBM * (carrier.ratePerCBM || 0);
+    } else {
+      // Weight-based pricing
+      chargeableWeight = this.calculateChargeableWeight(
+        {
+          ...dimensions,
+          weightKg: dimensions.weightKg * quantity,
+        },
+        carrier.volumetricDivisor
+      );
+      freightBase = chargeableWeight * (carrier.ratePerKg || 0);
+    }
+    
+    // Apply minimum charge
+    freightBase = Math.max(freightBase, carrier.minimumCharge);
+    
+    // Add fuel surcharge
+    const fuelSurcharge = freightBase * (carrier.fuelSurchargePercent / 100);
+    const freightTotal = freightBase + fuelSurcharge;
+    
+    return {
+      chargeableWeight,
+      volumeCBM,
+      freightBase,
+      fuelSurcharge,
+      freightTotal,
+    };
+  }
+  
+  /**
+   * Calculate customs duty based on HS code and origin
+   */
+  private calculateCustomsDuty(
+    productCost: number,
+    freightCost: number,
+    dutyConfig: CustomsDuty
+  ): {
+    dutyableValue: number;
+    dutyAmount: number;
+    vatAmount: number;
+    dutyAndTaxTotal: number;
+  } {
+    const dutyableValue = productCost + freightCost;
+    
+    // Apply duty rate (may be 0% for trade agreements)
+    const dutyAmount = dutyConfig.dutyWaived
+      ? 0
+      : dutyableValue * (dutyConfig.dutyRate / 100);
+    
+    // VAT applied on product + freight + duty
+    const vatBase = dutyableValue + dutyAmount;
+    const vatAmount = vatBase * (dutyConfig.vat / 100);
+    
+    return {
+      dutyableValue,
+      dutyAmount,
+      vatAmount,
+      dutyAndTaxTotal: dutyAmount + vatAmount,
+    };
+  }
+  
+  /**
+   * Calculate complete landed cost breakdown
+   */
+  async calculateLandedCost(
+    productCostPerUnit: number,
+    quantity: number,
+    dimensions: ProductDimensions,
+    carrier: CarrierRates,
+    dutyConfig: CustomsDuty
+  ): Promise<LandedCostBreakdown> {
+    // Product cost
+    const productCostTotal = productCostPerUnit * quantity;
+    
+    // Freight cost
+    const freight = this.calculateFreightCost(dimensions, quantity, carrier);
+    
+    // Customs duty
+    const customs = this.calculateCustomsDuty(
+      productCostTotal,
+      freight.freightTotal,
+      dutyConfig
+    );
+    
+    // Insurance (0.5% of product + freight)
+    const insurance = (productCostTotal + freight.freightTotal) * 0.005;
+    
+    // Handling fee
+    const handling = carrier.handlingFee;
+    
+    // Totals
+    const subtotal = productCostTotal + freight.freightTotal;
+    const dutyAndTax = customs.dutyAndTaxTotal;
+    const landedCostTotal = subtotal + dutyAndTax + insurance + handling;
+    const landedCostPerUnit = landedCostTotal / quantity;
+    
+    return {
+      // Product
+      productCostPerUnit,
+      quantity,
+      productCostTotal,
+      
+      // Freight
+      actualWeightKg: dimensions.weightKg * quantity,
+      volumetricWeightKg: this.calculateVolumetricWeight(dimensions, carrier.volumetricDivisor) * quantity,
+      chargeableWeightKg: freight.chargeableWeight,
+      volumeCBM: freight.volumeCBM,
+      isBulkCargo: freight.volumeCBM > 1.0,
+      freightBaseRate: freight.freightBase,
+      fuelSurcharge: freight.fuelSurcharge,
+      freightTotal: freight.freightTotal,
+      
+      // Customs
+      customsDutyRate: dutyConfig.dutyRate,
+      customsDutyAmount: customs.dutyAmount,
+      vatRate: dutyConfig.vat,
+      vatAmount: customs.vatAmount,
+      
+      // Other
+      insurance,
+      handling,
+      
+      // Totals
+      subtotal,
+      dutyAndTax,
+      landedCostTotal,
+      landedCostPerUnit,
+      
+      // Metadata
+      carrier: carrier.name,
+      estimatedTransitDays: this.estimateTransitTime(carrier.mode),
+    };
+  }
+  
+  /**
+   * Estimate transit time based on shipping mode
+   */
+  private estimateTransitTime(mode: CarrierRates['mode']): number {
+    switch (mode) {
+      case 'AIR_EXPRESS': return 3;
+      case 'AIR_STANDARD': return 7;
+      case 'SEA': return 45;
+      case 'TRUCK': return 14;
+      default: return 30;
+    }
+  }
+  
+  /**
+   * Compare costs across multiple carriers
+   */
+  async compareCarriers(
+    productCostPerUnit: number,
+    quantity: number,
+    dimensions: ProductDimensions,
+    carriers: CarrierRates[],
+    dutyConfig: CustomsDuty
+  ): Promise<{
+    comparisons: (LandedCostBreakdown & { savings?: number })[];
+    recommended: LandedCostBreakdown;
+  }> {
+    const comparisons = await Promise.all(
+      carriers.map(carrier =>
+        this.calculateLandedCost(
+          productCostPerUnit,
+          quantity,
+          dimensions,
+          carrier,
+          dutyConfig
+        )
+      )
+    );
+    
+    // Find cheapest option
+    const cheapest = comparisons.reduce((min, curr) =>
+      curr.landedCostTotal < min.landedCostTotal ? curr : min
+    );
+    
+    // Calculate savings vs cheapest
+    const comparisonsWithSavings = comparisons.map(comp => ({
+      ...comp,
+      savings: comp.landedCostTotal - cheapest.landedCostTotal,
+    }));
+    
+    return {
+      comparisons: comparisonsWithSavings,
+      recommended: cheapest,
+    };
+  }
+}
+```
+
+**API Endpoint:** `POST /api/products/calculate-landed-cost`
+
+```typescript
+export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user?.organizationId) {
+    return api.unauthorized();
+  }
+  
+  const body = await request.json();
+  const {
+    productId,
+    quantity,
+    carrierIds,
+  } = body;
+  
+  // Fetch product with dimensions
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+  });
+  
+  if (!product || !product.weight || !product.length) {
+    return api.error("Product dimensions not configured");
+  }
+  
+  // Fetch carriers
+  const carriers = await prisma.carrier.findMany({
+    where: { id: { in: carrierIds } },
+  });
+  
+  // Fetch customs config
+  const dutyConfig = await prisma.customsDuty.findFirst({
+    where: {
+      hsCode: product.hsCode,
+      originCountry: product.originCountry,
+    },
+  });
+  
+  // Calculate landed costs
+  const calculator = new LandedCostCalculator();
+  const comparison = await calculator.compareCarriers(
+    product.cogs || 0,
+    quantity,
+    {
+      weightKg: product.weight,
+      lengthCm: product.length,
+      widthCm: product.width,
+      heightCm: product.height,
+    },
+    carriers,
+    dutyConfig
+  );
+  
+  return api.success({
+    product: {
+      id: product.id,
+      sku: product.sku,
+      name: product.name,
+    },
+    comparison,
+  });
+}
+```
+
+---
+
+### Supplier Payment & Invoice Management
+
+#### Database Extensions
+
+```prisma
+model Supplier {
+  id                String   @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  name              String
+  code              String   // Unique supplier code
+  contactName       String?
+  email             String?
+  phone             String?
+  
+  // Payment Terms
+  paymentTerms      String?  // "Net 30", "Net 60", "30/70 Deposit/Balance"
+  currency          String   @default("USD")
+  depositPercent    Int?     // % upfront
+  balancePercent    Int?     // % before shipment
+  
+  // Banking
+  bankName          String?
+  bankAccount       String?
+  swiftCode         String?
+  taxId             String?
+  
+  // Relationships
+  invoices          SupplierInvoice[]
+  products          ProductSupplier[]
+  orders            Order[]
+  inboundShipments  InboundShipment[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([organizationId, code])
+  @@index([organizationId])
+}
+
+model ProductSupplier {
+  id                String   @id @default(cuid())
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplierId        String
+  supplier          Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  // Supplier-specific pricing
+  unitCost          Float
+  currency          String   @default("USD")
+  moq               Int      // Minimum order quantity
+  leadTimeDays      Int      // Total lead time for this supplier
+  
+  // Status
+  isPreferred       Boolean  @default(false)
+  status            SupplierStatus // ACTIVE, INACTIVE, SAMPLING, APPROVED
+  
+  lastOrderDate     DateTime?
+  
+  @@unique([productId, supplierId])
+  @@index([productId])
+  @@index([supplierId])
+}
+
+model SupplierInvoice {
+  id                String   @id @default(cuid())
+  organizationId    String
+  invoiceNumber     String   // Unique per supplier
+  
+  supplierId        String
+  supplier          Supplier @relation(fields: [supplierId], references: [id])
+  orderId           String?
+  order             Order?   @relation(fields: [orderId], references: [id])
+  
+  // Invoice Details
+  status            InvoiceStatus // DRAFT, SENT, PAID, OVERDUE, CANCELLED
+  type              InvoiceType   // DEPOSIT, BALANCE, FULL_PAYMENT
+  
+  // Amounts
+  amount            Float
+  currency          String   @default("USD")
+  exchangeRate      Float?
+  amountUSD         Float?   // Converted amount
+  
+  // Payment
+  paidAmount        Float    @default(0)
+  outstandingAmount Float
+  
+  // Dates
+  issueDate         DateTime
+  dueDate           DateTime
+  paidDate          DateTime?
+  
+  // Payment Details
+  paymentMethod     String?  // "Wire Transfer", "PayPal", "Credit Card"
+  paymentReference  String?  // Bank reference, transaction ID
+  
+  // Attachments
+  invoiceFileUrl    String?
+  proofOfPaymentUrl String?
+  
+  // Audit
+  createdBy         String
+  approvedBy        String?
+  approvedAt        DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([organizationId, invoiceNumber])
+  @@index([organizationId, status])
+  @@index([supplierId])
+  @@index([dueDate])
+}
+
+enum SupplierStatus {
+  SAMPLING
+  APPROVED
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  PARTIAL
+  OVERDUE
+  CANCELLED
+}
+
+enum InvoiceType {
+  DEPOSIT      // Initial payment
+  BALANCE      // Final payment before shipment
+  FULL_PAYMENT // Single payment
+  MILESTONE    // Progress payment
+}
+```
+
+#### Payment Workflow
+
+**File:** `lib/payments/payment-workflow.ts`
+
+```typescript
+export class PaymentWorkflow {
+  /**
+   * Create deposit invoice when PO is placed
+   */
+  async createDepositInvoice(orderId: string, userId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { supplier: true },
+    });
+    
+    if (!order || !order.supplier) {
+      throw new Error("Order or supplier not found");
+    }
+    
+    const depositPercent = order.supplier.depositPercent || 30;
+    const depositAmount = (order.totalCost || 0) * (depositPercent / 100);
+    
+    // Create invoice
+    const invoice = await prisma.supplierInvoice.create({
+      data: {
+        organizationId: order.organizationId,
+        invoiceNumber: `DEP-${order.orderNumber}`,
+        supplierId: order.supplierId,
+        orderId: order.id,
+        status: 'DRAFT',
+        type: 'DEPOSIT',
+        amount: depositAmount,
+        currency: order.currency,
+        outstandingAmount: depositAmount,
+        issueDate: new Date(),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        createdBy: userId,
+      },
+    });
+    
+    // Create notification for finance team
+    await this.notifyFinanceTeam(invoice.id, 'DEPOSIT_INVOICE_CREATED');
+    
+    return invoice;
+  }
+  
+  /**
+   * Create balance invoice when ready to ship
+   */
+  async createBalanceInvoice(orderId: string, userId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        supplier: true,
+        invoices: true,
+      },
+    });
+    
+    if (!order || !order.supplier) {
+      throw new Error("Order or supplier not found");
+    }
+    
+    // Calculate balance (total - paid deposits)
+    const totalPaid = order.invoices
+      .filter(inv => inv.status === 'PAID')
+      .reduce((sum, inv) => sum + inv.paidAmount, 0);
+    
+    const balanceAmount = (order.totalCost || 0) - totalPaid;
+    
+    if (balanceAmount <= 0) {
+      throw new Error("No balance due");
+    }
+    
+    const invoice = await prisma.supplierInvoice.create({
+      data: {
+        organizationId: order.organizationId,
+        invoiceNumber: `BAL-${order.orderNumber}`,
+        supplierId: order.supplierId,
+        orderId: order.id,
+        status: 'DRAFT',
+        type: 'BALANCE',
+        amount: balanceAmount,
+        currency: order.currency,
+        outstandingAmount: balanceAmount,
+        issueDate: new Date(),
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+        createdBy: userId,
+      },
+    });
+    
+    // Block shipment until payment
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'HELD', holdReason: 'Awaiting balance payment' },
+    });
+    
+    return invoice;
+  }
+  
+  /**
+   * Record payment and update order status
+   */
+  async recordPayment(
+    invoiceId: string,
+    amount: number,
+    paymentMethod: string,
+    paymentReference: string,
+    userId: string
+  ) {
+    const invoice = await prisma.supplierInvoice.findUnique({
+      where: { id: invoiceId },
+      include: { order: true },
+    });
+    
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
+    
+    const newPaidAmount = invoice.paidAmount + amount;
+    const newOutstandingAmount = invoice.amount - newPaidAmount;
+    const newStatus = newOutstandingAmount <= 0 ? 'PAID' : 'PARTIAL';
+    
+    // Update invoice
+    const updatedInvoice = await prisma.supplierInvoice.update({
+      where: { id: invoiceId },
+      data: {
+        paidAmount: newPaidAmount,
+        outstandingAmount: newOutstandingAmount,
+        status: newStatus,
+        paidDate: newStatus === 'PAID' ? new Date() : undefined,
+        paymentMethod,
+        paymentReference,
+        approvedBy: userId,
+        approvedAt: new Date(),
+      },
+    });
+    
+    // If balance invoice is paid, release shipment
+    if (invoice.type === 'BALANCE' && newStatus === 'PAID' && invoice.order) {
+      await prisma.order.update({
+        where: { id: invoice.order.id },
+        data: {
+          status: 'IN_PROGRESS',
+          holdReason: null,
+        },
+      });
+      
+      // Notify operations team
+      await this.notifyOperationsTeam(invoice.order.id, 'SHIPMENT_RELEASED');
+    }
+    
+    // Log event
+    await logOrderEvent({
+      orderId: invoice.orderId,
+      eventType: 'PAYMENT_RECORDED',
+      field: 'invoice',
+      newValue: `Payment ${amount} recorded for invoice ${invoice.invoiceNumber}`,
+    });
+    
+    return updatedInvoice;
+  }
+  
+  /**
+   * Check for overdue invoices and send reminders
+   */
+  async checkOverdueInvoices() {
+    const now = new Date();
+    
+    const overdueInvoices = await prisma.supplierInvoice.findMany({
+      where: {
+        status: { in: ['SENT', 'PARTIAL'] },
+        dueDate: { lt: now },
+      },
+      include: { supplier: true, order: true },
+    });
+    
+    for (const invoice of overdueInvoices) {
+      // Update status to overdue
+      await prisma.supplierInvoice.update({
+        where: { id: invoice.id },
+        data: { status: 'OVERDUE' },
+      });
+      
+      // Send reminder notification
+      await this.sendPaymentReminder(invoice);
+    }
+    
+    return overdueInvoices.length;
+  }
+}
+```
+
+---
+
+### Procurement Alerts & Workflow Automation
+
+#### Alert Configuration
+
+**File:** `lib/alerts/procurement-alerts.ts`
+
+```typescript
+enum AlertType {
+  // Inventory
+  LOW_STOCK = 'LOW_STOCK',
+  OUT_OF_STOCK = 'OUT_OF_STOCK',
+  RUNWAY_CRITICAL = 'RUNWAY_CRITICAL',
+  RUNWAY_WARNING = 'RUNWAY_WARNING',
+  
+  // Procurement
+  REORDER_RECOMMENDED = 'REORDER_RECOMMENDED',
+  PO_CONFIRMATION = 'PO_CONFIRMATION',
+  PRICE_CHANGE = 'PRICE_CHANGE',
+  MOQ_NOT_MET = 'MOQ_NOT_MET',
+  
+  // Shipment
+  SHIPMENT_DISPATCHED = 'SHIPMENT_DISPATCHED',
+  SHIPMENT_DELAYED = 'SHIPMENT_DELAYED',
+  CUSTOMS_HOLD = 'CUSTOMS_HOLD',
+  DELIVERY_COMPLETE = 'DELIVERY_COMPLETE',
+  
+  // Quality
+  INSPECTION_FAILED = 'INSPECTION_FAILED',
+  QUALITY_ISSUE = 'QUALITY_ISSUE',
+  
+  // Financial
+  PAYMENT_DUE = 'PAYMENT_DUE',
+  INVOICE_OVERDUE = 'INVOICE_OVERDUE',
+  BUDGET_EXCEEDED = 'BUDGET_EXCEEDED',
+}
+
+interface AlertRule {
+  type: AlertType;
+  severity: 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+  roles: UserRole[]; // Who should receive this alert
+  channels: ('IN_APP' | 'EMAIL' | 'SMS')[]; // How to deliver
+  condition: (context: any) => boolean; // When to trigger
+  message: (context: any) => string; // Alert message
+}
+
+export const PROCUREMENT_ALERT_RULES: AlertRule[] = [
+  {
+    type: AlertType.RUNWAY_CRITICAL,
+    severity: 'CRITICAL',
+    roles: ['OWNER', 'ADMIN'],
+    channels: ['IN_APP', 'EMAIL'],
+    condition: (product) => product.daysOfStock < 15 && product.daysOfStock > 0,
+    message: (product) =>
+      `URGENT: ${product.sku} has only ${Math.floor(product.daysOfStock)} days of stock remaining. Reorder immediately.`,
+  },
+  {
+    type: AlertType.OUT_OF_STOCK,
+    severity: 'CRITICAL',
+    roles: ['OWNER', 'ADMIN'],
+    channels: ['IN_APP', 'EMAIL', 'SMS'],
+    condition: (product) => product.availableStock <= 0,
+    message: (product) => `CRITICAL: ${product.sku} is out of stock!`,
+  },
+  {
+    type: AlertType.REORDER_RECOMMENDED,
+    severity: 'WARNING',
+    roles: ['OWNER', 'ADMIN'],
+    channels: ['IN_APP'],
+    condition: (product) =>
+      product.reorderRecommended && product.daysOfStock >= 15,
+    message: (product) =>
+      `Reorder recommended for ${product.sku}. Suggested quantity: ${product.suggestedOrderQty} units.`,
+  },
+  {
+    type: AlertType.SHIPMENT_DELAYED,
+    severity: 'WARNING',
+    roles: ['OWNER', 'ADMIN', 'MEMBER'],
+    channels: ['IN_APP', 'EMAIL'],
+    condition: (shipment) =>
+      new Date(shipment.expectedDate) < new Date() &&
+      shipment.status !== 'DELIVERED',
+    message: (shipment) =>
+      `Shipment ${shipment.shipmentNumber} is delayed. Expected: ${new Date(shipment.expectedDate).toDateString()}.`,
+  },
+  {
+    type: AlertType.CUSTOMS_HOLD,
+    severity: 'ERROR',
+    roles: ['OWNER', 'ADMIN'],
+    channels: ['IN_APP', 'EMAIL'],
+    condition: (shipment) => shipment.status === 'CUSTOMS',
+    message: (shipment) =>
+      `Shipment ${shipment.shipmentNumber} is held at customs. Immediate action required.`,
+  },
+  {
+    type: AlertType.INVOICE_OVERDUE,
+    severity: 'ERROR',
+    roles: ['OWNER', 'ADMIN'],
+    channels: ['IN_APP', 'EMAIL'],
+    condition: (invoice) =>
+      invoice.status === 'OVERDUE' && invoice.outstandingAmount > 0,
+    message: (invoice) =>
+      `Invoice ${invoice.invoiceNumber} is overdue. Amount due: ${invoice.currency} ${invoice.outstandingAmount.toFixed(2)}`,
+  },
+  {
+    type: AlertType.INSPECTION_FAILED,
+    severity: 'ERROR',
+    roles: ['OWNER', 'ADMIN', 'QC_INSPECTOR'],
+    channels: ['IN_APP', 'EMAIL'],
+    condition: (shipment) => shipment.inspectionStatus === 'FAILED',
+    message: (shipment) =>
+      `Quality inspection failed for shipment ${shipment.shipmentNumber}. Review required.`,
+  },
+];
+
+export class ProcurementAlertEngine {
+  /**
+   * Check all alert rules and generate notifications
+   */
+  async checkAllAlerts(organizationId: string) {
+    const alerts = [];
+    
+    // Check inventory alerts
+    const products = await prisma.product.findMany({
+      where: { organizationId },
+      include: { stockLevels: true },
+    });
+    
+    for (const product of products) {
+      const runway = await new RunwayCalculator().calculateRunway(product.id);
+      
+      for (const rule of PROCUREMENT_ALERT_RULES) {
+        if (rule.condition(runway)) {
+          await this.createAlert({
+            organizationId,
+            type: rule.type,
+            severity: rule.severity,
+            message: rule.message(runway),
+            context: { productId: product.id },
+            targetRoles: rule.roles,
+            channels: rule.channels,
+          });
+          alerts.push(rule.type);
+        }
+      }
+    }
+    
+    // Check shipment alerts
+    const shipments = await prisma.inboundShipment.findMany({
+      where: { organizationId },
+    });
+    
+    for (const shipment of shipments) {
+      for (const rule of PROCUREMENT_ALERT_RULES) {
+        if (rule.condition(shipment)) {
+          await this.createAlert({
+            organizationId,
+            type: rule.type,
+            severity: rule.severity,
+            message: rule.message(shipment),
+            context: { shipmentId: shipment.id },
+            targetRoles: rule.roles,
+            channels: rule.channels,
+          });
+          alerts.push(rule.type);
+        }
+      }
+    }
+    
+    // Check invoice alerts
+    const invoices = await prisma.supplierInvoice.findMany({
+      where: { organizationId },
+    });
+    
+    for (const invoice of invoices) {
+      for (const rule of PROCUREMENT_ALERT_RULES) {
+        if (rule.condition(invoice)) {
+          await this.createAlert({
+            organizationId,
+            type: rule.type,
+            severity: rule.severity,
+            message: rule.message(invoice),
+            context: { invoiceId: invoice.id },
+            targetRoles: rule.roles,
+            channels: rule.channels,
+          });
+          alerts.push(rule.type);
+        }
+      }
+    }
+    
+    return alerts;
+  }
+  
+  /**
+   * Create alert and send via configured channels
+   */
+  private async createAlert(alertData: {
+    organizationId: string;
+    type: AlertType;
+    severity: string;
+    message: string;
+    context: any;
+    targetRoles: UserRole[];
+    channels: string[];
+  }) {
+    // Create in-app notification
+    const alert = await prisma.notification.create({
+      data: {
+        organizationId: alertData.organizationId,
+        type: alertData.type,
+        severity: alertData.severity,
+        message: alertData.message,
+        context: alertData.context,
+        read: false,
+      },
+    });
+    
+    // Send to users with target roles
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId: alertData.organizationId,
+        role: { in: alertData.targetRoles },
+      },
+    });
+    
+    for (const user of users) {
+      // In-app notification
+      if (alertData.channels.includes('IN_APP')) {
+        await prisma.userNotification.create({
+          data: {
+            userId: user.id,
+            notificationId: alert.id,
+          },
+        });
+      }
+      
+      // Email notification
+      if (alertData.channels.includes('EMAIL')) {
+        await this.sendEmailAlert(user.email, alertData);
+      }
+      
+      // SMS notification (for critical alerts)
+      if (alertData.channels.includes('SMS') && alertData.severity === 'CRITICAL') {
+        await this.sendSMSAlert(user.phone, alertData);
+      }
+    }
+    
+    return alert;
+  }
+}
+```
+
+---
+
+### API Endpoints Summary
+
+**Inventory & Product Management:**
+- `GET /api/products` - List all products with inventory levels
+- `GET /api/products/[id]` - Get product details
+- `POST /api/products` - Create new product
+- `PATCH /api/products/[id]` - Update product
+- `DELETE /api/products/[id]` - Delete product
+- `POST /api/products/bulk-update` - Bulk edit COGS, tags, etc.
+- `GET /api/products/[id]/stock-history` - Inventory transaction log
+- `POST /api/products/[id]/adjust-stock` - Manual stock adjustment
+
+**Landed Cost:**
+- `POST /api/products/calculate-landed-cost` - Calculate landed cost
+- `GET /api/carriers` - List available carriers
+- `GET /api/customs-duty/[hsCode]` - Get duty rates
+
+**Procurement & Forecasting:**
+- `GET /api/procurement/reorder-forecast` - Get reorder recommendations
+- `GET /api/procurement/runway-report` - Runway status for all products
+- `POST /api/procurement/auto-reorder` - Create draft POs from forecast
+
+**Inbound Shipments:**
+- `GET /api/inbound` - List inbound pipeline
+- `GET /api/inbound/[id]` - Get shipment details
+- `POST /api/inbound` - Create inbound shipment
+- `PATCH /api/inbound/[id]` - Update shipment status
+- `POST /api/inbound/[id]/receive` - Receive shipment and update stock
+
+**Supplier Payments:**
+- `GET /api/invoices` - List all invoices
+- `GET /api/invoices/[id]` - Get invoice details
+- `POST /api/invoices` - Create invoice
+- `POST /api/invoices/[id]/payment` - Record payment
+- `GET /api/invoices/outstanding` - Outstanding invoices summary
+
+**Supplier Management:**
+- `GET /api/suppliers` - List all suppliers
+- `GET /api/suppliers/[id]` - Get supplier details
+- `POST /api/suppliers` - Create supplier
+- `PATCH /api/suppliers/[id]` - Update supplier
+- `GET /api/suppliers/[id]/performance` - Supplier performance metrics
+
+**Procurement Alerts:**
+- `GET /api/alerts` - List user's alerts
+- `PATCH /api/alerts/[id]/read` - Mark alert as read
+- `GET /api/alerts/preferences` - Get notification preferences
+- `PATCH /api/alerts/preferences` - Update notification preferences
+
+---
+
+### Background Jobs & Cron Schedule
+
+```typescript
+// Background job schedule
+export const PROCUREMENT_CRON_JOBS = [
+  {
+    name: 'Calculate Runway',
+    schedule: '0 2 * * *', // Daily at 2am
+    handler: async () => {
+      const orgs = await prisma.organization.findMany();
+      for (const org of orgs) {
+        await new RunwayCalculator().generateReorderReport(org.id);
+      }
+    },
+  },
+  {
+    name: 'Check Procurement Alerts',
+    schedule: '*/30 * * * *', // Every 30 minutes
+    handler: async () => {
+      const orgs = await prisma.organization.findMany();
+      for (const org of orgs) {
+        await new ProcurementAlertEngine().checkAllAlerts(org.id);
+      }
+    },
+  },
+  {
+    name: 'Check Overdue Invoices',
+    schedule: '0 9 * * *', // Daily at 9am
+    handler: async () => {
+      await new PaymentWorkflow().checkOverdueInvoices();
+    },
+  },
+  {
+    name: 'Update Exchange Rates',
+    schedule: '0 0 * * *', // Daily at midnight
+    handler: async () => {
+      await new CurrencyService().updateExchangeRates();
+    },
+  },
+];
+```
+
+---
+
+## Phase 4 Testing Strategy
+
+**Unit Tests:**
+- Runway calculator with various stock scenarios
+- Landed cost calculator with different carriers
+- Payment workflow state transitions
+- Alert rule condition evaluation
+
+**Integration Tests:**
+- Stock receiving flow: inbound shipment → inspection → stock update
+- Payment flow: invoice creation → payment recording → order release
+- Reorder automation: critical runway → alert → draft PO creation
+
+**E2E Tests:**
+- Complete procurement cycle: reorder alert → create PO → receive shipment → stock update
+- Multi-supplier PO with cost allocation
+- Landed cost comparison across carriers
+
+---
+
+## Phase 4 Success Metrics
+
+- ✅ All 12 sourcing features implemented and functional
+- ✅ Inventory tracking accurate to 99.9%
+- ✅ Runway calculations updated daily
+- ✅ Landed cost calculator accurate within 2%
+- ✅ Payment workflow prevents shipment without payment
+- ✅ Procurement alerts trigger within 30 minutes
+- ✅ System handles 10,000+ SKUs, 1,000+ inbound shipments
+- ✅ Dashboard loads <2s with full dataset
+

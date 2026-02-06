@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   });
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/login", "/register", "/api/auth"];
+  const publicRoutes = ["/login", "/register", "/api/auth", "/invite", "/api/invitations/"];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   // If not authenticated and trying to access protected route

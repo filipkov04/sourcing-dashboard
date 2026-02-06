@@ -513,3 +513,203 @@
 - **Week 8:** Tasks 8.1 - 8.12 ✅
 
 **Total: ~120 tasks over 8 weeks = Success! 🎉**
+
+---
+
+## PHASE 4: PROCUREMENT & INVENTORY MANAGEMENT (WEEKS 9-12)
+
+**New Scope:** Transform from production tracking to full procurement platform
+
+**What Changes:**
+- Add inventory management and SKU catalog
+- Implement reorder forecasting and runway calculations  
+- Build landed cost calculator with freight/customs
+- Create supplier payment and invoice tracking
+- Add inbound pipeline visibility
+- Implement procurement alerts and workflow automation
+
+---
+
+## WEEK 9: Inventory Foundation & Product Catalog
+
+### Filip's Tasks - Inventory Core & SKU Management
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 9.1 | Inventory Database Models | Filip | Design inventory schema: Product, SKU, Stock, InventoryTransaction, InventoryLocation | Prisma schema with inventory tables, unique constraints, indexes | 3h | ⏳ |
+| 9.2 | Product Catalog Model | Filip | Create Product model with COGS, weight, dimensions, HS code, origin country, tags | Product table with all sourcing metadata fields | 2h | ⏳ |
+| 9.3 | Stock Level Tracking | Filip | Build stock tracking: on-hand, reserved, available, backorder quantities per location | Real-time inventory balance calculations | 3h | ⏳ |
+| 9.4 | Product Catalog Page | Filip | Build product catalog UI with table, search, filters, bulk selection | Page at /products showing SKU catalog with inventory levels | 4h | ⏳ |
+| 9.5 | Product Create Form | Filip | Build form to add new product with SKU, COGS, weight, dimensions, tags | Page at /products/new with comprehensive product form | 3h | ⏳ |
+| 9.6 | Product Bulk Edit | Filip | Add bulk-edit capability for COGS, tags, lead times across multiple SKUs | Checkbox selection + bulk update modal | 3h | ⏳ |
+| 9.7 | SKU Tagging System | Filip | Implement tag management: create tags, assign to products, filter by tags | Tag CRUD + filter UI (supplier, origin, material, season, status) | 2h | ⏳ |
+| 9.8 | Product API Endpoints | Filip | Create Product APIs: GET list, GET by ID, POST create, PATCH update, DELETE | Complete product CRUD API with pagination, search, filters | 2h | ⏳ |
+
+**What Filip Creates This Week:** Complete product catalog with inventory tracking foundation.
+
+---
+
+### Marco's Tasks - Inbound Pipeline & Stock Visibility
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 9.9 | Inbound Shipment Model | Marco | Create InboundShipment model linking POs to inventory: expected qty, ETA, supplier | Shipment tracking schema with inventory linkage | 2h | ⏳ |
+| 9.10 | Inbound Pipeline View | Marco | Build live inbound pipeline showing all open POs, quantities expected, ETAs | Page at /inbound showing pipeline grouped by status/supplier | 4h | ⏳ |
+| 9.11 | Shipment Receiving Flow | Marco | Create workflow to receive shipment and update inventory: inspection, accept/reject, stock allocation | Receiving page with inspection checklist and stock update | 4h | ⏳ |
+| 9.12 | Stock Adjustment UI | Marco | Build interface for manual stock adjustments with reason codes (damaged, lost, found, correction) | Stock adjustment form with audit trail | 2h | ⏳ |
+| 9.13 | Inventory Transaction Log | Marco | Implement full audit trail for all inventory movements (receipts, adjustments, reservations) | Transaction history with before/after snapshots | 2h | ⏳ |
+| 9.14 | Low Stock Alerts | Marco | Create alert system for products below minimum stock level | Automated low-stock email/in-app notifications | 2h | ⏳ |
+| 9.15 | Inventory Dashboard Cards | Marco | Add inventory KPIs to dashboard: total SKUs, inventory value, low-stock count, inbound value | 4 new stat cards on main dashboard | 2h | ⏳ |
+| 9.16 | Inbound API Endpoints | Marco | Create APIs for inbound shipments: list, create, update status, receive | Complete inbound pipeline API | 2h | ⏳ |
+
+**What Marco Creates This Week:** Inbound pipeline visibility and inventory receiving system.
+
+---
+
+## WEEK 10: Procurement Planning & Landed Costs
+
+### Filip's Tasks - Reorder Forecasting & Runway
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 10.1 | Sales Velocity Tracking | Filip | Implement sales velocity calculation per SKU (7/30/90 day averages, weighted) | Background job calculating daily sales rates | 3h | ⏳ |
+| 10.2 | Runway Calculation Engine | Filip | Build runway formula: (current stock - reserved) / daily sales velocity | Real-time days-of-stock-remaining per SKU | 2h | ⏳ |
+| 10.3 | MOQ & Lead Time Config | Filip | Add MOQ, production lead time, shipping lead time fields to Product-Supplier relationship | Supplier-specific procurement constraints | 2h | ⏳ |
+| 10.4 | Reorder Point Calculator | Filip | Calculate when to reorder: lead time + safety stock + runway threshold | Automated reorder recommendations | 3h | ⏳ |
+| 10.5 | Procurement Dashboard | Filip | Build procurement planning view with runway status (Healthy/Warning/Critical), suggested orders | Page at /procurement showing reorder priorities | 4h | ⏳ |
+| 10.6 | Runway Status Indicators | Filip | Add color-coded runway badges throughout app (green >30d, yellow 15-30d, red <15d) | Visual runway indicators on product catalog | 2h | ⏳ |
+| 10.7 | Reorder Forecasting API | Filip | Create API returning reorder recommendations with quantities, urgency, supplier suggestions | GET /api/procurement/reorder-forecast endpoint | 2h | ⏳ |
+| 10.8 | Safety Stock Configuration | Filip | Allow setting safety stock levels per SKU (min/max inventory, lead time buffer) | Safety stock settings in product edit form | 2h | ⏳ |
+
+**What Filip Creates This Week:** Complete procurement planning and runway forecasting system.
+
+---
+
+### Marco's Tasks - Landed Cost Calculator
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 10.9 | Product Weight & Dimensions | Marco | Add fields for product weight (kg), dimensions (L/W/H cm), bulk vs non-bulk flag | Weight/dimension inputs in product form | 1h | ⏳ |
+| 10.10 | Carrier Configuration | Marco | Create Carrier model with volumetric weight formulas (DHL: /5000, FedEx: /5000, Sea: /1000000) | Carrier database with calculation rules | 2h | ⏳ |
+| 10.11 | Freight Cost Model | Marco | Build freight cost model: base rate per kg/CBM, fuel surcharge, handling fees by carrier | Freight pricing tables and calculation engine | 3h | ⏳ |
+| 10.12 | Customs Duty Calculator | Marco | Implement duty calculation: HS code lookup, origin country, duty rate %, value threshold | Customs duty formula with country-specific rules | 3h | ⏳ |
+| 10.13 | Landed Cost UI | Marco | Build landed cost breakdown interface showing: product cost, freight, duties, insurance, total | Calculator page at /products/[id]/landed-cost | 4h | ⏳ |
+| 10.14 | Bulk Shipment Logic | Marco | Add bulk cargo detection (>1 CBM) and apply bulk rates instead of per-kg rates | Bulk vs express rate switching logic | 2h | ⏳ |
+| 10.15 | Cost Comparison Tool | Marco | Create tool to compare landed costs across carriers and shipping methods | Side-by-side cost comparison with recommendations | 3h | ⏳ |
+| 10.16 | Landed Cost API | Marco | Build API for landed cost calculation with all parameters | POST /api/products/calculate-landed-cost endpoint | 2h | ⏳ |
+
+**What Marco Creates This Week:** Complete landed cost calculator with freight, duties, and carrier logic.
+
+---
+
+## WEEK 11: Enhanced PO System & Supplier Payments
+
+### Filip's Tasks - Purchase Order Enhancement & Supplier Management
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 11.1 | Supplier Model Extension | Filip | Create Supplier model separate from Factory: payment terms, currency, bank details, tax ID | Dedicated supplier database table | 2h | ⏳ |
+| 11.2 | Multi-Supplier PO Support | Filip | Allow splitting PO across multiple suppliers with quantity/cost allocation per supplier | Order-Supplier junction table with line items | 3h | ⏳ |
+| 11.3 | PO Pricing Fields | Filip | Add unit price, total cost, currency, exchange rate to order line items | Cost tracking on every PO line | 2h | ⏳ |
+| 11.4 | Shipping Terms Config | Filip | Add incoterms dropdown (FOB, CIF, EXW, DDP) with cost responsibility matrix | Shipping terms selector with definitions | 2h | ⏳ |
+| 11.5 | PO Cost Summary | Filip | Build cost breakdown view: subtotal, shipping, duties, insurance, total landed cost | Cost summary card on PO detail page | 2h | ⏳ |
+| 11.6 | PO Hold/Freeze Status | Filip | Add HELD status to OrderStatus enum with hold reason, hold timestamp, release capability | Manual hold functionality with one-click release | 3h | ⏳ |
+| 11.7 | Multi-Stage Hold | Filip | Implement hold at different stages: before production, before shipment, at customs | Stage-specific hold controls | 2h | ⏳ |
+| 11.8 | PO Templates | Filip | Allow saving PO configurations as templates for quick reuse | Template CRUD with copy-to-new-order function | 2h | ⏳ |
+
+**What Filip Creates This Week:** Enhanced PO system with multi-supplier, costing, and hold capabilities.
+
+---
+
+### Marco's Tasks - Supplier Payment & Invoice Management
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 11.9 | Invoice Model | Marco | Create SupplierInvoice model: PO link, invoice number, amount, currency, due date, status | Invoice tracking database | 2h | ⏳ |
+| 11.10 | Payment Schedule Tracking | Marco | Implement payment milestones: deposit %, balance %, payment triggers (PO placed, pre-shipment, on-delivery) | Payment schedule configuration per supplier | 3h | ⏳ |
+| 11.11 | Invoice List Page | Marco | Build page showing all supplier invoices with filters (paid, unpaid, overdue), payment status | Page at /invoices with full invoice management | 4h | ⏳ |
+| 11.12 | Invoice Payment Recording | Marco | Create payment recording form: amount, date, method, reference number, bank confirmation | Payment form with attachment upload | 2h | ⏳ |
+| 11.13 | Outstanding Invoices Widget | Marco | Add dashboard card showing total outstanding invoices and amount due | Financial dashboard widget | 2h | ⏳ |
+| 11.14 | Payment Terms Per Supplier | Marco | Allow setting default payment terms per supplier (Net 30, Net 60, 30/70 deposit/balance) | Payment terms configuration in supplier profile | 1h | ⏳ |
+| 11.15 | Currency Conversion | Marco | Implement multi-currency support with exchange rates and conversion tracking | Currency selector + rate API integration | 3h | ⏳ |
+| 11.16 | Invoice API Endpoints | Marco | Create invoice APIs: create, list, update status, record payment | Complete invoice management API | 2h | ⏳ |
+
+**What Marco Creates This Week:** Complete supplier payment and invoice tracking system.
+
+---
+
+## WEEK 12: Communication Hub & Procurement Automation
+
+### Filip's Tasks - Supplier Communication & Notifications
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 12.1 | Message Model | Filip | Create Conversation and Message models: PO/shipment context, participants, attachments | Real-time messaging database schema | 2h | ⏳ |
+| 12.2 | In-App Messaging UI | Filip | Build messaging interface embedded in PO/shipment view | Chat component with message history | 4h | ⏳ |
+| 12.3 | Supplier Ticket System | Filip | Create ticket model for quality disputes, delays, compliance issues with status workflow | Support ticket system with categories | 3h | ⏳ |
+| 12.4 | Email Integration | Filip | Add email-to-ticket conversion: suppliers can reply via email, creates ticket/message | Email parser and ticket creation automation | 3h | ⏳ |
+| 12.5 | File Attachment System | Filip | Implement file upload/download for POs, invoices, QC photos, shipping docs | File storage with Vercel Blob or S3 integration | 2h | ⏳ |
+| 12.6 | Notification Preferences | Filip | Build notification settings: choose channels (in-app, email, both, none) per alert type | Notification preferences page | 2h | ⏳ |
+| 12.7 | Procurement Alert Rules | Filip | Create alert rules: PO confirmation, shipment dispatched, delayed, customs hold, inspection failed, price change | Alert rule engine with conditions | 3h | ⏳ |
+| 12.8 | Role-Based Alert Scoping | Filip | Filter alerts by user role: sourcing sees reorder alerts, finance sees payment due, QC sees inspection | Role-based alert targeting | 1h | ⏳ |
+
+**What Filip Creates This Week:** Complete supplier communication hub with messaging, tickets, and alerts.
+
+---
+
+### Marco's Tasks - Workflow Automation & Advanced Procurement
+
+| Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
+|--------|-----------|-----------|-------------------|-------------------|------|--------|
+| 12.9 | Auto-Reorder Workflow | Marco | Build automated PO creation when runway hits critical threshold (requires approval) | Background job suggesting/creating draft POs | 4h | ⏳ |
+| 12.10 | Shipment Status Pipeline | Marco | Extend order status with: CONFIRMED, IN_TRANSIT, CUSTOMS, INSPECTED intermediate states | Enhanced shipment tracking workflow | 2h | ⏳ |
+| 12.11 | Tracking Number Integration | Marco | Add tracking number field, carrier API integration for live shipment tracking | Real-time shipment location updates | 3h | ⏳ |
+| 12.12 | PO Approval Workflow | Marco | Implement approval chain for POs above threshold: draft → pending approval → approved → sent | Multi-level approval system | 3h | ⏳ |
+| 12.13 | Geographic Map View | Marco | Add supplier origin map on dashboard showing order distribution by country | Interactive world map with order pins | 3h | ⏳ |
+| 12.14 | Pie Chart Analytics | Marco | Add pie charts for: orders by category, inventory by supplier, costs by factory | Pie chart components for dashboard | 2h | ⏳ |
+| 12.15 | Period Comparison Charts | Marco | Add WoW, MoM, YoY comparison views for all KPIs with variance indicators | Comparison mode toggle on dashboard | 2h | ⏳ |
+| 12.16 | Procurement Export | Marco | Build comprehensive export: procurement report, inventory valuation, supplier performance | CSV/Excel export for all procurement data | 1h | ⏳ |
+
+**What Marco Creates This Week:** Procurement automation, enhanced tracking, and advanced analytics.
+
+---
+
+**End of Week 12 / Phase 4 Result:**
+- ✅ Complete inventory management with real-time stock tracking
+- ✅ Product catalog with SKU master data
+- ✅ Reorder forecasting with runway calculations
+- ✅ Landed cost calculator with freight and customs
+- ✅ Supplier payment and invoice tracking
+- ✅ Inbound pipeline visibility
+- ✅ Supplier communication hub with messaging and tickets
+- ✅ Procurement alerts and workflow automation
+- ✅ Enhanced PO system with multi-supplier, costing, and holds
+- ✅ Geographic maps and advanced analytics
+- **MILESTONE: Full-featured procurement platform! 🎯**
+
+---
+
+## Updated Summary: Total Work Division
+
+### Phase 4 (Weeks 9-12) Additions:
+
+**Filip's New Responsibilities (+32 tasks):**
+- Inventory & product catalog (8 tasks)
+- Reorder forecasting & runway (8 tasks)
+- Enhanced PO & supplier management (8 tasks)
+- Communication hub & notifications (8 tasks)
+
+**Marco's New Responsibilities (+32 tasks):**
+- Inbound pipeline & stock visibility (8 tasks)
+- Landed cost calculator (8 tasks)
+- Supplier payments & invoices (8 tasks)
+- Workflow automation & analytics (8 tasks)
+
+### Updated Weekly Goals:
+- **Week 9:** Tasks 9.1 - 9.16 (Inventory Foundation)
+- **Week 10:** Tasks 10.1 - 10.16 (Procurement Planning & Costs)
+- **Week 11:** Tasks 11.1 - 11.16 (Enhanced PO & Payments)
+- **Week 12:** Tasks 12.1 - 12.16 (Communication & Automation)
+
+**New Total: ~184 tasks over 12 weeks = Complete Procurement Platform! 🎉**
+

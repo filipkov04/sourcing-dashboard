@@ -5,12 +5,12 @@ import { isEmailWhitelisted, getWhitelistErrorMessage } from "@/lib/access-contr
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, organizationName } = await request.json();
+    const { name, email, password, organizationName, invitationToken } = await request.json();
 
     // Validate input
-    if (!name || !email || !password || !organizationName) {
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "Name, email, and password are required" },
         { status: 400 }
       );
     }
@@ -19,14 +19,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
         { status: 400 }
-      );
-    }
-
-    // Check if email is whitelisted
-    if (!isEmailWhitelisted(email)) {
-      return NextResponse.json(
-        { error: getWhitelistErrorMessage() },
-        { status: 403 }
       );
     }
 
@@ -39,6 +31,97 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "An account with this email already exists" },
         { status: 400 }
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // ---- INVITATION FLOW ----
+    if (invitationToken) {
+      const invitation = await prisma.userInvitation.findUnique({
+        where: { token: invitationToken },
+        include: { organization: true },
+      });
+
+      if (!invitation) {
+        return NextResponse.json(
+          { error: "Invalid invitation token" },
+          { status: 400 }
+        );
+      }
+
+      if (invitation.status !== "PENDING") {
+        return NextResponse.json(
+          { error: `This invitation is ${invitation.status.toLowerCase()}` },
+          { status: 400 }
+        );
+      }
+
+      if (invitation.expiresAt < new Date()) {
+        await prisma.userInvitation.update({
+          where: { id: invitation.id },
+          data: { status: "EXPIRED" },
+        });
+        return NextResponse.json(
+          { error: "This invitation has expired" },
+          { status: 400 }
+        );
+      }
+
+      if (invitation.email !== email.trim().toLowerCase()) {
+        return NextResponse.json(
+          { error: "This invitation was sent to a different email address" },
+          { status: 400 }
+        );
+      }
+
+      // Create user and accept invitation in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            name,
+            email: email.trim().toLowerCase(),
+            password: hashedPassword,
+            role: invitation.role,
+            organizationId: invitation.organizationId,
+          },
+        });
+
+        await tx.userInvitation.update({
+          where: { id: invitation.id },
+          data: { status: "ACCEPTED", acceptedAt: new Date() },
+        });
+
+        return { organization: invitation.organization, user };
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Account created successfully",
+          data: {
+            userId: result.user.id,
+            organizationId: result.organization.id,
+          },
+        },
+        { status: 201 }
+      );
+    }
+
+    // ---- STANDARD REGISTRATION FLOW ----
+    if (!organizationName) {
+      return NextResponse.json(
+        { error: "Organization name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if email is whitelisted
+    if (!isEmailWhitelisted(email)) {
+      return NextResponse.json(
+        { error: getWhitelistErrorMessage() },
+        { status: 403 }
       );
     }
 
@@ -60,12 +143,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
     // Create organization and user in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Create organization
       const organization = await tx.organization.create({
         data: {
           name: organizationName,
@@ -73,7 +152,6 @@ export async function POST(request: Request) {
         },
       });
 
-      // Create user as OWNER
       const user = await tx.user.create({
         data: {
           name,
