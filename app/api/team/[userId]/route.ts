@@ -62,6 +62,11 @@ export async function PATCH(
       return api.error("Only owners can assign the owner role", 403);
     }
 
+    // Prevent ADMIN from changing OWNER's role
+    if (targetUser.role === "OWNER" && currentUser.role !== "OWNER") {
+      return api.error("Only owners can change another owner's role", 403);
+    }
+
     // Prevent removing the last owner
     if (targetUser.role === "OWNER" && role !== "OWNER") {
       const ownerCount = await prisma.user.count({
@@ -144,6 +149,11 @@ export async function DELETE(
     // Prevent removing yourself
     if (userId === session.user.id) {
       return api.error("You cannot remove yourself from the team");
+    }
+
+    // Prevent ADMIN from removing OWNER
+    if (targetUser.role === "OWNER" && currentUser.role !== "OWNER") {
+      return api.error("Only owners can remove another owner", 403);
     }
 
     // Prevent removing the last owner

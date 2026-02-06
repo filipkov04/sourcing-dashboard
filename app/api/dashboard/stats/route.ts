@@ -47,13 +47,30 @@ export async function GET(request: NextRequest) {
       from = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
     }
 
-    // Get orders filtered by period
-    const orders = await prisma.order.findMany({
-      where: {
-        organizationId,
-        orderDate: { gte: from!, lte: to },
-      },
-    });
+    // Run all DB queries in parallel
+    const previousFrom = new Date(from!.getTime() - periodDays * 24 * 60 * 60 * 1000);
+
+    const [orders, previousPeriodOrders, previousCompletedOrders] = await Promise.all([
+      prisma.order.findMany({
+        where: {
+          organizationId,
+          orderDate: { gte: from!, lte: to },
+        },
+      }),
+      prisma.order.count({
+        where: {
+          organizationId,
+          orderDate: { gte: previousFrom, lt: from! },
+        },
+      }),
+      prisma.order.count({
+        where: {
+          organizationId,
+          status: "COMPLETED",
+          actualDate: { gte: previousFrom, lt: from! },
+        },
+      }),
+    ]);
 
     // Calculate statistics
     const totalOrders = orders.length;
@@ -96,41 +113,47 @@ export async function GET(request: NextRequest) {
       delayDetail.avgOriginalDays = +(delays.reduce((s, d) => s + d.originalDays, 0) / delays.length).toFixed(1);
     }
 
-    // Trends: compare selected period vs previous equivalent period
-    const previousFrom = new Date(from!.getTime() - periodDays * 24 * 60 * 60 * 1000);
-
+    // Trends
     const recentOrders = orders.length;
-
-    // Get previous period orders for trend comparison
-    const previousPeriodOrders = await prisma.order.count({
-      where: {
-        organizationId,
-        orderDate: { gte: previousFrom, lt: from! },
-      },
-    });
 
     const ordersTrend = previousPeriodOrders > 0
       ? Math.round(((recentOrders - previousPeriodOrders) / previousPeriodOrders) * 100)
       : recentOrders > 0 ? 100 : 0;
 
-    // Completion rate trend
     const recentCompletedOrders = orders.filter((order) =>
       order.status === "COMPLETED" &&
       order.actualDate &&
       new Date(order.actualDate) >= from!
     ).length;
 
-    const previousCompletedOrders = await prisma.order.count({
-      where: {
-        organizationId,
-        status: "COMPLETED",
-        actualDate: { gte: previousFrom, lt: from! },
-      },
-    });
-
     const completionTrend = previousCompletedOrders > 0
       ? Math.round(((recentCompletedOrders - previousCompletedOrders) / previousCompletedOrders) * 100)
       : recentCompletedOrders > 0 ? 100 : 0;
+
+    // Generate sparkline data: split the period into 7 buckets
+    const bucketCount = 7;
+    const bucketMs = (to.getTime() - from!.getTime()) / bucketCount;
+
+    const totalSparkline: number[] = Array(bucketCount).fill(0);
+    const activeSparkline: number[] = Array(bucketCount).fill(0);
+    const completedSparkline: number[] = Array(bucketCount).fill(0);
+    const delayedSparkline: number[] = Array(bucketCount).fill(0);
+    const disruptedSparkline: number[] = Array(bucketCount).fill(0);
+
+    for (const order of orders) {
+      const orderTime = new Date(order.orderDate).getTime();
+      const bucket = Math.min(
+        Math.floor((orderTime - from!.getTime()) / bucketMs),
+        bucketCount - 1
+      );
+      if (bucket >= 0) {
+        totalSparkline[bucket]++;
+        if (activeStatuses.includes(order.status)) activeSparkline[bucket]++;
+        if (order.status === "COMPLETED") completedSparkline[bucket]++;
+        if (order.status === "DELAYED") delayedSparkline[bucket]++;
+        if (order.status === "DISRUPTED") disruptedSparkline[bucket]++;
+      }
+    }
 
     const stats = {
       totalOrders,
@@ -142,6 +165,13 @@ export async function GET(request: NextRequest) {
       trends: {
         orders: ordersTrend,
         completion: completionTrend,
+      },
+      sparklines: {
+        total: totalSparkline,
+        active: activeSparkline,
+        completed: completedSparkline,
+        delayed: delayedSparkline,
+        disrupted: disruptedSparkline,
       },
       period: {
         from: from!.toISOString(),

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,16 @@ const defaultStages = [
 ];
 
 export default function NewOrderPage() {
+  return (
+    <Suspense>
+      <NewOrderForm />
+    </Suspense>
+  );
+}
+
+function NewOrderForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [factories, setFactories] = useState<Factory[]>([]);
@@ -50,13 +59,13 @@ export default function NewOrderPage() {
     { id: "4", name: "Packaging", sequence: 4 },
   ]);
 
-  // Form state
+  // Form state — pre-fill from search params (reorder flow)
   const [orderNumber, setOrderNumber] = useState("");
-  const [productName, setProductName] = useState("");
-  const [productSKU, setProductSKU] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("pieces");
-  const [factoryId, setFactoryId] = useState("");
+  const [productName, setProductName] = useState(searchParams.get("product") || "");
+  const [productSKU, setProductSKU] = useState(searchParams.get("sku") || "");
+  const [quantity, setQuantity] = useState(searchParams.get("quantity") || "");
+  const [unit, setUnit] = useState(searchParams.get("unit") || "pieces");
+  const [factoryId, setFactoryId] = useState(searchParams.get("factoryId") || "");
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split("T")[0]);
   const [expectedDate, setExpectedDate] = useState("");
   const [priority, setPriority] = useState("NORMAL");

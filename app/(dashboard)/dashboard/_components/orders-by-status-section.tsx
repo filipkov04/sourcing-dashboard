@@ -33,19 +33,19 @@ export function OrdersByStatusSection() {
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
-      <div className="mb-6">
-        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Orders by Status</h3>
-        <p className="mt-1 text-sm text-gray-400 dark:text-zinc-500">Current breakdown</p>
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Orders by Status</h3>
+        <p className="mt-0.5 text-xs text-gray-400 dark:text-zinc-500">Current breakdown</p>
       </div>
       {isLoading ? (
-        <div className="h-[240px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EB5D2E]" />
+        <div className="h-[180px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#EB5D2E]" />
         </div>
       ) : statusData.length > 0 ? (
         <OrdersByStatusChart data={statusData} />
       ) : (
-        <div className="h-[240px] flex items-center justify-center text-gray-500 dark:text-zinc-400">
+        <div className="h-[180px] flex items-center justify-center text-xs text-gray-500 dark:text-zinc-400">
           No order status data available
         </div>
       )}

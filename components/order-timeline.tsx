@@ -31,16 +31,17 @@ type TimelineEvent = OrderEvent & {
   id: string;
 };
 
-const iconMap = {
+const iconMap: Record<string, typeof Clock> = {
   status: Clock,
   progress: Circle,
   note: FileText,
   field: Layers,
   stage: Layers,
   created: PlusCircle,
+  admin: FileText,
 };
 
-const colorClasses = {
+const colorClasses: Record<string, { bg: string; border: string; icon: string; line: string }> = {
   green: {
     bg: "bg-green-900/30",
     border: "border-green-700",

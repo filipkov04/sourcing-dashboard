@@ -22,7 +22,7 @@ export function OrdersByStatusChart({ data }: { data: OrdersByStatusData }) {
           </div>
 
           {/* Horizontal bar with pill shape */}
-          <div className="relative h-8 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
+          <div className="relative h-6 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
             <div
               className="absolute left-0 top-0 h-full rounded-full transition-all duration-300 ease-in-out group-hover:opacity-90"
               style={{

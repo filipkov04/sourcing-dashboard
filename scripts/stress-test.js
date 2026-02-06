@@ -34,6 +34,15 @@ const tests = [
   { name: 'Factories API', path: '/api/factories', expectedStatus: [200, 307, 401] },
   { name: 'Orders API', path: '/api/orders', expectedStatus: [200, 307, 401] },
 
+  // Exchange Rates
+  { name: 'Exchange Rates API', path: '/api/dashboard/exchange-rates', expectedStatus: [200, 307, 401] },
+
+  // Product Portfolio
+  { name: 'Product Portfolio API', path: '/api/dashboard/product-portfolio', expectedStatus: [200, 307, 401] },
+
+  // Reorder Suggestions
+  { name: 'Reorder Suggestions API', path: '/api/dashboard/reorder-suggestions', expectedStatus: [200, 307, 401] },
+
   // Invitation System (Task 3.5)
   { name: 'Invitations API (list)', path: '/api/invitations', expectedStatus: [200, 307, 401] },
   { name: 'Invite Token Validate', path: '/api/invitations/invalid-token-test', expectedStatus: [400, 404] },

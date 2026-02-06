@@ -3,10 +3,13 @@ import { redirect } from "next/navigation";
 import { DashboardStatsCards } from "./_components/dashboard-stats-cards";
 import { OrdersTrendSection } from "./_components/orders-trend-section";
 import { OrdersByStatusSection } from "./_components/orders-by-status-section";
+import { ProductPortfolioSection } from "./_components/product-portfolio-section";
 import { RecentActivityFeed } from "./_components/recent-activity-feed";
 import { QuickActions } from "./_components/quick-actions";
+import { ReorderSuggestions } from "./_components/reorder-suggestions";
 import { DashboardHeader } from "./_components/dashboard-header";
 import { FactoryPerformanceSection } from "./_components/factory-performance-section";
+import { ExchangeRateCards } from "./_components/exchange-rate-cards";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -25,13 +28,21 @@ export default async function DashboardPage() {
         <DashboardStatsCards />
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
-        {/* Full width trend chart */}
-        <OrdersTrendSection />
-
-        {/* Status breakdown chart */}
+      {/* Status Breakdown + Product Portfolio — right after stats */}
+      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-top-4 duration-700 -mt-2">
         <OrdersByStatusSection />
+        <ProductPortfolioSection />
+      </div>
+
+      {/* Exchange Rates & Reorder Suggestions */}
+      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
+        <ExchangeRateCards />
+        <ReorderSuggestions />
+      </div>
+
+      {/* Charts Grid */}
+      <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
+        <OrdersTrendSection />
       </div>
 
       {/* Factory Performance Section */}
@@ -44,10 +55,7 @@ export default async function DashboardPage() {
 
       {/* Activity & Quick Actions Grid */}
       <div className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
-        {/* Recent Activity Feed */}
         <RecentActivityFeed />
-
-        {/* Quick Actions */}
         <QuickActions />
       </div>
     </div>

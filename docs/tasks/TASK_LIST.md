@@ -186,8 +186,9 @@
 | 4.5 | Date Range Filter | Filip | Add date picker to filter charts by date range | Date range selector that updates all charts | 2h | ⏳ |
 | 4.6 | Analytics API | Filip | Create API endpoints to provide chart data | APIs returning aggregated data for charts | 2h | ⏳ |
 | 4.7 | Week 4 PR | Filip | Package analytics features | Pull request for review | 30min | ⏳ |
+| 4.20 | Factory Globe Card | Filip | Add 3D globe dashboard card showing factory/manufacturer locations with glowing markers. Uses `cobe` (5KB, zero-dep). Static geocoding lookup for city→lat/lng. Auto-rotates, user-draggable, dark/light mode aware. | `lib/geo.ts` (static geocode map + fuzzy match), `/api/dashboard/factory-locations` (auth-protected, returns factories with lat/lng + orderCount), `dashboard/_components/factory-globe.tsx` (client component with cobe canvas, markers, card styling, loading skeleton). Update `dashboard/page.tsx` to include globe + add endpoint to `stress-test.js`. Dep: `npm install cobe` | 3h | ⏳ |
 
-**What Filip Creates This Week:** Beautiful dashboard with charts showing order trends, factory performance, and analytics.
+**What Filip Creates This Week:** Beautiful dashboard with charts showing order trends, factory performance, analytics, and a 3D globe showing factory locations.
 
 ---
 

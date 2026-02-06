@@ -321,6 +321,16 @@ export type OrdersByStatusData = Array<{
 }>;
 
 /**
+ * Chart data for product portfolio (pie chart)
+ */
+export type ProductPortfolioData = Array<{
+  name: string;
+  value: number;
+  color: string;
+  percentage: number;
+}>;
+
+/**
  * Dashboard metrics
  */
 export type DashboardMetrics = {

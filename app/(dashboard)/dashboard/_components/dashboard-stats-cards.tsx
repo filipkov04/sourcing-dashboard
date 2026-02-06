@@ -21,6 +21,13 @@ type DashboardStats = {
     orders: number;
     completion: number;
   };
+  sparklines: {
+    total: number[];
+    active: number[];
+    completed: number[];
+    delayed: number[];
+    disrupted: number[];
+  };
   period: {
     from: string;
     to: string;
@@ -28,6 +35,34 @@ type DashboardStats = {
 };
 
 type Period = "7d" | "30d" | "90d" | "custom";
+
+function Sparkline({ data, color = "#3b82f6" }: { data: number[]; color?: string }) {
+  if (!data || data.length < 2) return null;
+
+  const max = Math.max(...data, 1);
+  const w = 64;
+  const h = 28;
+  const padding = 2;
+
+  const points = data.map((v, i) => {
+    const x = padding + (i / (data.length - 1)) * (w - padding * 2);
+    const y = h - padding - (v / max) * (h - padding * 2);
+    return `${x},${y}`;
+  });
+
+  return (
+    <svg width={w} height={h} className="flex-shrink-0">
+      <polyline
+        points={points.join(" ")}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function DashboardStatsCards() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -92,17 +127,23 @@ export function DashboardStatsCards() {
       value: stats?.totalOrders ?? 0,
       icon: Package,
       trend: stats?.trends.orders,
+      sparkline: stats?.sparklines?.total,
+      sparkColor: "#3b82f6",
     },
     {
       label: "Active Orders",
       value: stats?.activeOrders ?? 0,
       icon: Activity,
+      sparkline: stats?.sparklines?.active,
+      sparkColor: "#8b5cf6",
     },
     {
       label: "Completed",
       value: stats?.completedOrders ?? 0,
       icon: CheckCircle,
       trend: stats?.trends.completion,
+      sparkline: stats?.sparklines?.completed,
+      sparkColor: "#10b981",
     },
     {
       label: "Delayed",
@@ -110,12 +151,16 @@ export function DashboardStatsCards() {
       icon: AlertTriangle,
       subtitle: delaySubtitle,
       subtitleColor: delaySubtitleColor,
+      sparkline: stats?.sparklines?.delayed,
+      sparkColor: "#f59e0b",
     },
     {
       label: "Disrupted",
       value: stats?.disruptedOrders ?? 0,
       icon: AlertCircle,
       highlight: (stats?.disruptedOrders ?? 0) > 0,
+      sparkline: stats?.sparklines?.disrupted,
+      sparkColor: "#EB5D2E",
     },
   ];
 
@@ -218,18 +263,30 @@ export function DashboardStatsCards() {
                   strokeWidth={2}
                 />
               </div>
-              <div className="mt-3 flex items-end gap-2">
-                <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-800 dark:text-white"}`}>
-                  {stat.value}
-                </p>
-                {stat.trend !== undefined && stat.trend !== 0 && (
-                  <span
-                    className={`text-xs font-medium mb-1 ${
-                      stat.trend > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {stat.trend > 0 ? "+" : ""}{stat.trend}%
-                  </span>
+              <div className="mt-3 flex items-end justify-between">
+                <div>
+                  <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-800 dark:text-white"}`}>
+                    {stat.value}
+                  </p>
+                  <div className="mt-2 flex items-center gap-1">
+                    {stat.trend !== undefined && stat.trend !== 0 && (
+                      <span
+                        className={`text-xs font-medium ${
+                          stat.trend > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {stat.trend > 0 ? "\u25B2" : "\u25BC"} {Math.abs(stat.trend)}%
+                      </span>
+                    )}
+                    {stat.trend !== undefined && stat.trend !== 0 && (
+                      <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+                        from last period
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {stat.sparkline && (
+                  <Sparkline data={stat.sparkline} color={stat.sparkColor} />
                 )}
               </div>
               {stat.subtitle && (
