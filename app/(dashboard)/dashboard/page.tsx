@@ -20,8 +20,8 @@ export default async function DashboardPage() {
       {/* Page Header */}
       <DashboardHeader userName={session.user.name || session.user.email} />
 
-      {/* Stats Cards Grid - 3 columns on desktop, 2 on tablet, 1 on mobile */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-top-4 duration-700">
+      {/* Stats Cards with Period Selector — 5 cards, 3-column grid */}
+      <div className="animate-in fade-in slide-in-from-top-4 duration-700">
         <DashboardStatsCards />
       </div>
 
