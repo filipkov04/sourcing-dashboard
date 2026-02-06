@@ -2,11 +2,21 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 5, 2026 - Session 8
+**Last Updated:** February 6, 2026 - Session 9
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 8):**
+**Completed Today (Session 9):**
+- ✅ **Task 3.5a - Invitation Database Model** (UserInvitation + InvitationStatus enum)
+- ✅ **Task 3.5b - Invitation API Endpoints** (POST create, GET list, GET validate, DELETE revoke)
+- ✅ **Task 3.5c - Invitation Accept Page** (/invite/[token] with registration form)
+- ✅ **Task 3.5d - Update Registration Flow** (dual path: invitation token OR whitelist)
+- ✅ **Updated Team Page** with invite dialog, pending invitations table, revoke capability
+- ✅ **Fixed 4 bugs** from agent-generated code (revoke token path, invitedBy data, middleware public routes)
+- ✅ **Stress test updated** to 17/17 endpoints (100% pass rate)
+- ✅ **Git commit** a3bc86e pushed to origin/main
+
+**Completed Previously (Session 8):**
 - ✅ **Set up Notion API integration for task tracking**
 - ✅ Created Notion integration and configured API access
 - ✅ Built `/scripts/sync-to-notion.js` for syncing TASK_LIST.md to Notion
@@ -53,7 +63,7 @@
 - ✅ Role-based permissions (OWNER, ADMIN, MEMBER, VIEWER)
 - ✅ Color-coded role badges with security protections
 
-**Next Task:** Task 2.5 - Create Pull Request for Week 2 Work OR Task 3.5a-d - Invitation System
+**Next Task:** Task 3.6 (Week 3 PR) OR Task 2.5 (Week 2 PR) OR Week 3 Marco's tasks (3.7-3.12)
 
 **How to Continue:**
 When starting next session, say: "Start where we left off according to CLAUDE.md"
@@ -70,7 +80,11 @@ When starting next session, say: "Start where we left off according to CLAUDE.md
 - Task 3.3 (Recent Activity Feed): ✅ COMPLETE (Session 5)
 - Task 3.4a (Email Whitelist Access Control): ✅ COMPLETE (Session 7)
 - Task 3.4b (Team Members Page): ✅ COMPLETE (Session 7)
-- Remaining: 3.5a-3.6 (Invitation system), 3.7-3.12 (Marco's order enhancements)
+- Task 3.5a (Invitation Database Model): ✅ COMPLETE (Session 9)
+- Task 3.5b (Invitation API Endpoints): ✅ COMPLETE (Session 9)
+- Task 3.5c (Invitation Accept Page): ✅ COMPLETE (Session 9)
+- Task 3.5d (Update Registration Flow): ✅ COMPLETE (Session 9)
+- Remaining: 3.6 (Week 3 PR), 3.7-3.12 (Marco's order enhancements)
 
 ---
 
