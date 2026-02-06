@@ -53,21 +53,21 @@ type Factory = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  IN_PROGRESS: "bg-blue-100 text-blue-800",
-  DELAYED: "bg-orange-100 text-orange-800",
-  DISRUPTED: "bg-red-100 text-red-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-zinc-700 text-zinc-200",
-  CANCELLED: "bg-zinc-700 text-zinc-400",
+  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  DELAYED: "bg-orange-50 text-[#EB5D2E] dark:bg-orange-900/20 dark:text-[#EB5D2E]",
+  DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+  COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+  SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  DELIVERED: "bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300",
+  CANCELLED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-zinc-700 text-zinc-400",
-  NORMAL: "bg-blue-100 text-blue-600",
-  HIGH: "bg-orange-100 text-orange-600",
-  URGENT: "bg-red-100 text-red-600",
+  LOW: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
+  NORMAL: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+  HIGH: "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+  URGENT: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
 };
 
 export default function OrdersPage() {
@@ -145,7 +145,7 @@ export default function OrdersPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Orders</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Orders</h1>
           <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
             Manage and track all your production orders
           </p>
@@ -159,7 +159,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300">
           <Filter className="h-4 w-4" />
           Filters
@@ -237,10 +237,10 @@ export default function OrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm overflow-x-auto">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-x-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EB5D2E]" />
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">
@@ -279,11 +279,11 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                  className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-zinc-800/50"
                   onClick={() => router.push(`/orders/${order.id}`)}
                 >
                   <TableCell>
-                    <span className="font-medium text-blue-600">
+                    <span className="font-medium text-[#EB5D2E]">
                       {order.orderNumber}
                     </span>
                   </TableCell>
@@ -320,7 +320,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-zinc-700 rounded-full overflow-hidden">
+                      <div className="w-24 h-2 bg-gray-100 dark:bg-zinc-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             order.status === "COMPLETED"

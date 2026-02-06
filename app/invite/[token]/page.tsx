@@ -170,7 +170,7 @@ export default function InviteAcceptPage({
               {error}
             </p>
             <Link href="/login">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white">
                 Go to Login
               </Button>
             </Link>
@@ -270,7 +270,7 @@ export default function InviteAcceptPage({
           <CardFooter className="flex flex-col space-y-4">
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

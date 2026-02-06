@@ -16,12 +16,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <DashboardHeader userName={session.user.name || session.user.email} />
 
       {/* Stats Cards Grid - 3 columns on desktop, 2 on tablet, 1 on mobile */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-top-4 duration-700">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-top-4 duration-700">
         <DashboardStatsCards />
       </div>
 
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
       {/* Factory Performance Section */}
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-5">
           Factory Performance
         </h2>
         <FactoryPerformanceSection />

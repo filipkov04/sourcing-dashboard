@@ -34,14 +34,14 @@ export function OrdersTrendSection() {
   }, []);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-zinc-800 dark:border-zinc-700">
+    <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
       <div className="mb-6">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">Orders over time</h3>
-        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Last 12 weeks</p>
+        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Orders over time</h3>
+        <p className="mt-1 text-sm text-gray-400 dark:text-zinc-500">Last 12 weeks</p>
       </div>
       {isLoading ? (
         <div className="h-[300px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EB5D2E]" />
         </div>
       ) : trendData.length > 0 ? (
         <OrdersTrendChart data={trendData} />

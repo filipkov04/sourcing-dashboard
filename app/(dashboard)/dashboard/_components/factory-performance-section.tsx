@@ -63,7 +63,7 @@ export function FactoryPerformanceSection() {
   if (loading) {
     return (
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
             <Skeleton className="h-6 w-40" />
           </CardHeader>
@@ -71,7 +71,7 @@ export function FactoryPerformanceSection() {
             <Skeleton className="h-20 w-full" />
           </CardContent>
         </Card>
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
             <Skeleton className="h-6 w-40" />
           </CardHeader>
@@ -91,7 +91,7 @@ export function FactoryPerformanceSection() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -99,7 +99,7 @@ export function FactoryPerformanceSection() {
               </div>
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Total Factories</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   {stats.summary.totalFactories}
                 </p>
               </div>
@@ -107,7 +107,7 @@ export function FactoryPerformanceSection() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -115,7 +115,7 @@ export function FactoryPerformanceSection() {
               </div>
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   {stats.summary.totalOrders}
                 </p>
               </div>
@@ -123,7 +123,7 @@ export function FactoryPerformanceSection() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -131,7 +131,7 @@ export function FactoryPerformanceSection() {
               </div>
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Avg Orders/Factory</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   {stats.summary.averageOrdersPerFactory}
                 </p>
               </div>
@@ -143,9 +143,9 @@ export function FactoryPerformanceSection() {
       {/* Insights Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Top Performers */}
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
               Top Performers
             </CardTitle>
@@ -161,11 +161,11 @@ export function FactoryPerformanceSection() {
                   <Link
                     key={factory.id}
                     href={`/factories/${factory.id}`}
-                    className="block p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-800 dark:text-gray-100">
                           {factory.name}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-zinc-400">
@@ -192,9 +192,9 @@ export function FactoryPerformanceSection() {
         </Card>
 
         {/* Needs Attention */}
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               Needs Attention
             </CardTitle>
@@ -210,11 +210,11 @@ export function FactoryPerformanceSection() {
                   <Link
                     key={factory.id}
                     href={`/factories/${factory.id}`}
-                    className="block p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-800 dark:text-gray-100">
                           {factory.name}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-zinc-400">
@@ -241,9 +241,9 @@ export function FactoryPerformanceSection() {
         </Card>
 
         {/* Most Utilized */}
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Most Utilized
             </CardTitle>
@@ -259,11 +259,11 @@ export function FactoryPerformanceSection() {
                   <Link
                     key={factory.id}
                     href={`/factories/${factory.id}`}
-                    className="block p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-800 dark:text-gray-100">
                           {factory.name}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-zinc-400">
@@ -288,9 +288,9 @@ export function FactoryPerformanceSection() {
         </Card>
 
         {/* Least Utilized */}
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <Building2 className="h-5 w-5 text-gray-600 dark:text-zinc-400" />
               Available Capacity
             </CardTitle>
@@ -306,11 +306,11 @@ export function FactoryPerformanceSection() {
                   <Link
                     key={factory.id}
                     href={`/factories/${factory.id}`}
-                    className="block p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-100 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-800 dark:text-gray-100">
                           {factory.name}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-zinc-400">

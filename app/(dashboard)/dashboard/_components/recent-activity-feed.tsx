@@ -16,14 +16,14 @@ type Activity = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  IN_PROGRESS: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  DELAYED: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  DISRUPTED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  SHIPPED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  DELIVERED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  CANCELLED: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  DELAYED: "bg-orange-50 text-[#EB5D2E] dark:bg-orange-900/20 dark:text-[#EB5D2E]",
+  DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+  COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+  SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  DELIVERED: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+  CANCELLED: "bg-gray-50 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
 export function RecentActivityFeed() {
@@ -49,7 +49,7 @@ export function RecentActivityFeed() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-zinc-800 dark:border-zinc-700">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         </div>
@@ -70,7 +70,7 @@ export function RecentActivityFeed() {
 
   if (activities.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-zinc-800 dark:border-zinc-700">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
         <div className="text-center py-8">
           <Clock className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500 mb-3" />
@@ -81,12 +81,12 @@ export function RecentActivityFeed() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-zinc-800 dark:border-zinc-700">
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         <Link
           href="/orders"
-          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-1"
+          className="text-sm text-[#EB5D2E] dark:text-[#EB5D2E] hover:text-[#d4522a] dark:hover:text-[#f07040] font-medium flex items-center gap-1"
         >
           View all
           <ArrowRight className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function RecentActivityFeed() {
           <Link
             key={activity.id}
             href={`/orders/${activity.id}`}
-            className="flex items-start gap-3 group hover:bg-gray-50 dark:hover:bg-zinc-750 -mx-3 px-3 py-2 rounded-lg transition-colors"
+            className="flex items-start gap-3 group hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 -mx-3 px-3 py-2 rounded-lg transition-colors"
           >
             <div
               className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
@@ -115,7 +115,7 @@ export function RecentActivityFeed() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#EB5D2E] dark:group-hover:text-[#EB5D2E] transition-colors">
                 {activity.type === "completed" ? "Completed" : "New order"} #{activity.orderNumber}
               </p>
               <p className="text-sm text-gray-600 dark:text-zinc-400 truncate">

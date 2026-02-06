@@ -9,7 +9,7 @@ export function PageLoader() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-zinc-900"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#f8f9fa] dark:bg-zinc-950"
     >
       <div className="flex flex-col items-center space-y-6">
         {/* Logo */}
@@ -24,7 +24,7 @@ export function PageLoader() {
           className="flex flex-col items-center space-y-3"
         >
           {/* Icon */}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/50">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#EB5D2E] shadow-lg shadow-[#EB5D2E]/30">
             <Factory className="h-9 w-9 text-white" />
           </div>
 
@@ -38,7 +38,7 @@ export function PageLoader() {
         <div className="w-64 space-y-2">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-zinc-700">
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 to-blue-600"
+              className="h-full bg-gradient-to-r from-[#EB5D2E] to-[#d4522a]"
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{

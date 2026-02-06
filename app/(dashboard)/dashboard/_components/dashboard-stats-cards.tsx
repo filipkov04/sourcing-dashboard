@@ -80,11 +80,11 @@ export function DashboardStatsCards() {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-zinc-800 dark:border-zinc-700 animate-pulse"
-            style={{ minHeight: "110px" }}
+            className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 animate-pulse"
+            style={{ minHeight: "120px" }}
           >
-            <div className="h-3 w-20 bg-gray-200 dark:bg-zinc-700 rounded" />
-            <div className="mt-3 h-8 w-16 bg-gray-200 dark:bg-zinc-700 rounded" />
+            <div className="h-3 w-20 bg-gray-100 dark:bg-zinc-800 rounded" />
+            <div className="mt-3 h-8 w-16 bg-gray-100 dark:bg-zinc-800 rounded" />
           </div>
         ))}
       </>
@@ -96,24 +96,24 @@ export function DashboardStatsCards() {
       {statsCards.map((stat, index) => (
         <div
           key={index}
-          className={`group relative rounded-xl border p-4 transition-all hover:shadow-md ${
+          className={`group relative rounded-2xl border p-6 shadow-sm transition-all ${
             stat.highlight
-              ? "bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/50"
-              : "bg-white border-gray-200 hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-750"
+              ? "bg-red-50/50 border-red-100 dark:bg-red-950/20 dark:border-red-900/30"
+              : "bg-white border-gray-100 hover:shadow-md dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700"
           }`}
-          style={{ minHeight: "110px" }}
+          style={{ minHeight: "120px" }}
         >
           <div className="flex items-start justify-between">
-            <p className={`text-xs font-medium ${stat.highlight ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-zinc-400"}`}>
+            <p className={`text-[13px] font-medium tracking-wide uppercase ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-400 dark:text-zinc-500"}`}>
               {stat.label}
             </p>
             <stat.icon
-              className={`h-4 w-4 ${stat.highlight ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-zinc-500"}`}
+              className={`h-5 w-5 ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-300 dark:text-zinc-600"}`}
               strokeWidth={2}
             />
           </div>
           <div className="mt-3 flex items-end gap-2">
-            <p className={`text-[28px] font-semibold leading-none ${stat.highlight ? "text-red-700 dark:text-red-300" : "text-gray-900 dark:text-white"}`}>
+            <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-800 dark:text-white"}`}>
               {stat.value}
             </p>
             {stat.trend !== undefined && stat.trend !== 0 && (

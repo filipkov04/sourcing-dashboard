@@ -241,7 +241,7 @@ export default function FactoryDetailPage() {
             Delete
           </Button>
           <Link href={`/factories/${factory.id}/edit`} className="flex-1 sm:flex-initial">
-            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
+            <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white">
               <Edit className="mr-2 h-4 w-4" />
               Edit Factory
             </Button>
@@ -359,7 +359,7 @@ export default function FactoryDetailPage() {
               <Package className="h-12 w-12 text-gray-400 dark:text-zinc-600" />
               <p className="text-gray-500 dark:text-zinc-500">No orders from this factory yet</p>
               <Link href="/orders/new">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
                   Create First Order
                 </Button>
               </Link>

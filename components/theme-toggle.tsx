@@ -21,7 +21,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="h-9 w-9 rounded-lg border border-gray-200 bg-white dark:border-zinc-700 dark:bg-zinc-800" />
+      <div className="h-9 w-9 rounded-lg border border-gray-100 bg-white dark:border-zinc-800 dark:bg-zinc-900" />
     );
   }
 
@@ -40,7 +40,7 @@ export function ThemeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700"
           aria-label="Toggle theme"
         >
           {getIcon()}

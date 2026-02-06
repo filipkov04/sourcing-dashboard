@@ -63,25 +63,25 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-800",
+          "fixed lg:static inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-gray-100 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900",
           collapsed ? "w-16" : "w-64",
           // Mobile: hide by default, show when mobileOpen
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-zinc-700">
+      <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4 dark:border-zinc-800">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EB5D2E]">
               <Factory className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">SourceTrack</span>
+            <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">SourceTrack</span>
           </Link>
         )}
         {collapsed && (
           <Link href="/dashboard" className="flex items-center justify-center w-full">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EB5D2E]">
               <Factory className="h-5 w-5 text-white" />
             </div>
           </Link>
@@ -100,8 +100,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                  ? "bg-[#EB5D2E]/10 text-[#EB5D2E] font-semibold dark:bg-[#EB5D2E]/15 dark:text-[#EB5D2E]"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
               )}
               title={collapsed ? item.name : undefined}
             >
@@ -113,10 +113,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       </nav>
 
       {/* Collapse Toggle */}
-      <div className="border-t border-gray-200 p-4 dark:border-zinc-700">
+      <div className="border-t border-gray-100 p-4 dark:border-zinc-800">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-white"
+          className="flex w-full items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronLeft

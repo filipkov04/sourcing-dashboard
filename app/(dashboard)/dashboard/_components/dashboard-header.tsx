@@ -22,11 +22,11 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
 
   return (
     <div className="animate-in fade-in slide-in-from-top-2 duration-500">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-        Dashboard
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">
+        Hi, {userName || "there"} 👋
       </h1>
-      <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-        {greeting}, {userName || "there"} 👋
+      <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+        Welcome to your sourcing dashboard
       </p>
     </div>
   );

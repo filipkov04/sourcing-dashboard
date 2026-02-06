@@ -31,18 +31,18 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
         <defs>
           {/* Light blue gradient for Pending */}
           <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#93c5fd" stopOpacity={0.15} />
-            <stop offset="95%" stopColor="#93c5fd" stopOpacity={0.05} />
+            <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
+            <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.05} />
           </linearGradient>
           {/* Medium blue gradient for In Progress */}
           <linearGradient id="colorInProgress" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.18} />
-            <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.08} />
+            <stop offset="5%" stopColor="#64748b" stopOpacity={0.18} />
+            <stop offset="95%" stopColor="#64748b" stopOpacity={0.08} />
           </linearGradient>
           {/* Purple gradient for Completed */}
           <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.18} />
-            <stop offset="95%" stopColor="#a78bfa" stopOpacity={0.08} />
+            <stop offset="5%" stopColor="#EB5D2E" stopOpacity={0.18} />
+            <stop offset="95%" stopColor="#EB5D2E" stopOpacity={0.08} />
           </linearGradient>
         </defs>
 
@@ -78,7 +78,7 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
         <Tooltip
           contentStyle={{
             backgroundColor: isDark ? "#27272a" : "#ffffff",
-            border: `1px solid ${isDark ? "#3f3f46" : "#e5e7eb"}`,
+            border: `1px solid ${isDark ? "#3f3f46" : "#f1f5f9"}`,
             borderRadius: "8px",
             boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
             padding: "8px 12px",
@@ -117,7 +117,7 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
           type="monotone"
           dataKey="pending"
           stackId="1"
-          stroke="#93c5fd"
+          stroke="#94a3b8"
           strokeWidth={1.5}
           fill="url(#colorPending)"
           name="Pending"
@@ -126,7 +126,7 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
           type="monotone"
           dataKey="inProgress"
           stackId="1"
-          stroke="#60a5fa"
+          stroke="#64748b"
           strokeWidth={1.5}
           fill="url(#colorInProgress)"
           name="In Progress"
@@ -135,7 +135,7 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
           type="monotone"
           dataKey="completed"
           stackId="1"
-          stroke="#a78bfa"
+          stroke="#EB5D2E"
           strokeWidth={1.5}
           fill="url(#colorCompleted)"
           name="Completed"

@@ -36,24 +36,24 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6 dark:border-zinc-700 dark:bg-zinc-800">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-sm px-4 sm:px-6 dark:border-zinc-800 dark:bg-zinc-900/80">
       {/* Left side - Mobile menu + Search */}
       <div className="flex flex-1 items-center gap-2 sm:gap-4">
         {/* Mobile menu button */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
+          className="lg:hidden rounded-lg p-2 text-gray-400 hover:bg-gray-50 dark:text-zinc-500 dark:hover:bg-zinc-800"
         >
           <Menu className="h-5 w-5" />
         </button>
 
         {/* Search */}
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-300 dark:text-zinc-500" />
           <input
             type="text"
             placeholder="Search orders, factories..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white dark:placeholder-zinc-400"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
           />
         </div>
       </div>
@@ -64,7 +64,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <ThemeToggle />
 
         {/* Notifications */}
-        <button className="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-white">
+        <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300">
           <Bell className="h-5 w-5" />
           {/* Badge for unread notifications */}
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
@@ -73,8 +73,8 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-zinc-700">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+            <button className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EB5D2E] text-sm font-semibold text-white">
                 {user.initials}
               </div>
               <div className="hidden text-left sm:block">

@@ -138,9 +138,9 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
   // Empty state - no factories at all
   if (factories.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-12 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30">
-          <Package className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-12 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10">
+          <Package className="h-8 w-8 text-[#EB5D2E] dark:text-[#EB5D2E]" />
         </div>
         <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
           No factories yet
@@ -150,7 +150,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
         </p>
         <Link
           href="/factories/new"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white"
         >
           <Package className="h-4 w-4" />
           Add Your First Factory
@@ -171,7 +171,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
             placeholder="Search factories by name, location, or contact..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 py-2 pl-10 pr-10 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 py-2 pl-10 pr-10 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20"
           />
           {searchQuery && (
             <button
@@ -187,7 +187,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
         <div className="flex items-center gap-2">
           {/* Order Filter */}
           <Select value={orderFilter} onValueChange={(value) => setOrderFilter(value as OrderFilter)}>
-            <SelectTrigger className="w-[160px] border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
+            <SelectTrigger className="w-[160px] border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" />
                 <SelectValue placeholder="Filter" />
@@ -203,7 +203,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
           {/* Sort */}
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-            <SelectTrigger className="w-[160px] border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
+            <SelectTrigger className="w-[160px] border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4" />
                 <SelectValue placeholder="Sort" />
@@ -239,19 +239,19 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-400">
           <span>Active filters:</span>
           {searchQuery && (
-            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+            <Badge variant="secondary" className="bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10 text-[#EB5D2E] dark:text-[#EB5D2E]">
               Search: {searchQuery}
             </Badge>
           )}
           {orderFilter !== "all" && (
-            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+            <Badge variant="secondary" className="bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10 text-[#EB5D2E] dark:text-[#EB5D2E]">
               {orderFilter === "none" && "No Orders"}
               {orderFilter === "has-orders" && "Has Orders"}
               {orderFilter === "5-plus" && "5+ Orders"}
             </Badge>
           )}
           {sortBy !== "name-asc" && (
-            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+            <Badge variant="secondary" className="bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10 text-[#EB5D2E] dark:text-[#EB5D2E]">
               Sort: {sortBy === "name-desc" && "Name Z-A"}
               {sortBy === "orders-desc" && "Most Orders"}
               {sortBy === "orders-asc" && "Least Orders"}
@@ -264,7 +264,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
       {/* No results */}
       {filteredAndSortedFactories.length === 0 && (
-        <div className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-8 text-center">
+        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-8 text-center">
           <p className="text-sm text-gray-600 dark:text-zinc-400">
             {hasActiveFilters
               ? "No factories found matching your filters"
@@ -275,9 +275,9 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
 
       {/* Factories Table */}
       {filteredAndSortedFactories.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+        <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-            <thead className="bg-gray-50 dark:bg-zinc-700">
+            <thead className="bg-gray-50/50 dark:bg-zinc-800/50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Factory Name
@@ -301,17 +301,17 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                 <tr
                   key={factory.id}
                   onClick={() => router.push(`/factories/${factory.id}`)}
-                  className="hover:bg-gray-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-colors"
+                  className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors"
                 >
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-900/30">
-                        <Package className="h-5 w-5 text-blue-400" />
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#EB5D2E]/10">
+                        <Package className="h-5 w-5 text-[#EB5D2E]" />
                       </div>
                       <div className="ml-4">
                         <Link
                           href={`/factories/${factory.id}`}
-                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600"
+                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-[#EB5D2E]"
                         >
                           {factory.name}
                         </Link>

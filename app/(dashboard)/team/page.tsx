@@ -308,7 +308,7 @@ export default function TeamPage() {
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-10 w-32" />
         </div>
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
             <Skeleton className="h-6 w-32" />
           </CardHeader>
@@ -325,7 +325,7 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Team Members</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Team Members</h1>
           <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
             Manage your organization&apos;s team members and their roles
           </p>
@@ -333,7 +333,7 @@ export default function TeamPage() {
         <Button
           onClick={() => setInviteDialogOpen(true)}
           disabled={!isAdminOrOwner}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Invite Member
@@ -342,7 +342,7 @@ export default function TeamPage() {
 
       {/* Team Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -354,7 +354,7 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -368,7 +368,7 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -382,7 +382,7 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -398,7 +398,7 @@ export default function TeamPage() {
       </div>
 
       {/* Team Members Table */}
-      <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-white">All Members</CardTitle>
         </CardHeader>
@@ -406,7 +406,7 @@ export default function TeamPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-zinc-700">
+                <tr className="border-b border-gray-100 dark:border-zinc-800">
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
                     Member
                   </th>
@@ -435,7 +435,7 @@ export default function TeamPage() {
                   return (
                     <tr
                       key={member.id}
-                      className="border-b border-gray-200 dark:border-zinc-700 last:border-0"
+                      className="border-b border-gray-100 dark:border-zinc-800 last:border-0"
                     >
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
@@ -465,7 +465,7 @@ export default function TeamPage() {
                             value={member.role}
                             onValueChange={(value) => handleRoleChange(member.id, value)}
                           >
-                            <SelectTrigger className="w-[140px] bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700">
+                            <SelectTrigger className="w-[140px] bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -537,7 +537,7 @@ export default function TeamPage() {
 
       {/* Pending Invitations */}
       {isAdminOrOwner && invitations.length > 0 && (
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
               <Mail className="h-5 w-5 text-orange-500" />
@@ -548,7 +548,7 @@ export default function TeamPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200 dark:border-zinc-700">
+                  <tr className="border-b border-gray-100 dark:border-zinc-800">
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
                       Email
                     </th>
@@ -581,7 +581,7 @@ export default function TeamPage() {
                     return (
                       <tr
                         key={invitation.id}
-                        className="border-b border-gray-200 dark:border-zinc-700 last:border-0"
+                        className="border-b border-gray-100 dark:border-zinc-800 last:border-0"
                       >
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-3">
@@ -645,7 +645,7 @@ export default function TeamPage() {
 
       {/* Invite Member Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={handleCloseInviteDialog}>
-        <DialogContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 sm:max-w-md">
+        <DialogContent className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
               Invite Team Member
@@ -676,7 +676,7 @@ export default function TeamPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleCopyLink}
-                    className="shrink-0 border-gray-200 dark:border-zinc-700"
+                    className="shrink-0 border-gray-100 dark:border-zinc-800"
                   >
                     {copied ? (
                       <Check className="h-4 w-4 text-green-600" />
@@ -692,7 +692,7 @@ export default function TeamPage() {
               <DialogFooter>
                 <Button
                   onClick={handleCloseInviteDialog}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
                 >
                   Done
                 </Button>
@@ -725,7 +725,7 @@ export default function TeamPage() {
                     Role
                   </Label>
                   <Select value={inviteRole} onValueChange={setInviteRole}>
-                    <SelectTrigger className="w-full bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700">
+                    <SelectTrigger className="w-full bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -757,14 +757,14 @@ export default function TeamPage() {
                   variant="outline"
                   onClick={handleCloseInviteDialog}
                   disabled={isInviting}
-                  className="border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white"
+                  className="border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-white"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isInviting}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
                 >
                   {isInviting ? (
                     <>
@@ -783,7 +783,7 @@ export default function TeamPage() {
 
       {/* Remove User Confirmation Dialog */}
       <AlertDialog open={!!userToRemove} onOpenChange={() => setUserToRemove(null)}>
-        <AlertDialogContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <AlertDialogContent className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-gray-900 dark:text-white">
               Remove Team Member
@@ -797,7 +797,7 @@ export default function TeamPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white">
+            <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-white">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -813,7 +813,7 @@ export default function TeamPage() {
 
       {/* Revoke Invitation Confirmation Dialog */}
       <AlertDialog open={!!invitationToRevoke} onOpenChange={() => setInvitationToRevoke(null)}>
-        <AlertDialogContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+        <AlertDialogContent className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-gray-900 dark:text-white">
               Revoke Invitation
@@ -827,7 +827,7 @@ export default function TeamPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white">
+            <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-white">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

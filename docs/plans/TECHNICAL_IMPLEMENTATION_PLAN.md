@@ -5678,3 +5678,233 @@ export const PROCUREMENT_CRON_JOBS = [
 - ✅ System handles 10,000+ SKUs, 1,000+ inbound shipments
 - ✅ Dashboard loads <2s with full dataset
 
+---
+
+## Live Sourcing News Ticker
+
+### Overview
+
+A live news ticker bar displayed at the top of every dashboard page (above the header) that rotates through sourcing-relevant headlines. Data comes from free RSS feeds and a free commodity price API — no paid subscriptions required.
+
+### Data Sources
+
+**News Headlines — RSS Feeds (server-side parsing):**
+- Supply Chain Dive: `https://www.supplychaindive.com/feeds/news/` — tariffs, logistics, trade policy
+- FreightWaves: `https://www.freightwaves.com/news/category/news/business/supply-chains/feed` — shipping, supply chain
+- Commodity-TV: `https://www.commodity-tv.com/api/feeds/rss/` — raw material news
+
+**Raw Material Prices — API Ninjas (free tier):**
+- Endpoint: `https://api.api-ninjas.com/v1/commodityprice`
+- Free: 10,000 requests/month, no credit card
+- Commodities tracked: cotton, steel, crude oil, gold, copper, aluminum
+- Displayed as: "Cotton: $0.82/lb (+1.2%)" alongside news headlines
+
+### Caching Strategy
+
+- RSS feeds fetched every **15 minutes** (Next.js `revalidate: 900`)
+- Commodity prices fetched every **30 minutes**
+- Server-side cache — no database required
+- Graceful fallback: hide ticker if all sources fail
+
+### Data Model
+
+```typescript
+// /lib/news/types.ts
+type NewsCategory = "tariff" | "supply-chain" | "commodities" | "trade" | "logistics";
+
+type NewsItem = {
+  id: string;              // hash of url for deduplication
+  title: string;           // headline text
+  url: string;             // source link (empty for price updates)
+  source: string;          // "Supply Chain Dive" | "FreightWaves" | "Commodity-TV" | "API Ninjas"
+  category: NewsCategory;
+  timestamp: string;       // ISO 8601 date
+  isPriceUpdate?: boolean; // true for commodity price items
+};
+
+type NewsFeedResponse = {
+  success: boolean;
+  data: {
+    items: NewsItem[];
+    lastUpdated: string;
+  };
+};
+```
+
+### API Endpoint
+
+```
+GET /api/news/feed
+Auth: None (public endpoint)
+Cache: revalidate 900 (15 minutes)
+
+Response:
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "abc123",
+        "title": "US announces 25% tariff on Chinese textiles",
+        "url": "https://supplychaindive.com/...",
+        "source": "Supply Chain Dive",
+        "category": "tariff",
+        "timestamp": "2026-02-06T10:00:00Z"
+      },
+      {
+        "id": "def456",
+        "title": "Cotton: $0.82/lb (+1.2%)",
+        "url": "",
+        "source": "API Ninjas",
+        "category": "commodities",
+        "timestamp": "2026-02-06T13:00:00Z",
+        "isPriceUpdate": true
+      }
+    ],
+    "lastUpdated": "2026-02-06T13:15:00Z"
+  }
+}
+```
+
+### RSS Parser Implementation
+
+```typescript
+// /lib/news/rss-parser.ts
+import { XMLParser } from "fast-xml-parser";
+
+const RSS_SOURCES = [
+  { url: "https://www.supplychaindive.com/feeds/news/", name: "Supply Chain Dive" },
+  { url: "https://www.freightwaves.com/news/category/news/business/supply-chains/feed", name: "FreightWaves" },
+  { url: "https://www.commodity-tv.com/api/feeds/rss/", name: "Commodity-TV" },
+];
+
+// Keyword-based auto-categorization
+const CATEGORY_KEYWORDS: Record<NewsCategory, string[]> = {
+  tariff: ["tariff", "duty", "customs", "trade war", "import tax", "export ban"],
+  "supply-chain": ["supply chain", "disruption", "shortage", "logistics", "shipping delay"],
+  commodities: ["cotton", "steel", "oil", "copper", "aluminum", "raw material", "commodity"],
+  trade: ["trade deal", "trade agreement", "sanctions", "embargo", "WTO"],
+  logistics: ["freight", "shipping", "port", "container", "warehouse"],
+};
+
+export async function fetchRSSFeeds(): Promise<NewsItem[]> {
+  const parser = new XMLParser();
+  const allItems: NewsItem[] = [];
+
+  for (const source of RSS_SOURCES) {
+    try {
+      const res = await fetch(source.url, { next: { revalidate: 900 } });
+      const xml = await res.text();
+      const parsed = parser.parse(xml);
+      const items = parsed?.rss?.channel?.item || [];
+
+      for (const item of Array.isArray(items) ? items : [items]) {
+        allItems.push({
+          id: hashString(item.link || item.title),
+          title: item.title?.toString().trim() || "",
+          url: item.link?.toString() || "",
+          source: source.name,
+          category: categorize(item.title || ""),
+          timestamp: new Date(item.pubDate || Date.now()).toISOString(),
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to fetch RSS from ${source.name}:`, error);
+    }
+  }
+
+  return allItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+```
+
+### Commodity Price Fetcher
+
+```typescript
+// /lib/news/commodity-prices.ts
+const TRACKED_COMMODITIES = ["cotton", "crude_oil", "steel", "copper", "aluminum", "gold"];
+
+export async function fetchCommodityPrices(): Promise<NewsItem[]> {
+  const items: NewsItem[] = [];
+
+  for (const name of TRACKED_COMMODITIES) {
+    try {
+      const res = await fetch(`https://api.api-ninjas.com/v1/commodityprice?name=${name}`, {
+        headers: { "X-Api-Key": process.env.API_NINJAS_KEY || "" },
+        next: { revalidate: 1800 }, // 30 min cache
+      });
+      const data = await res.json();
+      if (data && data.price) {
+        const displayName = name.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+        const changeStr = data.change_percent > 0 ? `+${data.change_percent}%` : `${data.change_percent}%`;
+        items.push({
+          id: `commodity-${name}`,
+          title: `${displayName}: $${data.price} (${changeStr})`,
+          url: "",
+          source: "API Ninjas",
+          category: "commodities",
+          timestamp: new Date().toISOString(),
+          isPriceUpdate: true,
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to fetch commodity price for ${name}:`, error);
+    }
+  }
+
+  return items;
+}
+```
+
+### UI Component
+
+```typescript
+// /components/layout/news-ticker.tsx — Client Component
+// Key features:
+// - Fetches /api/news/feed on mount
+// - Shows one headline at a time with fade transition
+// - Auto-rotates every 6 seconds
+// - Pauses on hover
+// - Left/right arrows for manual navigation
+// - Category badge (Tariff, Supply Chain, Commodities, Trade)
+// - Click headline → opens source URL in new tab
+// - Dismiss button stores preference in localStorage
+// - Dark/light theme: bg-gray-900/text-white (light) | bg-zinc-800/text-zinc-100 (dark)
+// - Brand orange #EB5D2E for category badges
+// - Height: ~36px, full width, positioned above header in AppLayout
+```
+
+### Layout Integration
+
+```typescript
+// /components/layout/app-layout.tsx
+// Add <NewsTicker /> as first child inside the main content column, above <Header />
+// Structure:
+//   <div className="flex h-screen">
+//     <Sidebar />
+//     <div className="flex flex-1 flex-col">
+//       <NewsTicker />    ← NEW
+//       <Header />
+//       <main>...</main>
+//     </div>
+//   </div>
+```
+
+### Dependencies
+
+- `fast-xml-parser` — lightweight XML/RSS parser (~50KB, zero native dependencies)
+
+### Environment Variables
+
+```
+API_NINJAS_KEY=your_api_ninjas_key_here
+```
+
+### Tasks
+
+| Task | Description | Time |
+|------|-------------|------|
+| 4.16 | News Feed Data Layer (RSS parser + commodity fetcher + types) | 2h |
+| 4.17 | News Feed API Endpoint (merge, deduplicate, cache) | 2h |
+| 4.18 | News Ticker UI Component (rotating headlines, transitions) | 3h |
+| 4.19 | Layout Integration (AppLayout, middleware, dependency) | 1h |
+

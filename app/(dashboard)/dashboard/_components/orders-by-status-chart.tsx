@@ -17,12 +17,12 @@ export function OrdersByStatusChart({ data }: { data: OrdersByStatusData }) {
         <div key={index} className="group">
           {/* Status label */}
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{item.name}</span>
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">{item.value}</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-zinc-400">{item.name}</span>
+            <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{item.value}</span>
           </div>
 
           {/* Horizontal bar with pill shape */}
-          <div className="relative h-8 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-700">
+          <div className="relative h-8 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
             <div
               className="absolute left-0 top-0 h-full rounded-full transition-all duration-300 ease-in-out group-hover:opacity-90"
               style={{
