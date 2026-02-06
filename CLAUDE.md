@@ -1015,3 +1015,76 @@ Added 64 new tasks (~500 lines):
 - Changes stashed and pulled
 - Ready to commit and push
 
+### Session 9 - Invitation System (Tasks 3.5a-d) - Feb 6, 2026
+
+**Method:** Used 3-agent team (schema-agent, api-agent, frontend-agent)
+
+- **Task 3.5a - Prisma Schema (schema-agent):**
+  - Added `InvitationStatus` enum (PENDING, ACCEPTED, EXPIRED, REVOKED)
+  - Added `UserInvitation` model (id, email, role, token, orgId, invitedById, status, expiresAt, acceptedAt)
+  - Added relations: Organization.invitations, User.invitationsSent
+  - @@index on [email, organizationId] and [token]
+  - Ran prisma generate + db push
+
+- **Task 3.5b - Invitation API Endpoints (api-agent):**
+  - `POST /api/invitations` - Create invitation (admin/owner, 7-day expiry, duplicate checks, role escalation prevention)
+  - `GET /api/invitations` - List all org invitations with inviter info
+  - `GET /api/invitations/[token]` - Public token validation (org name, role, email, invitedByName)
+  - `DELETE /api/invitations/[token]` - Revoke invitation (admin/owner, PENDING only)
+
+- **Task 3.5d - Registration Flow Update (api-agent):**
+  - Updated `/api/auth/register` with dual flow
+  - With invitationToken: validate, check email match, create user in invited org with role, mark ACCEPTED (transaction)
+  - Without token: standard whitelist registration (create org + OWNER)
+
+- **Task 3.5c - Frontend (frontend-agent):**
+  - Created `/app/invite/[token]/page.tsx` - Invitation accept page
+    - Loading/error/success states with proper icons
+    - Shows org name badge, inviter, assigned role
+    - Registration form: email (readonly), name, password, confirm
+    - Redirects to /login?registered=true on success
+  - Updated `/app/(dashboard)/team/page.tsx`:
+    - Enabled "Invite Member" button with Dialog
+    - Email input + role selector (ADMIN/MEMBER/VIEWER)
+    - Shows copyable invitation link on success
+    - Pending invitations table with expiry dates
+    - Revoke button with AlertDialog confirmation
+
+- **Bugs Found & Fixed (by team lead):**
+  1. Revoke used `invitation.id` instead of `invitation.token` in DELETE URL
+  2. Token validation API didn't include `invitedBy` in Prisma query
+  3. Token validation API didn't return `invitedByName` field
+  4. Middleware blocked /invite and /api/invitations/ routes (should be public)
+
+- **Middleware Update:**
+  - Added `/invite` and `/api/invitations/` to publicRoutes array
+
+- **Stress Test Updated:**
+  - Added 3 new tests: invitations list, token validation, accept page
+  - 17/17 passing, 100% success rate
+
+- **Files Created:**
+  - `/app/api/invitations/route.ts` - POST + GET (117 lines)
+  - `/app/api/invitations/[token]/route.ts` - GET + DELETE (111 lines)
+  - `/app/invite/[token]/page.tsx` - Accept page (300 lines)
+
+- **Files Modified:**
+  - `prisma/schema.prisma` - UserInvitation model + enum
+  - `app/api/auth/register/route.ts` - Dual registration flow
+  - `app/(dashboard)/team/page.tsx` - Invite dialog + pending invitations (846 lines)
+  - `middleware.ts` - Public routes for invitation system
+  - `scripts/stress-test.js` - 3 new endpoint tests
+
+- **Git Commits:**
+  - `a3bc86e` - "Implement invitation system for team management (Tasks 3.5a-d)" (15 files, 4,737 insertions)
+  - `8baad32` - "Update task status for completed invitation system (3.5a-d)"
+  - Both pushed to origin/main
+
+- **Status:** Filip's Week 3 tasks 100% complete ✅
+
+**To Continue Next Session:**
+Say "start where we ended last time" and I will:
+1. Review Week 3 progress (Filip done, Marco's tasks 3.7-3.12 pending)
+2. Suggest next: Task 3.6 (Week 3 PR), Task 2.5 (Week 2 PR), or Marco's tasks
+3. Note: 17/17 stress tests passing, all dependencies working
+
