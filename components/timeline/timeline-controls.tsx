@@ -155,7 +155,7 @@ export function TimelineControls({
 
       {/* Hint text - bottom right */}
       <div className="absolute bottom-3 right-3 text-xs text-zinc-500 z-10">
-        Scroll to zoom • Drag to pan
+        Scroll to zoom • Drag to pan • Arrow keys to navigate
       </div>
     </>
   );

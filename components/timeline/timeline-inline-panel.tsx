@@ -12,6 +12,7 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  Inbox,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -383,8 +384,8 @@ export function TimelineInlinePanel({
           </Button>
         </div>
 
-        {/* Filter Pills */}
-        {!isLoading && events.length > 0 && (
+        {/* Filter Pills (hidden for order-info) */}
+        {!isLoading && nodeType !== "order-info" && (
           <div className="px-3 pt-2.5 pb-1 flex flex-wrap gap-1.5">
             {filterPills.map(({ key, label }) => {
               const isActive = activeFilter === key;
@@ -416,13 +417,31 @@ export function TimelineInlinePanel({
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500" />
             </div>
           ) : events.length === 0 ? (
-            <p className="text-center text-zinc-500 text-sm py-4">
-              No changes recorded
-            </p>
+            <div className="flex flex-col items-center justify-center py-6 gap-2">
+              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                <Inbox className="h-5 w-5 text-zinc-600" />
+              </div>
+              <p className="text-sm text-zinc-500 text-center">
+                No changes yet
+              </p>
+              <p className="text-xs text-zinc-600 text-center max-w-[200px]">
+                {nodeType === "order-info"
+                  ? "Order-level changes will appear here as they happen"
+                  : "Changes to this stage will appear here as they happen"}
+              </p>
+            </div>
           ) : visibleEvents.length === 0 ? (
-            <p className="text-center text-zinc-500 text-sm py-4">
-              No recent changes in this category
-            </p>
+            <div className="flex flex-col items-center justify-center py-6 gap-2">
+              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-zinc-600" />
+              </div>
+              <p className="text-sm text-zinc-500 text-center">
+                No recent changes in this category
+              </p>
+              <p className="text-xs text-zinc-600 text-center">
+                Try selecting a different filter or showing older changes
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {visibleEvents.map((event) => {

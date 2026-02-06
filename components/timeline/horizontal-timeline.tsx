@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { TimelineNode } from "./timeline-node";
 import { TimelineConnector } from "./timeline-connector";
 import { TimelineInlinePanel } from "./timeline-inline-panel";
@@ -13,16 +13,89 @@ type HorizontalTimelineProps = {
   stages: TimelineStage[];
   orderStatus: string;
   orderPriority: string;
+  expectedDate?: string | null;
   isAdmin?: boolean;
   currentUserId?: string;
   refreshTrigger?: number;
 };
+
+// --- Summary bar ---
+function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: TimelineStage[]; orderStatus: string; expectedDate?: string | null }) {
+  const completed = stages.filter((s) => s.status === "COMPLETED").length;
+  const blocked = stages.filter((s) => s.status === "BLOCKED").length;
+  const delayed = stages.filter((s) => s.status === "DELAYED").length;
+  const total = stages.length;
+  const overallProgress = total > 0
+    ? Math.round(stages.reduce((sum, s) => sum + s.progress, 0) / total)
+    : 0;
+
+  // Days until expected date
+  let deadlineText = "";
+  let deadlineColor = "text-zinc-400";
+  if (expectedDate && completed < total) {
+    const daysLeft = Math.ceil(
+      (new Date(expectedDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (daysLeft < 0) {
+      deadlineText = `${Math.abs(daysLeft)} days overdue`;
+      deadlineColor = "text-red-400 font-medium";
+    } else if (daysLeft === 0) {
+      deadlineText = "Due today";
+      deadlineColor = "text-orange-400 font-medium";
+    } else if (daysLeft === 1) {
+      deadlineText = "1 day left";
+      deadlineColor = "text-orange-400 font-medium";
+    } else if (daysLeft <= 7) {
+      deadlineText = `${daysLeft} days left`;
+      deadlineColor = "text-yellow-400 font-medium";
+    } else {
+      deadlineText = `${daysLeft} days left`;
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-2 bg-zinc-800/60 border border-zinc-700 rounded-lg text-xs text-zinc-400 flex-wrap">
+      <span className={completed === total ? "text-green-400 font-medium" : ""}>
+        <span className="text-zinc-200 font-medium">{completed}</span>/{total} complete
+      </span>
+      <span className="text-zinc-600">|</span>
+      <span>
+        <span className="text-zinc-200 font-medium">{overallProgress}%</span> overall
+      </span>
+      {blocked > 0 && (
+        <>
+          <span className="text-zinc-600">|</span>
+          <span className="text-red-400 font-medium">{blocked} blocked</span>
+        </>
+      )}
+      {delayed > 0 && (
+        <>
+          <span className="text-zinc-600">|</span>
+          <span className="text-orange-400 font-medium">{delayed} delayed</span>
+        </>
+      )}
+      {deadlineText && (
+        <>
+          <span className="text-zinc-600">|</span>
+          <span className={deadlineColor}>{deadlineText}</span>
+        </>
+      )}
+      {completed === total && total > 0 && (
+        <>
+          <span className="text-zinc-600">|</span>
+          <span className="text-green-400 font-medium">All stages complete</span>
+        </>
+      )}
+    </div>
+  );
+}
 
 export function HorizontalTimeline({
   orderId,
   stages,
   orderStatus,
   orderPriority,
+  expectedDate,
   isAdmin,
   currentUserId,
   refreshTrigger,
@@ -31,6 +104,8 @@ export function HorizontalTimeline({
   const [events, setEvents] = useState<OrderEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetchedEvents, setHasFetchedEvents] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1); // -1 = order-info, 0+ = stage index
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   // Fetch all events + admin notes on mount, merge into single timeline
   useEffect(() => {
@@ -99,7 +174,7 @@ export function HorizontalTimeline({
   const getEventsForNode = useCallback(
     (nodeId: string) => {
       if (nodeId === "order-info") {
-        return events.filter((e) => e.stageId === null);
+        return events.filter((e) => e.stageId === null || e.stageId === "order-info");
       }
       return events.filter((e) => e.stageId === nodeId);
     },
@@ -117,7 +192,7 @@ export function HorizontalTimeline({
     });
 
     events.forEach((event) => {
-      if (event.stageId === null) {
+      if (event.stageId === null || event.stageId === "order-info") {
         counts["order-info"]++;
       } else if (counts[event.stageId] !== undefined) {
         counts[event.stageId]++;
@@ -130,7 +205,7 @@ export function HorizontalTimeline({
   // Get the name of a node
   const getNodeName = useCallback(
     (nodeId: string) => {
-      if (nodeId === "order-info") return "Order";
+      if (nodeId === "order-info") return "Order Information Changes";
       const stage = stages.find((s) => s.id === nodeId);
       return stage?.name || "Stage";
     },
@@ -183,117 +258,166 @@ export function HorizontalTimeline({
     [stages]
   );
 
+  // All node IDs in order for keyboard navigation
+  const allNodeIds = useMemo(
+    () => ["order-info", ...sortedStages.map((s) => s.id)],
+    [sortedStages]
+  );
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusedIndex((prev) => Math.min(prev + 1, allNodeIds.length - 1));
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusedIndex((prev) => Math.max(prev - 1, -1));
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const nodeId = focusedIndex === -1 ? "order-info" : allNodeIds[focusedIndex];
+        if (nodeId) handleNodeClick(nodeId);
+      } else if (e.key === "Escape") {
+        setExpandedNodeIds(new Set());
+        setFocusedIndex(-1);
+      }
+    },
+    [allNodeIds, focusedIndex, handleNodeClick]
+  );
+
+  // Focus the right button when focusedIndex changes
+  useEffect(() => {
+    if (focusedIndex < -1 || !timelineRef.current) return;
+    const buttons = timelineRef.current.querySelectorAll<HTMLButtonElement>("[data-timeline-node]");
+    const idx = focusedIndex + 1; // +1 because order-info is at index 0
+    if (buttons[idx]) {
+      buttons[idx].focus();
+    }
+  }, [focusedIndex]);
+
   return (
-    <TimelineCanvas stageCount={sortedStages.length}>
-      <div className="flex flex-col items-start gap-4 p-4">
-        {/* Timeline nodes row */}
-        <div className="flex items-start">
-          {/* Order Info Node + Connector */}
-          <div className="flex flex-col">
+    <div className="space-y-3">
+      {/* Summary bar */}
+      {sortedStages.length > 0 && (
+        <TimelineSummary stages={sortedStages} orderStatus={orderStatus} expectedDate={expectedDate} />
+      )}
+
+      <TimelineCanvas stageCount={sortedStages.length}>
+          <div
+            className="flex flex-col items-start gap-4 p-4"
+            ref={timelineRef}
+            onKeyDown={handleKeyDown}
+          >
+            {/* Timeline nodes row */}
             <div className="flex items-start">
-              <TimelineNode
-                type="order-info"
-                orderStatus={orderStatus}
-                orderPriority={orderPriority}
-                isExpanded={expandedNodeIds.has("order-info")}
-                onClick={() => handleNodeClick("order-info")}
-                eventCount={eventCounts["order-info"]}
-              />
-
-              {/* Connector from Order Info to first stage */}
-              {sortedStages.length > 0 && (
-                <TimelineConnector
-                  sourceStatus="ORDER"
-                  targetStatus={
-                    (sortedStages[0].status || "NOT_STARTED") as StageStatus
-                  }
-                  sourceProgress={100}
-                  isActive={false}
-                />
-              )}
-            </div>
-
-            {/* Order Info expansion panel - below connector */}
-            {expandedNodeIds.has("order-info") && sortedStages.length > 0 && (
-              <div className="ml-[88px] mt-2">
-                <TimelineInlinePanel
-                  events={getEventsForNode("order-info")}
-                  nodeName="Order"
-                  nodeType="order-info"
-                  onClose={() => handlePanelClose("order-info")}
-                  isLoading={isLoading && !hasFetchedEvents}
-                  orderId={orderId}
-                  isAdmin={isAdmin}
-                  onNoteUpdated={handleNoteUpdated}
-                  onNoteDeleted={handleNoteDeleted}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Stage Nodes with Connectors */}
-          {sortedStages.map((stage, index) => (
-            <div key={stage.id} className="flex flex-col">
-              <div className="flex items-start">
+              {/* Order Info Node (standalone, no connector) */}
+              <div className="flex flex-col mr-6">
                 <TimelineNode
-                  type="stage"
-                  stage={stage}
-                  isExpanded={expandedNodeIds.has(stage.id)}
-                  onClick={() => handleNodeClick(stage.id)}
-                  eventCount={eventCounts[stage.id]}
+                  type="order-info"
+                  orderStatus={orderStatus}
+                  orderPriority={orderPriority}
+                  isExpanded={expandedNodeIds.has("order-info")}
+                  onClick={() => handleNodeClick("order-info")}
+                  eventCount={eventCounts["order-info"]}
+                  isFocused={focusedIndex === -1}
+                  data-timeline-node
                 />
 
-                {/* Connector to next stage */}
-                {index < sortedStages.length - 1 && (
-                  <TimelineConnector
-                    sourceStatus={(stage.status || "NOT_STARTED") as StageStatus}
-                    targetStatus={
-                      (sortedStages[index + 1].status ||
-                        "NOT_STARTED") as StageStatus
-                    }
-                    sourceProgress={stage.progress}
-                    isActive={stage.status === "IN_PROGRESS"}
-                  />
+                {/* Order Info expansion panel */}
+                {expandedNodeIds.has("order-info") && (
+                  <div className="mt-2">
+                    <TimelineInlinePanel
+                      events={getEventsForNode("order-info")}
+                      nodeName="Order Information Changes"
+                      nodeType="order-info"
+                      onClose={() => handlePanelClose("order-info")}
+                      isLoading={isLoading && !hasFetchedEvents}
+                      orderId={orderId}
+                      isAdmin={isAdmin}
+                      onNoteUpdated={handleNoteUpdated}
+                      onNoteDeleted={handleNoteDeleted}
+                    />
+                  </div>
                 )}
               </div>
 
-              {/* Stage expansion panel - below connector */}
-              {expandedNodeIds.has(stage.id) && index < sortedStages.length - 1 && (
-                <div className="ml-[88px] mt-2">
-                  <TimelineInlinePanel
-                    events={getEventsForNode(stage.id)}
-                    nodeName={getNodeName(stage.id)}
-                    nodeType="stage"
-                    onClose={() => handlePanelClose(stage.id)}
-                    isLoading={isLoading && !hasFetchedEvents}
-                    orderId={orderId}
-                    isAdmin={isAdmin}
-                    onNoteUpdated={handleNoteUpdated}
-                    onNoteDeleted={handleNoteDeleted}
-                  />
+              {/* Separator between Order Info and stages */}
+              {sortedStages.length > 0 && (
+                <div className="flex items-center self-center mx-2">
+                  <div className="w-px h-12 bg-zinc-700" />
                 </div>
               )}
 
-              {/* Last stage panel - below the node itself */}
-              {expandedNodeIds.has(stage.id) && index === sortedStages.length - 1 && (
-                <div className="mt-2">
-                  <TimelineInlinePanel
-                    events={getEventsForNode(stage.id)}
-                    nodeName={getNodeName(stage.id)}
-                    nodeType="stage"
-                    onClose={() => handlePanelClose(stage.id)}
-                    isLoading={isLoading && !hasFetchedEvents}
-                    orderId={orderId}
-                    isAdmin={isAdmin}
-                    onNoteUpdated={handleNoteUpdated}
-                    onNoteDeleted={handleNoteDeleted}
-                  />
+              {/* Stage Nodes with Connectors */}
+              {sortedStages.map((stage, index) => (
+                <div key={stage.id} className="flex flex-col">
+                  <div className="flex items-start">
+                    <TimelineNode
+                      type="stage"
+                      stage={stage}
+                      isExpanded={expandedNodeIds.has(stage.id)}
+                      onClick={() => handleNodeClick(stage.id)}
+                      eventCount={eventCounts[stage.id]}
+                      isFocused={focusedIndex === index}
+                      data-timeline-node
+                    />
+
+                    {/* Connector to next stage */}
+                    {index < sortedStages.length - 1 && (
+                      <TimelineConnector
+                        sourceStatus={(stage.status || "NOT_STARTED") as StageStatus}
+                        targetStatus={
+                          (sortedStages[index + 1].status ||
+                            "NOT_STARTED") as StageStatus
+                        }
+                        sourceProgress={stage.progress}
+                        isActive={stage.status === "IN_PROGRESS"}
+                        sourceStartedAt={stage.startedAt}
+                        sourceCompletedAt={stage.completedAt}
+                        sourceStatusSince={stage.startedAt}
+                        sourceStatusLabel={stage.status}
+                      />
+                    )}
+                  </div>
+
+                  {/* Stage expansion panel - below connector */}
+                  {expandedNodeIds.has(stage.id) && index < sortedStages.length - 1 && (
+                    <div className="ml-[110px] mt-2">
+                      <TimelineInlinePanel
+                        events={getEventsForNode(stage.id)}
+                        nodeName={getNodeName(stage.id)}
+                        nodeType="stage"
+                        onClose={() => handlePanelClose(stage.id)}
+                        isLoading={isLoading && !hasFetchedEvents}
+                        orderId={orderId}
+                        isAdmin={isAdmin}
+                        onNoteUpdated={handleNoteUpdated}
+                        onNoteDeleted={handleNoteDeleted}
+                      />
+                    </div>
+                  )}
+
+                  {/* Last stage panel - below the node itself */}
+                  {expandedNodeIds.has(stage.id) && index === sortedStages.length - 1 && (
+                    <div className="mt-2">
+                      <TimelineInlinePanel
+                        events={getEventsForNode(stage.id)}
+                        nodeName={getNodeName(stage.id)}
+                        nodeType="stage"
+                        onClose={() => handlePanelClose(stage.id)}
+                        isLoading={isLoading && !hasFetchedEvents}
+                        orderId={orderId}
+                        isAdmin={isAdmin}
+                        onNoteUpdated={handleNoteUpdated}
+                        onNoteDeleted={handleNoteDeleted}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-    </TimelineCanvas>
+          </div>
+      </TimelineCanvas>
+    </div>
   );
 }

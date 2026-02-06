@@ -186,6 +186,9 @@ model OrderStage {
   completedAt DateTime?
   notes       String?   @db.Text
 
+  // Flexible key-value metadata per stage (e.g. responsible person, sample count, cost breakdown)
+  metadata    Json?     @default("{}")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

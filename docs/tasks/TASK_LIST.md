@@ -146,9 +146,10 @@
 | 3.9 | Order Status Update | Marco | Make it easy to change order status (pending → in progress → completed) | Status dropdown with one-click updates | 2h | ⏳ |
 | 3.10 | Bulk Actions | Marco | Select multiple orders and update status at once | Checkboxes on order list, bulk update button | 3h | ⏳ |
 | 3.11 | Export to CSV | Marco | Export order list to Excel/CSV file | Export button that downloads CSV with all order data | 2h | ⏳ |
+| 3.11b | Stage Metadata System | Marco | Build editable key-value metadata per production stage (responsible person, sample count, delivery time, cost breakdown, etc.). Each stage can have different fields. Schema field added (`metadata Json?`), placeholder UI rendering done. Remaining: admin edit UI, metadata PATCH API, stage-type presets | Admin-editable metadata section per stage card, PATCH endpoint for metadata, optional stage-type presets | 4h | 🔄 |
 | 3.12 | Week 3 PR | Marco | Package order enhancements | Pull request for review | 30min | ⏳ |
 
-**What Marco Creates This Week:** Order enhancements - attachments, comments, status updates, bulk actions, export.
+**What Marco Creates This Week:** Order enhancements - attachments, comments, status updates, bulk actions, export, stage metadata.
 
 ---
 

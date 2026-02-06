@@ -62,6 +62,7 @@ export async function PATCH(
       },
       include: {
         stages: true,
+        factory: { select: { name: true } },
       },
     });
 
@@ -231,6 +232,89 @@ export async function PATCH(
         newValue: String(quantity),
         eventType: "FIELD_CHANGE",
       });
+    }
+
+    // Order number change
+    if (orderNumber !== undefined && orderNumber !== null) {
+      const newOrderNumber = orderNumber.trim();
+      if (newOrderNumber !== existingOrder.orderNumber) {
+        fieldsToTrack.push({
+          field: "orderNumber",
+          oldValue: existingOrder.orderNumber,
+          newValue: newOrderNumber,
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Factory change
+    if (factoryId !== undefined && factoryId !== existingOrder.factoryId) {
+      // Resolve new factory name for readable event log
+      let newFactoryName = factoryId;
+      try {
+        const newFactory = await prisma.factory.findUnique({
+          where: { id: factoryId },
+          select: { name: true },
+        });
+        if (newFactory) newFactoryName = newFactory.name;
+      } catch {}
+      fieldsToTrack.push({
+        field: "factoryId",
+        oldValue: existingOrder.factory?.name || existingOrder.factoryId,
+        newValue: newFactoryName,
+        eventType: "FIELD_CHANGE",
+      });
+    }
+
+    // SKU change
+    if (productSKU !== undefined) {
+      const newSKU = productSKU ? productSKU.trim() : null;
+      if (newSKU !== existingOrder.productSKU) {
+        fieldsToTrack.push({
+          field: "productSKU",
+          oldValue: existingOrder.productSKU,
+          newValue: newSKU,
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Unit change
+    if (unit !== undefined && unit !== existingOrder.unit) {
+      fieldsToTrack.push({
+        field: "unit",
+        oldValue: existingOrder.unit,
+        newValue: unit,
+        eventType: "FIELD_CHANGE",
+      });
+    }
+
+    // Order date change
+    if (orderDate !== undefined) {
+      const oldDate = existingOrder.orderDate.toISOString().split("T")[0];
+      const newDate = new Date(orderDate).toISOString().split("T")[0];
+      if (oldDate !== newDate) {
+        fieldsToTrack.push({
+          field: "orderDate",
+          oldValue: existingOrder.orderDate.toISOString(),
+          newValue: new Date(orderDate).toISOString(),
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Tags change
+    if (tags !== undefined) {
+      const oldTags = JSON.stringify(existingOrder.tags || []);
+      const newTags = JSON.stringify(tags || []);
+      if (oldTags !== newTags) {
+        fieldsToTrack.push({
+          field: "tags",
+          oldValue: oldTags,
+          newValue: newTags,
+          eventType: "FIELD_CHANGE",
+        });
+      }
     }
 
     // Log all field changes

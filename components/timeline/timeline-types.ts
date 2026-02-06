@@ -94,4 +94,5 @@ export type TimelineStage = {
   startedAt: string | null;
   completedAt: string | null;
   notes: string | null;
+  metadata?: Record<string, unknown> | null;
 };

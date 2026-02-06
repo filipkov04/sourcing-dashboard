@@ -47,6 +47,7 @@ import {
   ChevronUp,
   History,
   Shield,
+  ClipboardList,
 } from "lucide-react";
 import { HorizontalTimeline } from "@/components/timeline";
 import { StageAdminPanel } from "@/components/stage-admin-panel";
@@ -60,6 +61,7 @@ type OrderStage = {
   startedAt: string | null;
   completedAt: string | null;
   notes: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 type Order = {
@@ -137,6 +139,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Admin panel state
+  const [showOrderInfoAdmin, setShowOrderInfoAdmin] = useState(false);
   const [adminPanelStages, setAdminPanelStages] = useState<Set<string>>(new Set());
   const [stageAdminNotes, setStageAdminNotes] = useState<Record<string, { id: string; content: string; authorName: string | null; createdAt: string; type: string }[]>>({});
 
@@ -670,6 +673,40 @@ export default function OrderDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Order Information Changes — admin-only notes section */}
+              {isAdminOrOwner && (
+                <div className="p-4 rounded-lg border border-dashed border-zinc-600 bg-zinc-800/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-purple-400" />
+                      <h4 className="font-medium text-purple-300">Order Information Changes</h4>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowOrderInfoAdmin((prev) => !prev)}
+                      className={`h-7 w-7 p-0 ${showOrderInfoAdmin ? "text-purple-400" : ""}`}
+                      title="Admin notes for order-level changes"
+                    >
+                      <Shield className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-500 hover:text-purple-400" />
+                    </Button>
+                  </div>
+                  {showOrderInfoAdmin && (
+                    <StageAdminPanel
+                      orderId={order.id}
+                      stageId="order-info"
+                      stageName="Order Information Changes"
+                      variant="full"
+                      currentUserId={session?.user?.id}
+                      onNoteAdded={() => setTimelineRefreshKey((k) => k + 1)}
+                      onNoteUpdated={() => setTimelineRefreshKey((k) => k + 1)}
+                      onNoteDeleted={() => setTimelineRefreshKey((k) => k + 1)}
+                      onClose={() => setShowOrderInfoAdmin(false)}
+                    />
+                  )}
+                </div>
+              )}
+
               {order.stages.map((stage, index) => (
                 <div
                   key={stage.id}
@@ -1013,6 +1050,18 @@ export default function OrderDetailPage() {
                       )}
                     </div>
 
+                    {/* Stage Metadata — flexible key-value details */}
+                    {stage.metadata && typeof stage.metadata === "object" && !Array.isArray(stage.metadata) && Object.keys(stage.metadata as Record<string, unknown>).length > 0 && (
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs">
+                        {Object.entries(stage.metadata as Record<string, unknown>).map(([key, value]) => (
+                          <span key={key} className="text-gray-600 dark:text-zinc-400">
+                            <span className="text-gray-500 dark:text-zinc-500">{key}:</span>{" "}
+                            <span className="text-gray-800 dark:text-zinc-300">{String(value)}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Stage updates from admin notes (visible to everyone) */}
                     {!isAdminOrOwner && stageAdminNotes[stage.id]?.length > 0 && (
                       <div className="space-y-1.5 mt-2">
@@ -1084,6 +1133,7 @@ export default function OrderDetailPage() {
             stages={order.stages}
             orderStatus={order.status}
             orderPriority={order.priority}
+            expectedDate={order.expectedDate}
             isAdmin={isAdminOrOwner}
             currentUserId={session?.user?.id}
             refreshTrigger={timelineRefreshKey}

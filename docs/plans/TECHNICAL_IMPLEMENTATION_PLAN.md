@@ -939,6 +939,46 @@ model Attachment {
 }
 
 // ============================================
+// STAGE METADATA SYSTEM
+// ============================================
+//
+// Flexible key-value metadata per production stage.
+// Uses a JSON column on OrderStage rather than a separate table
+// for simplicity and flexibility — each stage can have entirely
+// different fields (e.g. Sampling might have "sampleCount" and
+// "deliveryDate", while Sewing might have "machineCount" and
+// "operatorName").
+//
+// Schema (already applied):
+//   OrderStage.metadata  Json?  @default("{}")
+//
+// Planned metadata fields (examples — not enforced by schema):
+//   - responsiblePerson: string  — name/email of the stage lead
+//   - contactPhone: string       — phone for the responsible person
+//   - sampleCount: number        — number of samples (sampling stage)
+//   - deliveryDate: string       — expected delivery for this stage
+//   - costBreakdown: string      — cost info for this stage
+//   - machineCount: number       — machines allocated
+//   - materialSource: string     — where materials come from
+//   - qualityNotes: string       — QC-specific notes
+//   - customField1..N: any       — user-defined fields
+//
+// API: PATCH /api/orders/[id]/stages/[stageId]
+//   Body: { metadata: { key: value, ... } }
+//   Merges with existing metadata (does not replace)
+//   Set a key to null to remove it
+//
+// UI: Rendered as key-value pairs below stage dates.
+//   Admin can edit via inline form (future task).
+//   Stage-type presets can suggest common fields (future task).
+//
+// Future enhancements:
+//   - Stage-type presets (Cutting preset, Sewing preset, etc.)
+//   - Metadata templates configurable per organization
+//   - Metadata validation rules per field
+//   - Metadata visible to clients (read-only) vs admin-only fields
+
+// ============================================
 // INTEGRATION SYSTEM (Phase 3)
 // ============================================
 

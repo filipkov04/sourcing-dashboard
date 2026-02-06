@@ -358,11 +358,14 @@ export function StageAdminPanel({
   }
 
   // ── FULL VARIANT ──
-  const filteredNotes = notes.filter((note) => {
-    if (historyCategory === "progress") return note.type === "CHANGE_LOG";
-    if (historyCategory === "events") return note.type === "STATUS_DETAIL";
-    return note.type === "NOTE" || note.type === "COMMENT";
-  });
+  const isOrderInfo = stageId === "order-info";
+  const filteredNotes = isOrderInfo
+    ? notes
+    : notes.filter((note) => {
+        if (historyCategory === "progress") return note.type === "CHANGE_LOG";
+        if (historyCategory === "events") return note.type === "STATUS_DETAIL";
+        return note.type === "NOTE" || note.type === "COMMENT";
+      });
 
   return (
     <div className="bg-zinc-900/80 border border-purple-700/40 rounded-lg p-4 mt-2">
@@ -399,27 +402,29 @@ export function StageAdminPanel({
       {/* Add note */}
       <div className="mb-3 space-y-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            {(
-              [
-                { key: "notes", label: "Notes" },
-                { key: "progress", label: "Stage Progress" },
-                { key: "events", label: "Events" },
-              ] as const
-            ).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setHistoryCategory(key)}
-                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                  historyCategory === key
-                    ? "bg-purple-900/50 text-purple-300 border-purple-600"
-                    : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-zinc-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {!isOrderInfo && (
+            <div className="flex items-center gap-1.5">
+              {(
+                [
+                  { key: "notes", label: "Notes" },
+                  { key: "progress", label: "Stage Progress" },
+                  { key: "events", label: "Events" },
+                ] as const
+              ).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setHistoryCategory(key)}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    historyCategory === key
+                      ? "bg-purple-900/50 text-purple-300 border-purple-600"
+                      : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-zinc-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           <Button
             size="sm"
             onClick={handleAdd}
@@ -437,7 +442,7 @@ export function StageAdminPanel({
         <Textarea
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
-          placeholder={`Add a ${historyCategory === "progress" ? "stage progress update" : historyCategory === "events" ? "event" : "note"}...`}
+          placeholder={isOrderInfo ? "Add a note..." : `Add a ${historyCategory === "progress" ? "stage progress update" : historyCategory === "events" ? "event" : "note"}...`}
           rows={2}
           className="text-sm bg-zinc-800 border-zinc-700 focus:border-purple-600"
         />
@@ -531,7 +536,7 @@ export function StageAdminPanel({
         </div>
       ) : (
         <p className="text-sm text-zinc-500 text-center py-4">
-          No {historyCategory === "progress" ? "stage progress entries" : historyCategory === "events" ? "events" : "notes"} yet
+          No {isOrderInfo ? "notes" : historyCategory === "progress" ? "stage progress entries" : historyCategory === "events" ? "events" : "notes"} yet
         </p>
       )}
     </div>

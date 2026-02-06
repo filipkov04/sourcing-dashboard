@@ -28,7 +28,7 @@ export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps
     // Measure actual rendered content size (most accurate), fallback to estimate
     // The 1.06 factor accounts for absolutely-positioned badges and arrow tips
     // that extend beyond the measured scrollWidth
-    const fallbackWidth = (stageCount + 1) * 88 + stageCount * 360 + 96;
+    const fallbackWidth = (stageCount + 1) * 110 + stageCount * 360 + 96;
     const measuredWidth = canvasRef.current?.scrollWidth || fallbackWidth;
     const canvasWidth = measuredWidth * 1.06;
 

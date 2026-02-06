@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useId } from "react";
 import { statusConfig, type StageStatus } from "./timeline-types";
 
 type TimelineConnectorProps = {
@@ -8,78 +8,164 @@ type TimelineConnectorProps = {
   targetStatus: StageStatus;
   sourceProgress: number;
   isActive: boolean;
+  sourceStartedAt?: string | null;
+  sourceCompletedAt?: string | null;
+  /** How long the source stage has been in its current status */
+  sourceStatusSince?: string | null;
+  /** The current status label for tooltip context */
+  sourceStatusLabel?: string;
 };
+
+function formatDuration(startDate: string, endDate?: string | null): string {
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : new Date();
+  const diffMs = end.getTime() - start.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+  if (diffDays === 0) return `${diffHours}h`;
+  if (diffDays === 1) return `1 day`;
+  return `${diffDays} days`;
+}
+
+// Map status to a hex color for SVG gradients
+const statusHexColors: Record<string, string> = {
+  COMPLETED: "#22c55e",
+  ORDER: "#a855f7",
+  IN_PROGRESS: "#3b82f6",
+  DELAYED: "#f97316",
+  BLOCKED: "#ef4444",
+  NOT_STARTED: "#52525b",
+  SKIPPED: "#52525b",
+};
+
+function getHexColor(status: string): string {
+  return statusHexColors[status] || statusHexColors.NOT_STARTED;
+}
 
 export function TimelineConnector({
   sourceStatus,
   targetStatus,
   sourceProgress,
   isActive,
+  sourceStartedAt,
+  sourceCompletedAt,
+  sourceStatusSince,
+  sourceStatusLabel,
 }: TimelineConnectorProps) {
-  const sourceConfig = useMemo(
-    () => statusConfig[sourceStatus] || statusConfig.NOT_STARTED,
-    [sourceStatus]
-  );
-  const targetConfig = useMemo(
-    () => statusConfig[targetStatus] || statusConfig.NOT_STARTED,
-    [targetStatus]
-  );
+  const [showTooltip, setShowTooltip] = useState(false);
+  const gradientId = useId();
 
-  // Calculate fill percentage: 100% if source is completed, otherwise based on source progress
+  // Calculate fill percentage
   const fillPercentage =
     sourceStatus === "COMPLETED" || sourceProgress === 100
       ? 100
       : sourceProgress > 0
-      ? Math.min(50 + sourceProgress / 2, 90) // Partial fill when in progress
+      ? Math.min(50 + sourceProgress / 2, 90)
       : 0;
 
-  // Determine the color based on source status
-  const getGradientColor = () => {
-    if (sourceStatus === "COMPLETED") return "from-green-500 to-green-500";
-    if (sourceStatus === "ORDER") return "from-purple-500 to-purple-500";
-    if (sourceStatus === "IN_PROGRESS") return "from-blue-500 to-blue-500";
-    if (sourceStatus === "DELAYED") return "from-orange-500 to-orange-500";
-    if (sourceStatus === "BLOCKED") return "from-red-500 to-red-500";
-    return "from-zinc-600 to-zinc-600";
-  };
+  // Arrow color follows the gradient end (or unfilled color)
+  const arrowColor = fillPercentage >= 100
+    ? getHexColor(targetStatus)
+    : "#3f3f46"; // zinc-700
 
-  // Arrow color matches the fill color when connector is fully filled
-  const getArrowBorderClass = () => {
-    if (fillPercentage < 100) return "border-l-zinc-600";
-    if (sourceStatus === "COMPLETED") return "border-l-green-500";
-    if (sourceStatus === "ORDER") return "border-l-purple-500";
-    if (sourceStatus === "IN_PROGRESS") return "border-l-blue-500";
-    if (sourceStatus === "DELAYED") return "border-l-orange-500";
-    if (sourceStatus === "BLOCKED") return "border-l-red-500";
-    return "border-l-zinc-600";
-  };
+  // Tooltip text — show status duration + overall stage duration
+  const tooltipText = useMemo(() => {
+    const parts: string[] = [];
+
+    // Status-specific duration (how long in current status)
+    if (sourceStatusSince && sourceStatusLabel) {
+      const statusStr = sourceStatusLabel.replace(/_/g, " ").toLowerCase();
+      parts.push(`${statusStr} for ${formatDuration(sourceStatusSince)}`);
+    }
+
+    // Overall stage duration
+    if (sourceStartedAt && sourceCompletedAt) {
+      parts.push(`Completed in ${formatDuration(sourceStartedAt, sourceCompletedAt)}`);
+    } else if (sourceStartedAt && !sourceCompletedAt) {
+      if (!sourceStatusSince) {
+        parts.push(`In progress for ${formatDuration(sourceStartedAt)}`);
+      }
+    }
+
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }, [sourceStartedAt, sourceCompletedAt, sourceStatusSince, sourceStatusLabel]);
+
+  const nodeHeight = 110;
+  const minWidth = 360;
+  const lineHeight = 8;
+  const arrowW = 12;
+  const arrowH = 8;
+  const dotSize = 12;
 
   return (
-    <div className="flex items-center min-w-[360px] h-[88px] self-start mt-0">
+    <div
+      className="relative flex items-center self-start mt-0"
+      style={{ height: nodeHeight, minWidth }}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {/* Tooltip */}
+      {showTooltip && tooltipText && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 border border-zinc-600 text-zinc-300 text-xs px-2.5 py-1 rounded-md whitespace-nowrap z-30 shadow-lg pointer-events-none">
+          {tooltipText}
+        </div>
+      )}
+
+      {/* SVG gradient definition (hidden) */}
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={getHexColor(sourceStatus)} />
+            <stop offset="100%" stopColor={getHexColor(targetStatus)} />
+          </linearGradient>
+        </defs>
+      </svg>
+
       {/* Line area */}
       <div className="relative flex-1 h-full flex items-center">
         {/* Background line */}
-        <div className="absolute top-1/2 -translate-y-1/2 w-full h-1.5 bg-zinc-700 rounded-full" />
-
-        {/* Progress fill */}
         <div
-          className={`absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-gradient-to-r ${getGradientColor()} transition-all duration-500 ease-out`}
-          style={{ width: `${fillPercentage}%` }}
+          className="absolute top-1/2 -translate-y-1/2 w-full bg-zinc-700 rounded-full"
+          style={{ height: lineHeight }}
+        />
+
+        {/* Gradient progress fill */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 rounded-full transition-all duration-500 ease-out"
+          style={{
+            height: lineHeight,
+            width: `${fillPercentage}%`,
+            background: `linear-gradient(to right, ${getHexColor(sourceStatus)}, ${getHexColor(targetStatus)})`,
+          }}
         />
 
         {/* Animated dot for active connectors */}
         {isActive && fillPercentage > 0 && fillPercentage < 100 && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-500/50"
-            style={{ left: `${fillPercentage}%`, transform: "translate(-50%, -50%)" }}
+            className="absolute top-1/2 -translate-y-1/2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-500/50"
+            style={{
+              left: `${fillPercentage}%`,
+              transform: "translate(-50%, -50%)",
+              width: dotSize,
+              height: dotSize,
+            }}
           />
         )}
       </div>
 
-      {/* Directional arrow */}
-      <div
-        className={`w-0 h-0 border-t-[7px] border-b-[7px] border-l-[10px] border-t-transparent border-b-transparent ${getArrowBorderClass()} transition-colors duration-500 flex-shrink-0 mr-1`}
-      />
+      {/* Directional arrow using SVG for gradient color */}
+      <svg
+        width={arrowW}
+        height={arrowH * 2}
+        viewBox={`0 0 ${arrowW} ${arrowH * 2}`}
+        className="flex-shrink-0 mr-1 transition-colors duration-500"
+      >
+        <polygon
+          points={`0,0 ${arrowW},${arrowH} 0,${arrowH * 2}`}
+          fill={arrowColor}
+        />
+      </svg>
     </div>
   );
 }
