@@ -2,11 +2,27 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 7, 2026 - Session 11
+**Last Updated:** February 7, 2026 - Session 12
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 11):**
+**Completed Today (Session 12):**
+- ✅ **Best Sellers Dashboard Card** — New card showing top 5 products by total order quantity
+  - Created `/api/dashboard/best-sellers` endpoint (org-scoped, groups by productName)
+  - Created `best-sellers.tsx` component with ranked list, image fallback, loading/empty states
+  - Added to dashboard in 3-column grid alongside Exchange Rates & Reorder Suggestions
+- ✅ **Fixed Supabase Storage** — Added `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` to `.env`, made bucket public for product images
+- ✅ **Fixed broken product images** — Added `onError` fallback in orders list and best sellers card
+- ✅ **Redesigned Reorder Suggestions card** — Clean minimal style (initials circle, product name + SKU, quantity + status label, divider lines)
+- ✅ **Product Image Upload endpoint** — `POST /api/orders/product-image` for Supabase Storage uploads
+- ✅ **Git:** Commit `a5d6afa` pushed to origin/main
+
+**Planned (Backlog BL-1): Project Selector for Dashboard**
+- Add `Project` model + `projectId` on Order
+- Dashboard dropdown to filter all cards by project
+- Full plan in `.claude/plans/reactive-scribbling-island.md` and `docs/tasks/TASK_LIST.md`
+
+**Completed Previously (Session 11):**
 - ✅ **Stage Metadata — Inline Key: Value Display Format**
   - Switched from vertically stacked (label above value) to compact inline `Key: Value` format
   - Key gets `font-medium` + softer color, value stays high-contrast
@@ -105,7 +121,7 @@
 - ✅ Role-based permissions (OWNER, ADMIN, MEMBER, VIEWER)
 - ✅ Color-coded role badges with security protections
 
-**Next Task:** Task 3.6 (Week 3 PR) OR Task 2.5 (Week 2 PR) OR Week 3 Marco's tasks (3.7-3.12)
+**Next Task:** Task 3.6 (Week 3 PR) OR BL-1 (Project Selector) OR Week 4 tasks
 
 **How to Continue:**
 When starting next session, say: "Start where we left off according to CLAUDE.md"
@@ -132,6 +148,11 @@ When starting next session, say: "Start where we left off according to CLAUDE.md
 - Task 3.10 (Bulk Actions): ✅ COMPLETE (Session 11)
 - Task 3.11 (Export to CSV): ✅ COMPLETE (Session 11)
 - Task 3.11b (Stage Metadata System): ✅ COMPLETE (Session 11 — inline display, ordered storage, drag-and-drop reorder)
+- Best Sellers Dashboard Card: ✅ COMPLETE (Session 12)
+- Reorder Suggestions Redesign: ✅ COMPLETE (Session 12)
+- Supabase Storage Fix: ✅ COMPLETE (Session 12)
+- Product Image Fallbacks: ✅ COMPLETE (Session 12)
+- Backlog BL-1 (Project Selector): ⏳ PLANNED (8 subtasks in TASK_LIST.md)
 - Remaining: 3.6 (Filip's Week 3 PR), 3.12 (Marco's Week 3 PR)
 
 ---
@@ -1181,9 +1202,58 @@ Added 64 new tasks (~500 lines):
 
 - **Status:** Marco's Week 3 tasks (3.7-3.11b) complete ✅
 
+### Session 12 - Best Sellers Card, Supabase Fixes & Reorder Redesign - Feb 7, 2026
+
+- **Best Sellers Dashboard Card:**
+  - Created `app/api/dashboard/best-sellers/route.ts` — fetches all orders, groups by productName, sums quantity, returns top 5
+  - Created `app/(dashboard)/dashboard/_components/best-sellers.tsx` — ranked list (1-5) with product image/fallback, name, SKU, order count, factory, total quantity
+  - Added `ProductImage` sub-component with `onError` fallback (broken URLs show Package icon)
+  - Updated `app/(dashboard)/dashboard/page.tsx` — 3-column grid: Exchange Rates + Reorder Suggestions + Best Sellers
+
+- **Fixed Supabase Storage for File Uploads:**
+  - Root cause: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` were missing from `.env`
+  - Added both env vars to `.env`
+  - Made `order-attachments` bucket public (was private — `getPublicUrl()` returned 403)
+  - Verified: test upload succeeded, public URLs return HTTP 200
+  - File attachments and product images now work correctly
+
+- **Fixed Broken Product Images:**
+  - Orders list (`app/(dashboard)/orders/page.tsx`): added `onError` handler on `<img>` to show fallback icon
+  - Best sellers card: `ProductImage` component with React state fallback
+
+- **Redesigned Reorder Suggestions Card:**
+  - New clean minimal style matching Shopify-like design
+  - Initials circle (gray, 2 letters from product name) instead of product images
+  - Product name on first line, SKU on second line
+  - Average quantity (bold) + status label ("Seasonal" orange / "Overdue" green) on right
+  - Divider lines between rows, compact header with RefreshCw icon + Info icon
+  - Entire row clickable (links to reorder page)
+
+- **Backlog Task BL-1: Project Selector (Planned, Not Implemented):**
+  - Full plan written: Project model, dashboard dropdown, all-cards filtering
+  - 8 subtasks added to `docs/tasks/TASK_LIST.md` (BL-1.1 through BL-1.8)
+  - Plan saved at `.claude/plans/reactive-scribbling-island.md`
+
+- **Files Created:**
+  - `app/api/dashboard/best-sellers/route.ts` — Best sellers API
+  - `app/(dashboard)/dashboard/_components/best-sellers.tsx` — Best sellers component
+  - `app/api/orders/product-image/route.ts` — Product image upload to Supabase
+
+- **Files Modified:**
+  - `app/(dashboard)/dashboard/page.tsx` — Added BestSellers import + 3-column grid
+  - `app/(dashboard)/dashboard/_components/reorder-suggestions.tsx` — Full redesign
+  - `app/(dashboard)/orders/page.tsx` — Image onError fallback
+  - `docs/tasks/TASK_LIST.md` — Added Backlog BL-1 (Project Selector, 8 subtasks)
+  - `CLAUDE.md` — Session 12 status update
+  - `.env` — Added SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+
+- **Git Commits:**
+  - `a5d6afa` — "Add Best Sellers dashboard card, product image upload, and fix broken image fallbacks"
+  - Pushed to origin/main
+
 **To Continue Next Session:**
 Say "start where we ended last time" and I will:
 1. Review Week 3 progress (Filip done, Marco done except PRs)
-2. Suggest next: Task 3.6 (Week 3 PR), Task 3.12 (Marco's PR), or Week 4 tasks
+2. Suggest next: Task 3.6 (Week 3 PR), BL-1 (Project Selector), or Week 4 tasks
 3. Note: All features pushed to origin/main
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RefreshCw, Package, ArrowRight } from "lucide-react";
+import { RefreshCw, Info } from "lucide-react";
 import Link from "next/link";
 
 type Suggestion = {
@@ -19,6 +19,15 @@ type Suggestion = {
   seasonLabel: string;
   isSeasonal: boolean;
 };
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
 
 export function ReorderSuggestions() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -44,18 +53,18 @@ export function ReorderSuggestions() {
   if (isLoading) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
-            <p className="text-sm text-gray-500 dark:text-zinc-400">Based on your ordering history</p>
-          </div>
+        <div className="flex items-center gap-2 mb-4">
+          <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-2/3 mb-2" />
-              <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full mb-1" />
-              <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-1/3" />
+            <div key={i} className="animate-pulse flex items-center gap-3">
+              <div className="w-9 h-9 bg-gray-200 dark:bg-zinc-700 rounded-full" />
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-2/3 mb-2" />
+                <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-1/3" />
+              </div>
             </div>
           ))}
         </div>
@@ -66,9 +75,9 @@ export function ReorderSuggestions() {
   if (suggestions.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
-          <p className="text-sm text-gray-500 dark:text-zinc-400">Based on your ordering history</p>
+        <div className="flex items-center gap-2 mb-4">
+          <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
         </div>
         <div className="text-center py-8">
           <RefreshCw className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500 mb-3" />
@@ -81,67 +90,55 @@ export function ReorderSuggestions() {
     );
   }
 
-  function formatDate(iso: string) {
-    const date = new Date(iso);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  }
-
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
-          <p className="text-sm text-gray-500 dark:text-zinc-400">Based on your ordering history</p>
-        </div>
+      <div className="flex items-center gap-2 mb-4">
+        <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
+        <Info className="h-3.5 w-3.5 text-gray-300 dark:text-zinc-600" />
       </div>
 
-      <div className="space-y-3">
-        {suggestions.map((s) => {
-          return (
-            <div
-              key={s.productName}
-              className="flex items-start justify-between gap-3 -mx-2 px-2 py-2.5 rounded-lg hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
-            >
-              <div className="flex items-start gap-3 min-w-0 flex-1">
-                {s.productImage ? (
-                  <img
-                    src={s.productImage}
-                    alt={s.productName}
-                    className="flex-shrink-0 w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
-                    <Package className="h-4 w-4 text-[#EB5D2E]" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {s.productName}
-                    {s.productSKU && (
-                      <span className="ml-1.5 text-xs text-gray-500 dark:text-zinc-500 font-normal">
-                        {s.productSKU}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">
-                    Last ordered {formatDate(s.lastOrderDate)} · {s.lastQuantity} {s.unit} · {s.factoryName}
-                  </p>
-                  <p className="text-xs text-[#EB5D2E] dark:text-[#EB5D2E] mt-0.5 font-medium">
-                    {s.seasonLabel}
-                  </p>
-                </div>
-              </div>
-
-              <Link
-                href={`/orders/new?reorderId=${s.lastOrderId}`}
-                className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[#EB5D2E] text-white hover:bg-[#d4522a] transition-colors"
-              >
-                Reorder
-                <ArrowRight className="h-3 w-3" />
-              </Link>
+      <div className="divide-y divide-gray-100 dark:divide-zinc-800">
+        {suggestions.map((s) => (
+          <Link
+            key={s.productName}
+            href={`/orders/new?reorderId=${s.lastOrderId}`}
+            className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 hover:bg-gray-50/50 dark:hover:bg-zinc-800/30 -mx-2 px-2 rounded-md transition-colors"
+          >
+            {/* Initials Circle */}
+            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
+              <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400">
+                {getInitials(s.productName)}
+              </span>
             </div>
-          );
-        })}
+
+            {/* Product Info */}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {s.productName}
+              </p>
+              {s.productSKU && (
+                <p className="text-xs text-gray-400 dark:text-zinc-500 truncate">
+                  SKU: {s.productSKU}
+                </p>
+              )}
+            </div>
+
+            {/* Quantity & Status */}
+            <div className="flex-shrink-0 text-right">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                {s.avgQuantity.toLocaleString()}
+              </p>
+              <p className={`text-xs font-medium ${
+                s.isSeasonal
+                  ? "text-orange-500 dark:text-orange-400"
+                  : "text-green-500 dark:text-green-400"
+              }`}>
+                {s.isSeasonal ? "Seasonal" : "Overdue"}
+              </p>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

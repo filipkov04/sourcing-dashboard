@@ -734,3 +734,27 @@
 
 **New Total: ~184 tasks over 12 weeks = Complete Procurement Platform! 🎉**
 
+---
+
+## Backlog — Planned Features (Not Yet Scheduled)
+
+### BL-1: Project Selector for Dashboard ⏳
+**Priority:** High | **Estimated Effort:** Medium | **Developer:** TBD
+
+**Summary:** Add a "Project" concept so the client can group orders by project (e.g. "Lense", "Summer Collection") and filter the entire dashboard by project via a dropdown.
+
+**Subtasks:**
+- [ ] BL-1.1 — Add `Project` model to Prisma schema (`id`, `name`, `organizationId`) + optional `projectId` on Order
+- [ ] BL-1.2 — Create Project CRUD API (`GET /api/projects`, `POST /api/projects`)
+- [ ] BL-1.3 — Create `ProjectProvider` React context (shared `projectId` state for dashboard)
+- [ ] BL-1.4 — Create `ProjectSelector` dropdown component (icon + name + chevron, "All Projects" default, inline create)
+- [ ] BL-1.5 — Wire `ProjectProvider` + `ProjectSelector` into dashboard page (above period selector)
+- [ ] BL-1.6 — Update 8 dashboard API endpoints to accept `?projectId=` filter (stats, best-sellers, reorder, status-breakdown, product-portfolio, factory-stats, trends, recent-activity)
+- [ ] BL-1.7 — Update 8 dashboard client components to read `projectId` from context and pass to fetch URLs
+- [ ] BL-1.8 — Add project dropdown to order create/edit forms + update order API to accept `projectId`
+
+**Notes:**
+- Exchange rates endpoint does NOT need project filtering (not order-scoped)
+- `projectId` is nullable — existing orders remain valid with no project
+- Full plan documented at `.claude/plans/reactive-scribbling-island.md`
+
