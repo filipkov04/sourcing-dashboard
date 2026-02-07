@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         factory: { select: { id: true, name: true } },
+        stages: { select: { name: true, sequence: true }, orderBy: { sequence: "asc" } },
       },
       orderBy: { orderDate: "desc" },
     });
@@ -52,8 +53,10 @@ export async function GET(request: NextRequest) {
     }
 
     type Suggestion = {
+      lastOrderId: string;
       productName: string;
       productSKU: string | null;
+      productImage: string | null;
       lastQuantity: number;
       unit: string;
       avgQuantity: number;
@@ -117,8 +120,10 @@ export async function GET(request: NextRequest) {
       }
 
       suggestions.push({
+        lastOrderId: latest.id,
         productName,
         productSKU: latest.productSKU,
+        productImage: latest.productImage,
         lastQuantity: latest.quantity,
         unit: latest.unit,
         avgQuantity,

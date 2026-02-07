@@ -5,8 +5,10 @@ import { RefreshCw, Package, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 type Suggestion = {
+  lastOrderId: string;
   productName: string;
   productSKU: string | null;
+  productImage: string | null;
   lastQuantity: number;
   unit: string;
   avgQuantity: number;
@@ -95,23 +97,23 @@ export function ReorderSuggestions() {
 
       <div className="space-y-3">
         {suggestions.map((s) => {
-          const params = new URLSearchParams({
-            product: s.productName,
-            quantity: String(s.avgQuantity),
-            factoryId: s.factoryId,
-            ...(s.productSKU ? { sku: s.productSKU } : {}),
-            unit: s.unit,
-          });
-
           return (
             <div
               key={s.productName}
               className="flex items-start justify-between gap-3 -mx-2 px-2 py-2.5 rounded-lg hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
             >
               <div className="flex items-start gap-3 min-w-0 flex-1">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
-                  <Package className="h-4 w-4 text-[#EB5D2E]" />
-                </div>
+                {s.productImage ? (
+                  <img
+                    src={s.productImage}
+                    alt={s.productName}
+                    className="flex-shrink-0 w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
+                    <Package className="h-4 w-4 text-[#EB5D2E]" />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {s.productName}
@@ -131,7 +133,7 @@ export function ReorderSuggestions() {
               </div>
 
               <Link
-                href={`/orders/new?${params.toString()}`}
+                href={`/orders/new?reorderId=${s.lastOrderId}`}
                 className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[#EB5D2E] text-white hover:bg-[#d4522a] transition-colors"
               >
                 Reorder

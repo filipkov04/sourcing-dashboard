@@ -120,6 +120,7 @@ model Order {
   orderNumber     String      // Brand's PO number
   productName     String
   productSKU      String?
+  productImage    String?     // Supabase Storage public URL for product image
   quantity        Int
   unit            String      @default("pieces") // pieces, meters, kg
   overallProgress Int         @default(0) // 0-100

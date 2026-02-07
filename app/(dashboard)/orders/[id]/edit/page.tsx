@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Plus, Package } from "lucide-react";
+import { ArrowLeft, Plus, Package, Upload, X } from "lucide-react";
 import { SortableStageList } from "@/components/sortable-stage-list";
 
 type Factory = {
@@ -69,6 +69,10 @@ export default function EditOrderPage() {
   const [status, setStatus] = useState("PENDING");
   const [notes, setNotes] = useState("");
   const [tagsInput, setTagsInput] = useState("");
+  const [productImage, setProductImage] = useState<string | null>(null);
+  const [productImageFile, setProductImageFile] = useState<File | null>(null);
+  const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Fetch factories
   useEffect(() => {
@@ -112,6 +116,8 @@ export default function EditOrderPage() {
           setStatus(order.status);
           setNotes(order.notes || "");
           setTagsInput(order.tags?.join(", ") || "");
+          setProductImage(order.productImage || null);
+          setProductImagePreview(order.productImage || null);
           setStages(
             order.stages.map((s: any) => ({
               id: s.id,
@@ -162,6 +168,30 @@ export default function EditOrderPage() {
     setStages(stages.map((s) => (s.id === id ? { ...s, name } : s)));
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setError("Only PNG, JPG, and WEBP images are allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5MB");
+      return;
+    }
+    setProductImageFile(file);
+    setProductImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setProductImageFile(null);
+    setProductImage(null);
+    if (productImagePreview && productImagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(productImagePreview);
+    }
+    setProductImagePreview(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -204,6 +234,28 @@ export default function EditOrderPage() {
       .filter((t) => t);
 
     try {
+      // Upload new product image if changed
+      let productImageUrl: string | null | undefined = undefined;
+      if (productImageFile) {
+        setIsUploadingImage(true);
+        const imageFormData = new FormData();
+        imageFormData.append("file", productImageFile);
+        const imageRes = await fetch("/api/orders/product-image", {
+          method: "POST",
+          body: imageFormData,
+        });
+        const imageData = await imageRes.json();
+        setIsUploadingImage(false);
+        if (!imageRes.ok) {
+          setError(imageData.error || "Failed to upload image");
+          return;
+        }
+        productImageUrl = imageData.data.url;
+      } else if (productImage === null && productImagePreview === null) {
+        // Image was explicitly removed
+        productImageUrl = null;
+      }
+
       const response = await fetch(`/api/orders/${params.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -211,6 +263,7 @@ export default function EditOrderPage() {
           orderNumber: orderNumber.trim(),
           productName: productName.trim(),
           productSKU: productSKU.trim() || null,
+          ...(productImageUrl !== undefined && { productImage: productImageUrl }),
           quantity: parseInt(quantity),
           unit,
           factoryId,
@@ -364,6 +417,45 @@ export default function EditOrderPage() {
                   disabled={isLoading}
                 />
               </div>
+            </div>
+
+            {/* Product Image Upload */}
+            <div className="space-y-2">
+              <Label>Product Image</Label>
+              {productImagePreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={productImagePreview}
+                    alt="Product preview"
+                    className="w-24 h-24 rounded-lg object-cover border border-gray-200 dark:border-zinc-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <label
+                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:border-[#EB5D2E] dark:hover:border-[#EB5D2E] transition-colors"
+                >
+                  <div className="flex flex-col items-center justify-center py-2">
+                    <Upload className="h-6 w-6 text-gray-400 dark:text-zinc-500 mb-1" />
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">
+                      Click to upload (PNG, JPG, WEBP, max 5MB)
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleImageSelect}
+                    disabled={isLoading}
+                  />
+                </label>
+              )}
             </div>
 
             <div className="grid grid-cols-4 gap-4">
@@ -579,7 +671,7 @@ export default function EditOrderPage() {
             </Button>
           </Link>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isUploadingImage ? "Uploading image..." : isLoading ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>

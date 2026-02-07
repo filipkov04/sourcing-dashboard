@@ -74,6 +74,7 @@ export async function PATCH(
       orderNumber,
       productName,
       productSKU,
+      productImage,
       quantity,
       unit,
       factoryId,
@@ -115,6 +116,7 @@ export async function PATCH(
     if (orderNumber !== undefined && orderNumber !== null) updateData.orderNumber = orderNumber.trim();
     if (productName !== undefined && productName !== null) updateData.productName = productName.trim();
     if (productSKU !== undefined) updateData.productSKU = productSKU ? productSKU.trim() : null;
+    if (productImage !== undefined) updateData.productImage = productImage || null;
     if (quantity !== undefined) updateData.quantity = quantity;
     if (unit !== undefined) updateData.unit = unit;
     if (factoryId !== undefined) updateData.factoryId = factoryId;

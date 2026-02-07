@@ -29,6 +29,7 @@ type Order = {
   orderNumber: string;
   productName: string;
   productSKU: string | null;
+  productImage: string | null;
   quantity: number;
   unit: string;
   overallProgress: number;
@@ -469,13 +470,29 @@ export default function OrdersPage() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-zinc-100">{order.productName}</div>
-                      {order.productSKU && (
-                        <div className="text-sm text-gray-600 dark:text-zinc-400">
-                          SKU: {order.productSKU}
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2.5">
+                      {order.productImage ? (
+                        <img
+                          src={order.productImage}
+                          alt={order.productName}
+                          className="w-8 h-8 rounded-md object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove("hidden");
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-8 h-8 rounded-md bg-gray-100 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0${order.productImage ? " hidden" : ""}`}>
+                        <Package className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-zinc-100">{order.productName}</div>
+                        {order.productSKU && (
+                          <div className="text-sm text-gray-600 dark:text-zinc-400">
+                            SKU: {order.productSKU}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>

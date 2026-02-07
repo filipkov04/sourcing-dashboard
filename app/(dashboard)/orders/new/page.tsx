@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Upload, X, ImageIcon } from "lucide-react";
 import { SortableStageList } from "@/components/sortable-stage-list";
 
 type Factory = {
@@ -59,18 +59,22 @@ function NewOrderForm() {
     { id: "4", name: "Packaging", sequence: 4 },
   ]);
 
-  // Form state — pre-fill from search params (reorder flow)
+  // Form state
   const [orderNumber, setOrderNumber] = useState("");
-  const [productName, setProductName] = useState(searchParams.get("product") || "");
-  const [productSKU, setProductSKU] = useState(searchParams.get("sku") || "");
-  const [quantity, setQuantity] = useState(searchParams.get("quantity") || "");
-  const [unit, setUnit] = useState(searchParams.get("unit") || "pieces");
-  const [factoryId, setFactoryId] = useState(searchParams.get("factoryId") || "");
+  const [productName, setProductName] = useState("");
+  const [productSKU, setProductSKU] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("pieces");
+  const [factoryId, setFactoryId] = useState("");
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split("T")[0]);
   const [expectedDate, setExpectedDate] = useState("");
   const [priority, setPriority] = useState("NORMAL");
   const [notes, setNotes] = useState("");
   const [tagsInput, setTagsInput] = useState("");
+  const [productImageFile, setProductImageFile] = useState<File | null>(null);
+  const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Fetch factories
   useEffect(() => {
@@ -87,6 +91,46 @@ function NewOrderForm() {
     }
     fetchFactories();
   }, []);
+
+  // Pre-fill from reorder (fetch full order data)
+  useEffect(() => {
+    const reorderId = searchParams.get("reorderId");
+    if (!reorderId) return;
+
+    async function fetchOriginalOrder() {
+      try {
+        const response = await fetch(`/api/orders/${reorderId}`);
+        const data = await response.json();
+        if (data.success) {
+          const order = data.data;
+          setProductName(order.productName);
+          setProductSKU(order.productSKU || "");
+          setQuantity(String(order.quantity));
+          setUnit(order.unit);
+          setFactoryId(order.factoryId);
+          setPriority(order.priority);
+          setNotes(order.notes || "");
+          setTagsInput(order.tags?.join(", ") || "");
+          if (order.productImage) {
+            setExistingImageUrl(order.productImage);
+            setProductImagePreview(order.productImage);
+          }
+          if (order.stages && order.stages.length > 0) {
+            setStages(
+              order.stages.map((s: any) => ({
+                id: s.id || String(s.sequence),
+                name: s.name,
+                sequence: s.sequence,
+              }))
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch order for reorder:", error);
+      }
+    }
+    fetchOriginalOrder();
+  }, [searchParams]);
 
   const addStage = () => {
     const newSequence = stages.length + 1;
@@ -113,6 +157,30 @@ function NewOrderForm() {
 
   const updateStageName = (id: string, name: string) => {
     setStages(stages.map((s) => (s.id === id ? { ...s, name } : s)));
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setError("Only PNG, JPG, and WEBP images are allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5MB");
+      return;
+    }
+    setProductImageFile(file);
+    setProductImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setProductImageFile(null);
+    setExistingImageUrl(null);
+    if (productImagePreview && productImagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(productImagePreview);
+    }
+    setProductImagePreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,6 +225,25 @@ function NewOrderForm() {
       .filter((t) => t);
 
     try {
+      // Upload product image if new file selected, or reuse existing URL from reorder
+      let productImageUrl: string | null = existingImageUrl;
+      if (productImageFile) {
+        setIsUploadingImage(true);
+        const imageFormData = new FormData();
+        imageFormData.append("file", productImageFile);
+        const imageRes = await fetch("/api/orders/product-image", {
+          method: "POST",
+          body: imageFormData,
+        });
+        const imageData = await imageRes.json();
+        setIsUploadingImage(false);
+        if (!imageRes.ok) {
+          setError(imageData.error || "Failed to upload image");
+          return;
+        }
+        productImageUrl = imageData.data.url;
+      }
+
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,6 +251,7 @@ function NewOrderForm() {
           orderNumber: orderNumber.trim(),
           productName: productName.trim(),
           productSKU: productSKU.trim() || null,
+          productImage: productImageUrl,
           quantity: parseInt(quantity),
           unit,
           factoryId,
@@ -282,6 +370,45 @@ function NewOrderForm() {
                   disabled={isLoading}
                 />
               </div>
+            </div>
+
+            {/* Product Image Upload */}
+            <div className="space-y-2">
+              <Label>Product Image</Label>
+              {productImagePreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={productImagePreview}
+                    alt="Product preview"
+                    className="w-24 h-24 rounded-lg object-cover border border-gray-200 dark:border-zinc-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <label
+                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:border-[#EB5D2E] dark:hover:border-[#EB5D2E] transition-colors"
+                >
+                  <div className="flex flex-col items-center justify-center py-2">
+                    <Upload className="h-6 w-6 text-gray-400 dark:text-zinc-500 mb-1" />
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">
+                      Click to upload (PNG, JPG, WEBP, max 5MB)
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleImageSelect}
+                    disabled={isLoading}
+                  />
+                </label>
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-4">
@@ -466,7 +593,7 @@ function NewOrderForm() {
             </Button>
           </Link>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Creating..." : "Create Order"}
+            {isUploadingImage ? "Uploading image..." : isLoading ? "Creating..." : "Create Order"}
           </Button>
         </div>
       </form>

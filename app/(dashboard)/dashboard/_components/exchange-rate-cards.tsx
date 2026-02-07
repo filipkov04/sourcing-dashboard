@@ -127,7 +127,7 @@ export function ExchangeRateCards() {
 
   if (isLoading) {
     return (
-      <div className="max-w-sm rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm animate-pulse">
+      <div className="rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm animate-pulse h-fit">
         <div className="h-3.5 w-24 rounded bg-gray-200 dark:bg-zinc-700 mb-2.5" />
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -144,7 +144,7 @@ export function ExchangeRateCards() {
 
   if (error) {
     return (
-      <div className="max-w-sm rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm">
+      <div className="rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm h-fit">
         <div className="flex items-center gap-1.5 text-red-500">
           <RefreshCw className="h-3 w-3" />
           <p className="text-xs">{error}</p>
@@ -156,7 +156,7 @@ export function ExchangeRateCards() {
   if (!data) return null;
 
   return (
-    <div className="max-w-sm rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm hover:shadow-md transition-shadow">
+    <div className="rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm hover:shadow-md transition-shadow h-fit">
       <div className="flex items-center justify-between mb-1.5">
         <h3 className="text-xs font-semibold text-gray-800 dark:text-zinc-200">
           Exchange Rates

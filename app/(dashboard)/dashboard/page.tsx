@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardStatsCards } from "./_components/dashboard-stats-cards";
-import { OrdersTrendSection } from "./_components/orders-trend-section";
 import { OrdersByStatusSection } from "./_components/orders-by-status-section";
 import { ProductPortfolioSection } from "./_components/product-portfolio-section";
 import { RecentActivityFeed } from "./_components/recent-activity-feed";
@@ -9,6 +8,7 @@ import { QuickActions } from "./_components/quick-actions";
 import { ReorderSuggestions } from "./_components/reorder-suggestions";
 import { DashboardHeader } from "./_components/dashboard-header";
 import { FactoryPerformanceSection } from "./_components/factory-performance-section";
+import { BestSellers } from "./_components/best-sellers";
 import { ExchangeRateCards } from "./_components/exchange-rate-cards";
 
 export default async function DashboardPage() {
@@ -34,15 +34,11 @@ export default async function DashboardPage() {
         <ProductPortfolioSection />
       </div>
 
-      {/* Exchange Rates & Reorder Suggestions */}
-      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
+      {/* Exchange Rates, Reorder Suggestions & Best Sellers */}
+      <div className="grid gap-5 lg:grid-cols-3 items-start animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
         <ExchangeRateCards />
         <ReorderSuggestions />
-      </div>
-
-      {/* Charts Grid */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
-        <OrdersTrendSection />
+        <BestSellers />
       </div>
 
       {/* Factory Performance Section */}
