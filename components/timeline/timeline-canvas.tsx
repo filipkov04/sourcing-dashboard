@@ -185,8 +185,8 @@ export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps
   }, [calcFitView]);
 
   const containerClasses = isFullscreen
-    ? "fixed inset-0 z-50 bg-zinc-950 border-none rounded-none"
-    : "relative overflow-hidden rounded-lg bg-zinc-900/50 border border-zinc-700";
+    ? "fixed inset-0 z-50 bg-white dark:bg-zinc-950 border-none rounded-none"
+    : "relative overflow-hidden rounded-lg bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-700";
 
   const viewportHeight = isFullscreen ? "h-full" : "h-[300px]";
 

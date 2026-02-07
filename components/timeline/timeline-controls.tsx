@@ -67,7 +67,7 @@ export function TimelineControls({
             variant="ghost"
             size="icon"
             onClick={onToggleFullscreen}
-            className="h-9 w-9 bg-zinc-800/90 backdrop-blur border border-zinc-700 text-zinc-400 hover:text-zinc-200"
+            className="h-9 w-9 bg-white/90 dark:bg-zinc-800/90 backdrop-blur border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
             aria-label="Exit fullscreen"
           >
             <X className="h-5 w-5" />
@@ -77,19 +77,19 @@ export function TimelineControls({
 
       {/* Fullscreen title hint */}
       {isFullscreen && (
-        <div className="absolute top-4 left-4 text-sm text-zinc-500 z-10">
-          Activity Timeline — Press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-400">Esc</kbd> to exit
+        <div className="absolute top-4 left-4 text-sm text-gray-500 dark:text-zinc-500 z-10">
+          Activity Timeline — Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded text-xs text-gray-500 dark:text-zinc-400">Esc</kbd> to exit
         </div>
       )}
 
       {/* Zoom controls - bottom left */}
-      <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-zinc-800/90 backdrop-blur rounded-lg px-3 py-2 border border-zinc-700 z-10">
+      <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-lg px-3 py-2 border border-gray-200 dark:border-zinc-700 z-10">
         <Button
           variant="ghost"
           size="icon"
           onClick={handleZoomOut}
           disabled={zoom <= 0.2}
-          className="h-7 w-7 text-zinc-400 hover:text-zinc-200 disabled:opacity-50"
+          className="h-7 w-7 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 disabled:opacity-50"
           aria-label="Zoom out"
         >
           <Minus className="h-4 w-4" />
@@ -105,7 +105,7 @@ export function TimelineControls({
           }}
         >
           {/* Track */}
-          <div className="w-full h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-500 rounded-full"
               style={{ width: `${sliderFill}%` }}
@@ -123,24 +123,24 @@ export function TimelineControls({
           size="icon"
           onClick={handleZoomIn}
           disabled={zoom >= 2}
-          className="h-7 w-7 text-zinc-400 hover:text-zinc-200 disabled:opacity-50"
+          className="h-7 w-7 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 disabled:opacity-50"
           aria-label="Zoom in"
         >
           <Plus className="h-4 w-4" />
         </Button>
 
-        <span className="text-xs text-zinc-400 w-10 text-right">
+        <span className="text-xs text-gray-500 dark:text-zinc-400 w-10 text-right">
           {Math.round(zoom * 100)}%
         </span>
 
         {onToggleFullscreen && (
           <>
-            <div className="w-px h-4 bg-zinc-700" />
+            <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700" />
             <Button
               variant="ghost"
               size="icon"
               onClick={onToggleFullscreen}
-              className="h-7 w-7 text-zinc-400 hover:text-zinc-200"
+              className="h-7 w-7 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
               aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
               {isFullscreen ? (
@@ -154,7 +154,7 @@ export function TimelineControls({
       </div>
 
       {/* Hint text - bottom right */}
-      <div className="absolute bottom-3 right-3 text-xs text-zinc-500 z-10">
+      <div className="absolute bottom-3 right-3 text-xs text-gray-400 dark:text-zinc-500 z-10">
         Scroll to zoom • Drag to pan • Arrow keys to navigate
       </div>
     </>

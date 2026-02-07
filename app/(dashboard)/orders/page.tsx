@@ -537,7 +537,7 @@ export default function OrdersPage() {
                           ? "text-red-600"
                           : order.hasDelayedStage
                           ? "text-orange-600"
-                          : "text-zinc-400"
+                          : "text-gray-400 dark:text-zinc-400"
                       }`}>
                         {order.overallProgress}%
                       </span>

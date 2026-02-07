@@ -401,7 +401,7 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
               variant="outline"
               onClick={handleDeleteCancel}
               disabled={isDeleting}
-              className="border-gray-300 dark:border-zinc-600 text-zinc-300 hover:bg-gray-50 dark:bg-zinc-700"
+              className="border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-700"
             >
               Cancel
             </Button>

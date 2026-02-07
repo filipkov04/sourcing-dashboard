@@ -44,23 +44,23 @@ const noteTypeConfig: Record<
 > = {
   NOTE: {
     label: "Note",
-    color: "text-purple-400",
-    bgColor: "bg-purple-900/30 border-purple-700",
+    color: "text-purple-500 dark:text-purple-400",
+    bgColor: "bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700",
   },
   COMMENT: {
     label: "Comment",
-    color: "text-blue-400",
-    bgColor: "bg-blue-900/30 border-blue-700",
+    color: "text-blue-500 dark:text-blue-400",
+    bgColor: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700",
   },
   STATUS_DETAIL: {
     label: "Status Detail",
-    color: "text-orange-400",
-    bgColor: "bg-orange-900/30 border-orange-700",
+    color: "text-orange-500 dark:text-orange-400",
+    bgColor: "bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700",
   },
   CHANGE_LOG: {
     label: "Change Log",
-    color: "text-orange-400",
-    bgColor: "bg-orange-900/30 border-orange-700",
+    color: "text-orange-500 dark:text-orange-400",
+    bgColor: "bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700",
   },
 };
 
@@ -191,19 +191,19 @@ export function StageAdminPanel({
 
     return (
       <div
-        className="w-[340px] bg-zinc-900/90 border border-purple-700/50 rounded-lg p-3 shadow-lg"
+        className="w-[340px] bg-white dark:bg-zinc-900/90 border border-purple-200 dark:border-purple-700/50 rounded-lg p-3 shadow-lg"
         onWheel={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5 text-purple-400" />
-            <span className="text-xs font-medium text-purple-300">
+            <span className="text-xs font-medium text-purple-600 dark:text-purple-300">
               Admin Notes
             </span>
           </div>
           {onClose && (
-            <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300">
+            <button onClick={onClose} className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -219,7 +219,7 @@ export function StageAdminPanel({
             {displayNotes.map((note) => (
               <div
                 key={note.id}
-                className="bg-zinc-800/80 rounded p-2 border border-zinc-700/50"
+                className="bg-gray-50 dark:bg-zinc-800/80 rounded p-2 border border-gray-200 dark:border-zinc-700/50"
               >
                 {editingId === note.id ? (
                   <div className="space-y-1.5">
@@ -233,7 +233,7 @@ export function StageAdminPanel({
                           handleUpdate(note.id);
                         }
                       }}
-                      className="w-full text-xs bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-zinc-200 focus:outline-none focus:border-purple-600"
+                      className="w-full text-xs bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1 text-gray-900 dark:text-zinc-200 focus:outline-none focus:border-purple-600"
                     />
                     <div className="flex items-center gap-1">
                       <button
@@ -248,7 +248,7 @@ export function StageAdminPanel({
                           setEditingId(null);
                           setEditingContent("");
                         }}
-                        className="text-[10px] px-2 py-0.5 rounded text-zinc-400 hover:text-zinc-200"
+                        className="text-[10px] px-2 py-0.5 rounded text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
                       >
                         Cancel
                       </button>
@@ -256,15 +256,15 @@ export function StageAdminPanel({
                   </div>
                 ) : (
                   <>
-                    <p className="text-xs text-zinc-300 line-clamp-2">
+                    <p className="text-xs text-gray-700 dark:text-zinc-300 line-clamp-2">
                       {note.content}
                     </p>
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-purple-400">
+                        <span className="text-[10px] text-purple-500 dark:text-purple-400">
                           {note.authorName || "Admin"}
                         </span>
-                        <span className="text-[10px] text-zinc-600" suppressHydrationWarning>
+                        <span className="text-[10px] text-gray-400 dark:text-zinc-600" suppressHydrationWarning>
                           {formatTimeAgo(note.createdAt)}
                         </span>
                       </div>
@@ -274,13 +274,13 @@ export function StageAdminPanel({
                             setEditingId(note.id);
                             setEditingContent(note.content);
                           }}
-                          className="text-zinc-500 hover:text-zinc-300"
+                          className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300"
                         >
                           <Pencil className="h-2.5 w-2.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(note.id)}
-                          className="text-zinc-500 hover:text-red-400"
+                          className="text-gray-400 dark:text-zinc-500 hover:text-red-400"
                         >
                           <Trash2 className="h-2.5 w-2.5" />
                         </button>
@@ -291,13 +291,13 @@ export function StageAdminPanel({
               </div>
             ))}
             {notes.length > 3 && (
-              <p className="text-[10px] text-zinc-500 text-center">
+              <p className="text-[10px] text-gray-400 dark:text-zinc-500 text-center">
                 +{notes.length - 3} more
               </p>
             )}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 mb-2 text-center py-2">
+          <p className="text-xs text-gray-400 dark:text-zinc-500 mb-2 text-center py-2">
             No notes yet
           </p>
         )}
@@ -316,8 +316,8 @@ export function StageAdminPanel({
               onClick={() => setHistoryCategory(key)}
               className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
                 historyCategory === key
-                  ? "bg-purple-900/50 text-purple-300 border-purple-600"
-                  : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-zinc-300"
+                  ? "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-400 dark:border-purple-600"
+                  : "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 border-gray-300 dark:border-zinc-700 hover:text-gray-700 dark:hover:text-zinc-300"
               }`}
             >
               {label}
@@ -338,7 +338,7 @@ export function StageAdminPanel({
               }
             }}
             placeholder="Add a note..."
-            className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-purple-600"
+            className="flex-1 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1 text-xs text-gray-900 dark:text-zinc-200 placeholder:text-gray-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-purple-600"
           />
           <Button
             size="sm"
@@ -368,12 +368,12 @@ export function StageAdminPanel({
       });
 
   return (
-    <div className="bg-zinc-900/80 border border-purple-700/40 rounded-lg p-4 mt-2">
+    <div className="bg-white dark:bg-zinc-900/80 border border-purple-200 dark:border-purple-700/40 rounded-lg p-4 mt-2">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-purple-400" />
-          <span className="text-sm font-medium text-purple-300">
+          <span className="text-sm font-medium text-purple-600 dark:text-purple-300">
             Admin Notes — {stageName}
           </span>
         </div>
@@ -382,7 +382,7 @@ export function StageAdminPanel({
             variant="ghost"
             size="sm"
             onClick={fetchNotes}
-            className="h-7 w-7 p-0 text-zinc-400 hover:text-zinc-200"
+            className="h-7 w-7 p-0 text-gray-400 dark:text-zinc-400 hover:text-gray-600 dark:hover:text-zinc-200"
           >
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
@@ -391,7 +391,7 @@ export function StageAdminPanel({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-7 w-7 p-0 text-zinc-400 hover:text-zinc-200"
+              className="h-7 w-7 p-0 text-gray-400 dark:text-zinc-400 hover:text-gray-600 dark:hover:text-zinc-200"
             >
               <X className="h-3.5 w-3.5" />
             </Button>
@@ -416,8 +416,8 @@ export function StageAdminPanel({
                   onClick={() => setHistoryCategory(key)}
                   className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                     historyCategory === key
-                      ? "bg-purple-900/50 text-purple-300 border-purple-600"
-                      : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-zinc-300"
+                      ? "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-400 dark:border-purple-600"
+                      : "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 border-gray-300 dark:border-zinc-700 hover:text-gray-700 dark:hover:text-zinc-300"
                   }`}
                 >
                   {label}
@@ -444,7 +444,7 @@ export function StageAdminPanel({
           onChange={(e) => setNewContent(e.target.value)}
           placeholder={isOrderInfo ? "Add a note..." : `Add a ${historyCategory === "progress" ? "stage progress update" : historyCategory === "events" ? "event" : "note"}...`}
           rows={2}
-          className="text-sm bg-zinc-800 border-zinc-700 focus:border-purple-600"
+          className="text-sm bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700 focus:border-purple-600"
         />
       </div>
 
@@ -470,7 +470,7 @@ export function StageAdminPanel({
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
                       rows={2}
-                      className="text-sm bg-zinc-800 border-zinc-700"
+                      className="text-sm bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700"
                     />
                     <div className="flex items-center gap-1">
                       <Button
@@ -495,7 +495,7 @@ export function StageAdminPanel({
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm text-zinc-200 whitespace-pre-wrap">
+                    <p className="text-sm text-gray-700 dark:text-zinc-200 whitespace-pre-wrap">
                       {note.content}
                     </p>
                     <div className="flex items-center justify-between mt-2">
@@ -503,10 +503,10 @@ export function StageAdminPanel({
                         <span className={`text-xs ${config.color}`}>
                           {config.label}
                         </span>
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-gray-500 dark:text-zinc-500">
                           {note.authorName || "Admin"}
                         </span>
-                        <span className="text-xs text-zinc-600" suppressHydrationWarning>
+                        <span className="text-xs text-gray-400 dark:text-zinc-600" suppressHydrationWarning>
                           {formatTimeAgo(note.createdAt)}
                         </span>
                       </div>
@@ -516,13 +516,13 @@ export function StageAdminPanel({
                             setEditingId(note.id);
                             setEditingContent(note.content);
                           }}
-                          className="text-zinc-500 hover:text-zinc-300"
+                          className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300"
                         >
                           <Pencil className="h-3 w-3" />
                         </button>
                         <button
                           onClick={() => handleDelete(note.id)}
-                          className="text-zinc-500 hover:text-red-400"
+                          className="text-gray-400 dark:text-zinc-500 hover:text-red-400"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -535,7 +535,7 @@ export function StageAdminPanel({
           })}
         </div>
       ) : (
-        <p className="text-sm text-zinc-500 text-center py-4">
+        <p className="text-sm text-gray-400 dark:text-zinc-500 text-center py-4">
           No {isOrderInfo ? "notes" : historyCategory === "progress" ? "stage progress entries" : historyCategory === "events" ? "events" : "notes"} yet
         </p>
       )}

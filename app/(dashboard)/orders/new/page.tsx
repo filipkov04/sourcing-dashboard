@@ -295,15 +295,15 @@ function NewOrderForm() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">New Order</h1>
-          <p className="text-sm text-zinc-400">Create a new production order</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">New Order</h1>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">Create a new production order</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Error Message */}
         {error && (
-          <div className="rounded-md bg-red-900/50 border border-red-700 p-4 text-sm text-red-300">
+          <div className="rounded-md bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 p-4 text-sm text-red-600 dark:text-red-300">
             {error}
           </div>
         )}
@@ -520,7 +520,7 @@ function NewOrderForm() {
 
             {/* Quick add default stages */}
             <div className="pt-2 border-t">
-              <p className="text-sm text-zinc-400 mb-2">Quick add common stages:</p>
+              <p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">Quick add common stages:</p>
               <div className="flex flex-wrap gap-2">
                 {defaultStages.map((stageName) => (
                   <Button
@@ -578,7 +578,7 @@ function NewOrderForm() {
                 onChange={(e) => setTagsInput(e.target.value)}
                 disabled={isLoading}
               />
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
                 Separate multiple tags with commas
               </p>
             </div>

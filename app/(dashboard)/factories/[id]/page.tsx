@@ -73,12 +73,12 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-100 text-red-800",
   COMPLETED: "bg-green-100 text-green-800",
   SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-zinc-700 text-zinc-200",
-  CANCELLED: "bg-zinc-700 text-zinc-400",
+  DELIVERED: "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-200",
+  CANCELLED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-zinc-700 text-zinc-300",
+  LOW: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-300",
   NORMAL: "bg-blue-100 text-blue-800",
   HIGH: "bg-orange-100 text-orange-800",
   URGENT: "bg-red-100 text-red-800",

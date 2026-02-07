@@ -31,7 +31,7 @@ function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: Timeli
 
   // Days until expected date
   let deadlineText = "";
-  let deadlineColor = "text-zinc-400";
+  let deadlineColor = "text-gray-500 dark:text-zinc-400";
   if (expectedDate && completed < total) {
     const daysLeft = Math.ceil(
       (new Date(expectedDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
@@ -54,35 +54,35 @@ function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: Timeli
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-zinc-800/60 border border-zinc-700 rounded-lg text-xs text-zinc-400 flex-wrap">
-      <span className={completed === total ? "text-green-400 font-medium" : ""}>
-        <span className="text-zinc-200 font-medium">{completed}</span>/{total} complete
+    <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700 rounded-lg text-xs text-gray-500 dark:text-zinc-400 flex-wrap">
+      <span className={completed === total ? "text-green-600 dark:text-green-400 font-medium" : ""}>
+        <span className="text-gray-900 dark:text-zinc-200 font-medium">{completed}</span>/{total} complete
       </span>
-      <span className="text-zinc-600">|</span>
+      <span className="text-gray-300 dark:text-zinc-600">|</span>
       <span>
-        <span className="text-zinc-200 font-medium">{overallProgress}%</span> overall
+        <span className="text-gray-900 dark:text-zinc-200 font-medium">{overallProgress}%</span> overall
       </span>
       {blocked > 0 && (
         <>
-          <span className="text-zinc-600">|</span>
+          <span className="text-gray-300 dark:text-zinc-600">|</span>
           <span className="text-red-400 font-medium">{blocked} blocked</span>
         </>
       )}
       {delayed > 0 && (
         <>
-          <span className="text-zinc-600">|</span>
+          <span className="text-gray-300 dark:text-zinc-600">|</span>
           <span className="text-orange-400 font-medium">{delayed} delayed</span>
         </>
       )}
       {deadlineText && (
         <>
-          <span className="text-zinc-600">|</span>
+          <span className="text-gray-300 dark:text-zinc-600">|</span>
           <span className={deadlineColor}>{deadlineText}</span>
         </>
       )}
       {completed === total && total > 0 && (
         <>
-          <span className="text-zinc-600">|</span>
+          <span className="text-gray-300 dark:text-zinc-600">|</span>
           <span className="text-green-400 font-medium">All stages complete</span>
         </>
       )}
@@ -346,7 +346,7 @@ export function HorizontalTimeline({
               {/* Separator between Order Info and stages */}
               {sortedStages.length > 0 && (
                 <div className="flex items-center self-center mx-2">
-                  <div className="w-px h-12 bg-zinc-700" />
+                  <div className="w-px h-12 bg-gray-300 dark:bg-zinc-700" />
                 </div>
               )}
 

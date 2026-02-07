@@ -48,34 +48,34 @@ const iconMap = {
 
 const colorClasses = {
   green: {
-    bg: "bg-green-900/40",
-    border: "border-green-700",
-    icon: "text-green-400",
+    bg: "bg-green-100 dark:bg-green-900/40",
+    border: "border-green-300 dark:border-green-700",
+    icon: "text-green-500 dark:text-green-400",
   },
   blue: {
-    bg: "bg-blue-900/40",
-    border: "border-blue-700",
-    icon: "text-blue-400",
+    bg: "bg-blue-100 dark:bg-blue-900/40",
+    border: "border-blue-300 dark:border-blue-700",
+    icon: "text-blue-500 dark:text-blue-400",
   },
   orange: {
-    bg: "bg-orange-900/40",
-    border: "border-orange-700",
-    icon: "text-orange-400",
+    bg: "bg-orange-100 dark:bg-orange-900/40",
+    border: "border-orange-300 dark:border-orange-700",
+    icon: "text-orange-500 dark:text-orange-400",
   },
   red: {
-    bg: "bg-red-900/40",
-    border: "border-red-700",
-    icon: "text-red-400",
+    bg: "bg-red-100 dark:bg-red-900/40",
+    border: "border-red-300 dark:border-red-700",
+    icon: "text-red-500 dark:text-red-400",
   },
   purple: {
-    bg: "bg-purple-900/40",
-    border: "border-purple-700",
-    icon: "text-purple-400",
+    bg: "bg-purple-100 dark:bg-purple-900/40",
+    border: "border-purple-300 dark:border-purple-700",
+    icon: "text-purple-500 dark:text-purple-400",
   },
   gray: {
-    bg: "bg-zinc-800",
-    border: "border-zinc-700",
-    icon: "text-zinc-400",
+    bg: "bg-gray-100 dark:bg-zinc-800",
+    border: "border-gray-300 dark:border-zinc-700",
+    icon: "text-gray-400 dark:text-zinc-400",
   },
 };
 
@@ -100,23 +100,23 @@ function eventMatchesCategory(event: OrderEvent, category: "events" | "progress"
 
 const pillStyles: Record<FilterCategory, { inactive: string; active: string; dot: string }> = {
   all: {
-    inactive: "bg-zinc-800 text-zinc-500 border-zinc-700",
-    active: "bg-zinc-700 text-zinc-200 border-zinc-500",
+    inactive: "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 border-gray-300 dark:border-zinc-700",
+    active: "bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-zinc-200 border-gray-400 dark:border-zinc-500",
     dot: "bg-zinc-400",
   },
   events: {
-    inactive: "bg-green-900/20 text-green-600 border-green-800/50",
-    active: "bg-green-900/40 text-green-300 border-green-600",
+    inactive: "bg-green-50 dark:bg-green-900/20 text-green-600 border-green-200 dark:border-green-800/50",
+    active: "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border-green-400 dark:border-green-600",
     dot: "bg-green-400",
   },
   progress: {
-    inactive: "bg-blue-900/20 text-blue-600 border-blue-800/50",
-    active: "bg-blue-900/40 text-blue-300 border-blue-600",
+    inactive: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-800/50",
+    active: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-400 dark:border-blue-600",
     dot: "bg-blue-400",
   },
   notes: {
-    inactive: "bg-purple-900/20 text-purple-600 border-purple-800/50",
-    active: "bg-purple-900/40 text-purple-300 border-purple-600",
+    inactive: "bg-purple-50 dark:bg-purple-900/20 text-purple-600 border-purple-200 dark:border-purple-800/50",
+    active: "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-400 dark:border-purple-600",
     dot: "bg-purple-400",
   },
 };
@@ -370,15 +370,15 @@ export function TimelineInlinePanel({
 
   return (
     <div className="w-[340px]">
-      <div className="bg-zinc-800/90 border border-zinc-700 rounded-lg backdrop-blur-sm shadow-lg">
+      <div className="bg-white dark:bg-zinc-800/90 border border-gray-200 dark:border-zinc-700 rounded-lg backdrop-blur-sm shadow-lg">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-700">
-          <h3 className="font-medium text-sm text-zinc-200 truncate">{title}</h3>
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-zinc-700">
+          <h3 className="font-medium text-sm text-gray-900 dark:text-zinc-200 truncate">{title}</h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-6 w-6 p-0 text-zinc-400 hover:text-zinc-200 flex-shrink-0"
+            className="h-6 w-6 p-0 text-gray-400 dark:text-zinc-400 hover:text-gray-600 dark:hover:text-zinc-200 flex-shrink-0"
           >
             <X className="h-3.5 w-3.5" />
           </Button>
@@ -418,13 +418,13 @@ export function TimelineInlinePanel({
             </div>
           ) : events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                <Inbox className="h-5 w-5 text-zinc-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 flex items-center justify-center">
+                <Inbox className="h-5 w-5 text-gray-400 dark:text-zinc-600" />
               </div>
-              <p className="text-sm text-zinc-500 text-center">
+              <p className="text-sm text-gray-500 dark:text-zinc-500 text-center">
                 No changes yet
               </p>
-              <p className="text-xs text-zinc-600 text-center max-w-[200px]">
+              <p className="text-xs text-gray-400 dark:text-zinc-600 text-center max-w-[200px]">
                 {nodeType === "order-info"
                   ? "Order-level changes will appear here as they happen"
                   : "Changes to this stage will appear here as they happen"}
@@ -432,13 +432,13 @@ export function TimelineInlinePanel({
             </div>
           ) : visibleEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-zinc-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-gray-400 dark:text-zinc-600" />
               </div>
-              <p className="text-sm text-zinc-500 text-center">
+              <p className="text-sm text-gray-500 dark:text-zinc-500 text-center">
                 No recent changes in this category
               </p>
-              <p className="text-xs text-zinc-600 text-center">
+              <p className="text-xs text-gray-400 dark:text-zinc-600 text-center">
                 Try selecting a different filter or showing older changes
               </p>
             </div>
@@ -503,7 +503,7 @@ export function TimelineInlinePanel({
                             value={editingContent}
                             onChange={(e) => setEditingContent(e.target.value)}
                             rows={2}
-                            className="w-full text-xs bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-zinc-200 focus:outline-none focus:border-purple-600 resize-none"
+                            className="w-full text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1 text-gray-900 dark:text-zinc-200 focus:outline-none focus:border-purple-600 resize-none"
                           />
                           <div className="flex items-center gap-1">
                             <button
@@ -526,11 +526,11 @@ export function TimelineInlinePanel({
                         </div>
                       ) : (
                         <>
-                          <p className="text-sm text-zinc-300 leading-snug">
+                          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-snug">
                             {formatEventMessage(event)}
                           </p>
                           {event.attachedNote && (
-                            <p className="text-sm text-zinc-300 mt-1 leading-snug">
+                            <p className="text-sm text-gray-700 dark:text-zinc-300 mt-1 leading-snug">
                               {event.eventType === "STATUS_CHANGE" &&
                                (event.newValue === "DELAYED" || event.newValue === "BLOCKED") && (
                                 <><span className="font-medium">Reason:</span>{" "}</>
@@ -540,7 +540,7 @@ export function TimelineInlinePanel({
                           )}
                         </>
                       )}
-                      <p className="text-xs text-zinc-500 mt-0.5" suppressHydrationWarning>
+                      <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5" suppressHydrationWarning>
                         {formatTimestamp(event.createdAt)}
                       </p>
                     </div>
@@ -552,7 +552,7 @@ export function TimelineInlinePanel({
 
           {/* Minor updates hidden note */}
           {hiddenMinorCount > 0 && (
-            <p className="text-xs text-zinc-600 text-center mt-3">
+            <p className="text-xs text-gray-400 dark:text-zinc-600 text-center mt-3">
               {hiddenMinorCount} minor update{hiddenMinorCount !== 1 ? "s" : ""} hidden
             </p>
           )}
@@ -562,7 +562,7 @@ export function TimelineInlinePanel({
             <div className="text-center mt-3">
               <button
                 onClick={() => setShowOlder(!showOlder)}
-                className="text-xs text-zinc-500 hover:underline hover:text-zinc-400 transition-colors"
+                className="text-xs text-gray-400 dark:text-zinc-500 hover:underline hover:text-gray-600 dark:hover:text-zinc-400 transition-colors"
               >
                 {showOlder
                   ? "Hide older changes"

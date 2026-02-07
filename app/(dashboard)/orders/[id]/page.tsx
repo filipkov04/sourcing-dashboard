@@ -122,12 +122,12 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-100 text-red-800",
   COMPLETED: "bg-green-100 text-green-800",
   SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-zinc-700 text-zinc-200",
-  CANCELLED: "bg-zinc-700 text-zinc-400",
+  DELIVERED: "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-200",
+  CANCELLED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-zinc-700 text-zinc-400",
+  LOW: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
   NORMAL: "bg-blue-100 text-blue-600",
   HIGH: "bg-orange-100 text-orange-600",
   URGENT: "bg-red-100 text-red-600",
@@ -143,10 +143,10 @@ const stageStatusColors: Record<string, string> = {
 };
 
 const stageStatusBadgeColors: Record<string, string> = {
-  NOT_STARTED: "bg-zinc-700 text-zinc-400",
+  NOT_STARTED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
   IN_PROGRESS: "bg-blue-100 text-blue-700",
   COMPLETED: "bg-green-100 text-green-700",
-  SKIPPED: "bg-zinc-700 text-zinc-400",
+  SKIPPED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
   DELAYED: "bg-orange-100 text-orange-700",
   BLOCKED: "bg-red-100 text-red-700",
 };
@@ -846,11 +846,11 @@ export default function OrderDetailPage() {
             <div className="space-y-4">
               {/* Order Information Changes — admin-only notes section */}
               {isAdminOrOwner && (
-                <div className="p-4 rounded-lg border border-dashed border-zinc-600 bg-zinc-800/50">
+                <div className="p-4 rounded-lg border border-dashed border-purple-200 dark:border-zinc-600 bg-purple-50/50 dark:bg-zinc-800/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5 text-purple-400" />
-                      <h4 className="font-medium text-purple-300">Order Information Changes</h4>
+                      <ClipboardList className="h-5 w-5 text-purple-500 dark:text-purple-400" />
+                      <h4 className="font-medium text-purple-600 dark:text-purple-300">Order Information Changes</h4>
                     </div>
                     <Button
                       variant="ghost"
@@ -903,7 +903,7 @@ export default function OrderDetailPage() {
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{stage.name}</h4>
                         <Badge
-                          className={stageStatusBadgeColors[stage.status] || "bg-zinc-700 text-zinc-400"}
+                          className={stageStatusBadgeColors[stage.status] || "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400"}
                         >
                           {stage.status.replace("_", " ")}
                         </Badge>
@@ -1216,10 +1216,10 @@ export default function OrderDetailPage() {
                           <div
                             className={`p-3 rounded-md mb-2 text-sm ${
                               stage.status === "DELAYED"
-                                ? "bg-orange-900/30 border border-orange-700"
+                                ? "bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700"
                                 : stage.status === "BLOCKED"
-                                ? "bg-red-900/30 border border-red-700"
-                                : "bg-zinc-800 border border-zinc-600"
+                                ? "bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700"
+                                : "bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600"
                             }`}
                           >
                             <div className="flex items-start gap-2">

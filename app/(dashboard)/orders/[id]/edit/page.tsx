@@ -314,8 +314,8 @@ export default function EditOrderPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
-          <Package className="h-12 w-12 mb-4 text-zinc-500" />
+        <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-zinc-400">
+          <Package className="h-12 w-12 mb-4 text-gray-400 dark:text-zinc-500" />
           <p className="text-lg font-medium">{fetchError}</p>
           <Link href="/orders" className="mt-4">
             <Button>View All Orders</Button>
@@ -336,8 +336,8 @@ export default function EditOrderPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">Edit Order</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Order</h1>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">
             Update order {orderNumber}
           </p>
         </div>
@@ -346,7 +346,7 @@ export default function EditOrderPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Error Message */}
         {error && (
-          <div className="rounded-md bg-red-900/50 border border-red-700 p-4 text-sm text-red-300">
+          <div className="rounded-md bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 p-4 text-sm text-red-600 dark:text-red-300">
             {error}
           </div>
         )}
@@ -592,7 +592,7 @@ export default function EditOrderPage() {
 
             {/* Quick add default stages */}
             <div className="pt-2 border-t">
-              <p className="text-sm text-zinc-400 mb-2">
+              <p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">
                 Quick add common stages:
               </p>
               <div className="flex flex-wrap gap-2">
@@ -656,7 +656,7 @@ export default function EditOrderPage() {
                 onChange={(e) => setTagsInput(e.target.value)}
                 disabled={isLoading}
               />
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
                 Separate multiple tags with commas
               </p>
             </div>

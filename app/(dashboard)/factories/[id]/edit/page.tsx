@@ -125,7 +125,7 @@ export default function EditFactoryPage() {
   if (fetchError) {
     return (
       <div className="space-y-6">
-        <Button variant="ghost" onClick={() => router.back()} className="text-zinc-400 hover:text-zinc-100">
+        <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-100">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
@@ -145,14 +145,14 @@ export default function EditFactoryPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href={`/factories/${params.id}`}>
-          <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-100">
+          <Button variant="ghost" size="sm" className="text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-100">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Factory
           </Button>
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-white">Edit Factory</h1>
-          <p className="text-sm text-zinc-400">Update factory information</p>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">Update factory information</p>
         </div>
       </div>
 
@@ -169,10 +169,10 @@ export default function EditFactoryPage() {
             )}
 
             {/* Basic Information */}
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-white">Basic Information</CardTitle>
-                <CardDescription className="text-zinc-400">
+                <CardDescription className="text-gray-500 dark:text-zinc-400">
                   Essential details about the factory
                 </CardDescription>
               </CardHeader>
@@ -181,7 +181,7 @@ export default function EditFactoryPage() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-zinc-300 mb-1"
+                    className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
                   >
                     Factory Name <span className="text-red-500">*</span>
                   </label>
@@ -191,7 +191,7 @@ export default function EditFactoryPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="e.g., Shenzhen Manufacturing Co."
                   />
                 </div>
@@ -200,7 +200,7 @@ export default function EditFactoryPage() {
                 <div>
                   <label
                     htmlFor="location"
-                    className="block text-sm font-medium text-zinc-300 mb-1"
+                    className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
                   >
                     Location <span className="text-red-500">*</span>
                   </label>
@@ -210,7 +210,7 @@ export default function EditFactoryPage() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="e.g., Guangzhou, China"
                   />
                 </div>
@@ -219,7 +219,7 @@ export default function EditFactoryPage() {
                 <div>
                   <label
                     htmlFor="address"
-                    className="block text-sm font-medium text-zinc-300 mb-1"
+                    className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
                   >
                     Full Address
                   </label>
@@ -229,7 +229,7 @@ export default function EditFactoryPage() {
                     onChange={(e) => setAddress(e.target.value)}
                     disabled={isLoading}
                     rows={3}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Street address, building number, etc."
                   />
                 </div>
@@ -237,10 +237,10 @@ export default function EditFactoryPage() {
             </Card>
 
             {/* Contact Information */}
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-white">Contact Information</CardTitle>
-                <CardDescription className="text-zinc-400">
+                <CardDescription className="text-gray-500 dark:text-zinc-400">
                   Primary contact at the factory (optional)
                 </CardDescription>
               </CardHeader>
@@ -249,7 +249,7 @@ export default function EditFactoryPage() {
                 <div>
                   <label
                     htmlFor="contactName"
-                    className="block text-sm font-medium text-zinc-300 mb-1"
+                    className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
                   >
                     Contact Name
                   </label>
@@ -259,7 +259,7 @@ export default function EditFactoryPage() {
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="e.g., Zhang Wei"
                   />
                 </div>
@@ -268,7 +268,7 @@ export default function EditFactoryPage() {
                 <div>
                   <label
                     htmlFor="contactEmail"
-                    className="block text-sm font-medium text-zinc-300 mb-1"
+                    className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
                   >
                     Email
                   </label>
@@ -278,7 +278,7 @@ export default function EditFactoryPage() {
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="contact@factory.com"
                   />
                 </div>
@@ -287,7 +287,7 @@ export default function EditFactoryPage() {
                 <div>
                   <label
                     htmlFor="contactPhone"
-                    className="block text-sm font-medium text-zinc-300 mb-1"
+                    className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
                   >
                     Phone
                   </label>
@@ -297,7 +297,7 @@ export default function EditFactoryPage() {
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-800 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="+86 138 0000 0000"
                   />
                 </div>
@@ -308,10 +308,10 @@ export default function EditFactoryPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Submit Card */}
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-white">Save Changes?</CardTitle>
-                <CardDescription className="text-zinc-400">
+                <CardDescription className="text-gray-500 dark:text-zinc-400">
                   Review the information and submit
                 </CardDescription>
               </CardHeader>
@@ -335,7 +335,7 @@ export default function EditFactoryPage() {
                   <button
                     type="button"
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-zinc-600 bg-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-gray-100 dark:bg-zinc-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
@@ -344,11 +344,11 @@ export default function EditFactoryPage() {
             </Card>
 
             {/* Help Card */}
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-base text-white">Need help?</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-zinc-400">
+              <CardContent className="text-sm text-gray-500 dark:text-zinc-400">
                 <ul className="space-y-2">
                   <li>• Factory name and location are required</li>
                   <li>• Contact info is optional but recommended</li>

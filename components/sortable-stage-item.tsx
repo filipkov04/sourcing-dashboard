@@ -50,19 +50,19 @@ export function SortableStageItem({
       ref={setNodeRef}
       style={style}
       className={`flex items-center gap-3 ${
-        isDragging ? "opacity-50 bg-zinc-700/50 rounded-md" : ""
+        isDragging ? "opacity-50 bg-gray-100 dark:bg-zinc-700/50 rounded-md" : ""
       }`}
     >
       <button
         type="button"
-        className="cursor-grab active:cursor-grabbing p-1 text-zinc-500 hover:text-zinc-300 touch-none"
+        className="cursor-grab active:cursor-grabbing p-1 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 touch-none"
         {...attributes}
         {...listeners}
         disabled={isLoading}
       >
         <GripVertical className="h-5 w-5" />
       </button>
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-700 text-zinc-400 text-sm font-medium">
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-400 text-sm font-medium">
         {index + 1}
       </div>
       <Input

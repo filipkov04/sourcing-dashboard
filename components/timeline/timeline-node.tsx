@@ -129,9 +129,9 @@ export function TimelineNode({
           ${config.bgColor} ${config.borderColor}
           ${isExpanded ? `shadow-lg ${config.glowColor}` : ""}
           ${isInProgress ? "animate-pulse-glow" : ""}
-          ${isFocused ? "ring-[3px] ring-white/70 ring-offset-[3px] ring-offset-zinc-900 scale-110 shadow-xl shadow-white/10" : ""}
+          ${isFocused ? "ring-[3px] ring-black/30 dark:ring-white/70 ring-offset-[3px] ring-offset-white dark:ring-offset-zinc-900 scale-110 shadow-xl shadow-black/10 dark:shadow-white/10" : ""}
           hover:shadow-lg hover:${config.glowColor} hover:scale-105
-          focus:outline-none focus-visible:ring-[3px] focus-visible:ring-white/70 focus-visible:ring-offset-[3px] focus-visible:ring-offset-zinc-900
+          focus:outline-none focus-visible:ring-[3px] focus-visible:ring-black/30 dark:focus-visible:ring-white/70 focus-visible:ring-offset-[3px] focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900
         `}
         style={{ width: NODE_SIZE, height: NODE_SIZE }}
         data-timeline-node
@@ -173,21 +173,21 @@ export function TimelineNode({
 
         {/* Event count badge */}
         {eventCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-zinc-700 text-zinc-300 text-xs font-medium rounded-full w-7 h-7 flex items-center justify-center border border-zinc-600 z-20">
+          <span className="absolute -top-1 -right-1 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 text-xs font-medium rounded-full w-7 h-7 flex items-center justify-center border border-gray-300 dark:border-zinc-600 z-20">
             {eventCount > 9 ? "9+" : eventCount}
           </span>
         )}
 
         {/* Completed checkmark overlay */}
         {type === "stage" && isCompleted && (
-          <span className="absolute -bottom-0.5 -right-0.5 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-zinc-900 z-20">
+          <span className="absolute -bottom-0.5 -right-0.5 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white dark:border-zinc-900 z-20">
             <Check className="h-3.5 w-3.5" strokeWidth={3} />
           </span>
         )}
       </button>
 
       {/* Label */}
-      <span className="mt-2 text-sm text-zinc-400 text-center max-w-32 truncate">
+      <span className="mt-2 text-sm text-gray-500 dark:text-zinc-400 text-center max-w-32 truncate">
         {label}
       </span>
 

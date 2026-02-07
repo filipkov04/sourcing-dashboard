@@ -107,7 +107,7 @@ export function TimelineConnector({
     >
       {/* Tooltip */}
       {showTooltip && tooltipText && (
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 border border-zinc-600 text-zinc-300 text-xs px-2.5 py-1 rounded-md whitespace-nowrap z-30 shadow-lg pointer-events-none">
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 text-xs px-2.5 py-1 rounded-md whitespace-nowrap z-30 shadow-lg pointer-events-none">
           {tooltipText}
         </div>
       )}
@@ -126,7 +126,7 @@ export function TimelineConnector({
       <div className="relative flex-1 h-full flex items-center">
         {/* Background line */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-full bg-zinc-700 rounded-full"
+          className="absolute top-1/2 -translate-y-1/2 w-full bg-gray-200 dark:bg-zinc-700 rounded-full"
           style={{ height: lineHeight }}
         />
 

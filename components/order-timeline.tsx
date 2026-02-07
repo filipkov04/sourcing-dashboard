@@ -43,40 +43,40 @@ const iconMap: Record<string, typeof Clock> = {
 
 const colorClasses: Record<string, { bg: string; border: string; icon: string; line: string }> = {
   green: {
-    bg: "bg-green-900/30",
-    border: "border-green-700",
+    bg: "bg-green-100 dark:bg-green-900/30",
+    border: "border-green-300 dark:border-green-700",
     icon: "text-green-500",
-    line: "bg-green-700",
+    line: "bg-green-300 dark:bg-green-700",
   },
   blue: {
-    bg: "bg-blue-900/30",
-    border: "border-blue-700",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    border: "border-blue-300 dark:border-blue-700",
     icon: "text-blue-500",
-    line: "bg-blue-700",
+    line: "bg-blue-300 dark:bg-blue-700",
   },
   orange: {
-    bg: "bg-orange-900/30",
-    border: "border-orange-700",
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+    border: "border-orange-300 dark:border-orange-700",
     icon: "text-orange-500",
-    line: "bg-orange-700",
+    line: "bg-orange-300 dark:bg-orange-700",
   },
   red: {
-    bg: "bg-red-900/30",
-    border: "border-red-700",
+    bg: "bg-red-100 dark:bg-red-900/30",
+    border: "border-red-300 dark:border-red-700",
     icon: "text-red-500",
-    line: "bg-red-700",
+    line: "bg-red-300 dark:bg-red-700",
   },
   purple: {
-    bg: "bg-purple-900/30",
-    border: "border-purple-700",
+    bg: "bg-purple-100 dark:bg-purple-900/30",
+    border: "border-purple-300 dark:border-purple-700",
     icon: "text-purple-500",
-    line: "bg-purple-700",
+    line: "bg-purple-300 dark:bg-purple-700",
   },
   gray: {
-    bg: "bg-zinc-800",
-    border: "border-zinc-700",
-    icon: "text-zinc-500",
-    line: "bg-zinc-700",
+    bg: "bg-gray-100 dark:bg-zinc-800",
+    border: "border-gray-300 dark:border-zinc-700",
+    icon: "text-gray-400 dark:text-zinc-500",
+    line: "bg-gray-300 dark:bg-zinc-700",
   },
 };
 
@@ -237,8 +237,8 @@ export function OrderTimeline({ orderId, initialLimit = 10 }: TimelineProps) {
 
   if (events.length === 0) {
     return (
-      <div className="text-center py-8 text-zinc-500">
-        <Clock className="h-8 w-8 mx-auto mb-2 text-zinc-600" />
+      <div className="text-center py-8 text-gray-400 dark:text-zinc-500">
+        <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-zinc-600" />
         <p>No activity recorded yet</p>
         <p className="text-xs mt-1">Updates to this order will appear here</p>
       </div>
@@ -270,8 +270,8 @@ export function OrderTimeline({ orderId, initialLimit = 10 }: TimelineProps) {
 
             {/* Event content */}
             <div className="flex-1 pb-4">
-              <p className="text-sm text-zinc-200">{message}</p>
-              <p className="text-xs text-zinc-500 mt-0.5" suppressHydrationWarning>
+              <p className="text-sm text-gray-700 dark:text-zinc-200">{message}</p>
+              <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5" suppressHydrationWarning>
                 {formatTimestamp(event.createdAt)}
               </p>
             </div>
@@ -287,7 +287,7 @@ export function OrderTimeline({ orderId, initialLimit = 10 }: TimelineProps) {
             size="sm"
             onClick={loadMore}
             disabled={isLoadingMore}
-            className="text-zinc-400 hover:text-zinc-300"
+            className="text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300"
           >
             {isLoadingMore ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
