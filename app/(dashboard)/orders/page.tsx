@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Package, Filter, X } from "lucide-react";
+import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download } from "lucide-react";
 
 type Order = {
   id: string;
@@ -72,6 +73,8 @@ const priorityColors: Record<string, string> = {
 
 export default function OrdersPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdminOrOwner = session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
   const [orders, setOrders] = useState<Order[]>([]);
   const [factories, setFactories] = useState<Factory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +82,12 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [factoryFilter, setFactoryFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<string>("");
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fetch factories for filter dropdown
   useEffect(() => {
@@ -140,6 +149,106 @@ export default function OrdersPage() {
     });
   };
 
+  // Bulk selection handlers
+  const toggleSelect = (orderId: string) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === orders.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(orders.map((o) => o.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setBulkStatus("");
+  };
+
+  const handleBulkUpdate = async () => {
+    if (!bulkStatus || selectedIds.size === 0) return;
+
+    setIsBulkUpdating(true);
+    try {
+      const res = await fetch("/api/orders/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderIds: Array.from(selectedIds),
+          status: bulkStatus,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Update local state to reflect changes
+        const progressForStatus = ["COMPLETED", "SHIPPED", "DELIVERED"].includes(bulkStatus)
+          ? 100
+          : bulkStatus === "PENDING"
+          ? 0
+          : undefined;
+
+        setOrders((prev) =>
+          prev.map((o) =>
+            selectedIds.has(o.id)
+              ? {
+                  ...o,
+                  status: bulkStatus,
+                  ...(progressForStatus !== undefined
+                    ? { overallProgress: progressForStatus }
+                    : {}),
+                }
+              : o
+          )
+        );
+        clearSelection();
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (statusFilter && statusFilter !== "all") params.set("status", statusFilter);
+      if (factoryFilter && factoryFilter !== "all") params.set("factoryId", factoryFilter);
+      if (priorityFilter && priorityFilter !== "all") params.set("priority", priorityFilter);
+
+      const res = await fetch(`/api/orders/export?${params.toString()}`);
+      if (!res.ok) return;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `orders-export-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Silently fail
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -150,12 +259,22 @@ export default function OrdersPage() {
             Manage and track all your production orders
           </p>
         </div>
-        <Link href="/orders/new" className="sm:w-auto">
-          <Button className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            New Order
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Export CSV
           </Button>
-        </Link>
+          <Link href="/orders/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Order
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
@@ -236,6 +355,45 @@ export default function OrdersPage() {
         )}
       </div>
 
+      {/* Bulk Action Toolbar */}
+      {isAdminOrOwner && selectedIds.size > 0 && (
+        <div className="sticky top-0 z-10 flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3">
+          <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            {selectedIds.size} order{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <Select value={bulkStatus} onValueChange={setBulkStatus}>
+            <SelectTrigger className="w-44 h-8 text-sm">
+              <SelectValue placeholder="Set status..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="DELAYED">Delayed</SelectItem>
+              <SelectItem value="DISRUPTED">Disrupted</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
+              <SelectItem value="SHIPPED">Shipped</SelectItem>
+              <SelectItem value="DELIVERED">Delivered</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            onClick={handleBulkUpdate}
+            disabled={!bulkStatus || isBulkUpdating}
+          >
+            {isBulkUpdating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Apply"
+            )}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={clearSelection}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       {/* Orders Table */}
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-x-auto">
         {isLoading ? (
@@ -265,6 +423,16 @@ export default function OrdersPage() {
             <Table>
             <TableHeader>
               <TableRow>
+                {isAdminOrOwner && (
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      checked={orders.length > 0 && selectedIds.size === orders.length}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-gray-300 dark:border-zinc-600 accent-blue-600"
+                    />
+                  </TableHead>
+                )}
                 <TableHead>Order #</TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead>Factory</TableHead>
@@ -279,9 +447,22 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-zinc-800/50"
+                  className={`cursor-pointer hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 ${
+                    selectedIds.has(order.id) ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                  }`}
                   onClick={() => router.push(`/orders/${order.id}`)}
                 >
+                  {isAdminOrOwner && (
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(order.id)}
+                        onChange={() => toggleSelect(order.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-4 w-4 rounded border-gray-300 dark:border-zinc-600 accent-blue-600"
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>
                     <span className="font-medium text-[#EB5D2E]">
                       {order.orderNumber}
@@ -323,7 +504,7 @@ export default function OrdersPage() {
                       <div className="w-24 h-2 bg-gray-100 dark:bg-zinc-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            order.status === "COMPLETED"
+                            ["COMPLETED", "SHIPPED", "DELIVERED"].includes(order.status)
                               ? "bg-green-600"
                               : order.hasBlockedStage
                               ? "bg-red-500"

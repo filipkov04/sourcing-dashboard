@@ -121,7 +121,22 @@ export async function PATCH(
     if (orderDate !== undefined) updateData.orderDate = new Date(orderDate);
     if (expectedDate !== undefined) updateData.expectedDate = new Date(expectedDate);
     if (priority !== undefined) updateData.priority = priority;
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      updateData.status = status;
+
+      // Auto-sync overallProgress and actualDate with status
+      if (["COMPLETED", "SHIPPED", "DELIVERED"].includes(status)) {
+        updateData.overallProgress = 100;
+        if (!existingOrder.actualDate) {
+          updateData.actualDate = new Date();
+        }
+      } else if (status === "PENDING") {
+        updateData.overallProgress = 0;
+        updateData.actualDate = null;
+      } else if (status === "CANCELLED") {
+        updateData.actualDate = null;
+      }
+    }
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;
     if (tags !== undefined) updateData.tags = tags;
 

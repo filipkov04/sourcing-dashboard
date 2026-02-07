@@ -61,6 +61,12 @@ const colorClasses: Record<string, { bg: string; border: string; icon: string; l
     icon: "text-red-400",
     line: "bg-red-700",
   },
+  purple: {
+    bg: "bg-purple-900/40",
+    border: "border-purple-700",
+    icon: "text-purple-400",
+    line: "bg-purple-700",
+  },
   gray: {
     bg: "bg-zinc-800",
     border: "border-zinc-700",

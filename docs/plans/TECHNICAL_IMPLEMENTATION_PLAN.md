@@ -5943,8 +5943,207 @@ API_NINJAS_KEY=your_api_ninjas_key_here
 
 | Task | Description | Time |
 |------|-------------|------|
+---
+
+## Task 3.9 — Order Status Update
+
+### Context
+
+Currently, changing an order's status requires navigating to the edit page, changing the dropdown, and saving. Users need a quick, one-click way to update status directly from the order detail page — especially for manual transitions like marking an order as SHIPPED, DELIVERED, or CANCELLED (which aren't auto-calculated from stages).
+
+### Approach
+
+The existing `PATCH /api/orders/[id]` endpoint already handles status changes with full event logging. This task is **frontend only** — add a status dropdown to the order detail page header that calls the existing API.
+
+### Changes
+
+#### 1. `app/(dashboard)/orders/[id]/page.tsx` — Add status dropdown
+
+- Replace the static status Badge in the header with a Select dropdown (admin/owner only)
+- Non-admin users still see the static Badge
+- Dropdown shows all valid statuses with color-coded indicators
+- On change: call `PATCH /api/orders/[id]` with `{ status }`, update local state
+- Show loading spinner during update
+- Include `actualDate` auto-set when status changes to COMPLETED/DELIVERED
+
+### File List
+
+| # | File | Action |
+|---|------|--------|
+| 1 | `app/(dashboard)/orders/[id]/page.tsx` | EDIT — Add status dropdown in header |
+
+### Verification
+
+1. As admin, click on status badge → see dropdown with all statuses
+2. Change to SHIPPED → status updates, event logged in timeline
+3. Change to DELIVERED → status updates, actualDate set
+4. Change to CANCELLED → status updates with different color
+5. As VIEWER/MEMBER, see static badge (no dropdown)
+
+---
+
+---
+
+## Task 3.10 — Bulk Actions
+
+### Context
+
+Users managing many orders need to update multiple orders at once — e.g. mark 5 orders as SHIPPED after a container leaves the factory. Currently each order must be updated individually.
+
+### Changes
+
+#### 1. `app/api/orders/bulk/route.ts` — Bulk update API (NEW)
+
+**PATCH** — Update multiple orders
+- Auth + org check (admin/owner only)
+- Accept `{ orderIds: string[], status: string }`
+- Validate all orders belong to the user's organization
+- Update all orders with the same auto-progress logic as single update (COMPLETED→100%, PENDING→0%, etc.)
+- Log status change events for each order
+- Return count of updated orders
+
+#### 2. `app/(dashboard)/orders/page.tsx` — Add checkboxes + bulk toolbar (EDIT)
+
+- Add checkbox column to table (select all header checkbox + per-row checkboxes)
+- Clicking checkbox doesn't navigate to order (stop event propagation)
+- When orders are selected, show a floating toolbar with:
+  - Selection count ("3 orders selected")
+  - Status dropdown to apply to all selected
+  - Clear selection button
+- Admin/Owner only — non-admin users don't see checkboxes
+- After bulk update, refresh the order list and clear selection
+
+### File List
+
+| # | File | Action |
+|---|------|--------|
+| 1 | `app/api/orders/bulk/route.ts` | NEW — PATCH bulk status update |
+| 2 | `app/(dashboard)/orders/page.tsx` | EDIT — Checkboxes + bulk toolbar |
+
+---
+
 | 4.16 | News Feed Data Layer (RSS parser + commodity fetcher + types) | 2h |
 | 4.17 | News Feed API Endpoint (merge, deduplicate, cache) | 2h |
 | 4.18 | News Ticker UI Component (rotating headlines, transitions) | 3h |
 | 4.19 | Layout Integration (AppLayout, middleware, dependency) | 1h |
+
+---
+
+## Task 3.8 — Order Notes/Comments
+
+### Context
+
+Orders currently have admin-only stage notes (`StageAdminNote`) but no way for all team members to have threaded discussions at the order level. Users need a comment section where anyone on the team (OWNER, ADMIN, MEMBER) can post comments, and VIEWERs can read but not post. This enables team coordination around orders — e.g. "Fabric delayed, contacting supplier", "QC photos look good", etc.
+
+### Prerequisites
+
+None — uses existing Prisma/PostgreSQL setup.
+
+### Differences from StageAdminNote
+
+| Feature | StageAdminNote (existing) | OrderComment (new) |
+|---------|--------------------------|-------------------|
+| Scope | Per-stage | Per-order |
+| Visibility | Admin/Owner only | All team members |
+| Who can post | Admin/Owner | Owner, Admin, Member |
+| Who can read | Admin/Owner (members see limited view) | Everyone including Viewer |
+| Purpose | Internal admin tracking | Team discussion |
+| Edit/Delete | Author or Admin | Author only (Admin can delete any) |
+
+### Changes
+
+#### 1. `prisma/schema.prisma` — Add `OrderComment` model
+
+```prisma
+model OrderComment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  authorId  String
+  authorName String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId, createdAt])
+}
+```
+
+- Add `comments OrderComment[]` relation to the `Order` model
+
+#### 2. `app/api/orders/[id]/comments/route.ts` — List & create comments (NEW)
+
+**GET** — List comments
+- Auth + org check (verify user belongs to org that owns the order)
+- Return all `OrderComment` records for the order, sorted oldest first
+- All roles can read
+
+**POST** — Create comment
+- Auth + org check
+- Role check: OWNER, ADMIN, MEMBER can post (VIEWER cannot)
+- Validate `content` is non-empty (max 2000 chars)
+- Create `OrderComment` record with `authorId` and `authorName` from session
+- Return the new comment
+
+#### 3. `app/api/orders/[id]/comments/[commentId]/route.ts` — Update & delete (NEW)
+
+**PATCH** — Edit comment
+- Auth + org check
+- Only the comment author can edit
+- Validate `content` is non-empty (max 2000 chars)
+- Update `OrderComment` record
+- Return updated comment
+
+**DELETE** — Delete comment
+- Auth + org check
+- Author can delete own comment, Admin/Owner can delete any comment
+- Delete `OrderComment` record
+
+#### 4. `components/order-comments.tsx` — Comments UI component (NEW)
+
+- Display list of comments with:
+  - Author avatar (gradient circle with initials, matching team page style)
+  - Author name
+  - Timestamp (relative: "2h ago", "3d ago"; full date on hover)
+  - Comment content (preserving whitespace/newlines)
+  - Edit button (visible to author only)
+  - Delete button (visible to author + admin/owner)
+- New comment input:
+  - Textarea with placeholder "Add a comment..."
+  - Submit button (disabled when empty or for VIEWER role)
+  - Show character count near limit (>1800 chars)
+  - Loading state while posting
+- Edit mode:
+  - Inline textarea replacing comment content
+  - Save / Cancel buttons
+- Empty state: "No comments yet — start the conversation"
+- Uses Card wrapper matching existing sections
+
+#### 5. `app/(dashboard)/orders/[id]/page.tsx` — Integrate comments
+
+- Import and render `<OrderComments>` component
+- Place it as a new Card section after Attachments, before Production Stages
+- Pass `orderId`, `currentUserId`, `userRole` props
+
+### File List
+
+| # | File | Action |
+|---|------|--------|
+| 1 | `prisma/schema.prisma` | EDIT — Add OrderComment model + Order relation |
+| 2 | `app/api/orders/[id]/comments/route.ts` | NEW — GET list + POST create |
+| 3 | `app/api/orders/[id]/comments/[commentId]/route.ts` | NEW — PATCH edit + DELETE |
+| 4 | `components/order-comments.tsx` | NEW — Comments UI component |
+| 5 | `app/(dashboard)/orders/[id]/page.tsx` | EDIT — Add comments section |
+
+### Verification
+
+1. Open an order detail page → see empty comments section with input
+2. Post a comment → appears in the list with avatar, name, timestamp
+3. Post another comment → appears below the first (oldest first)
+4. Edit own comment → inline edit mode, save updates the comment
+5. Delete own comment → removed from list
+6. As admin, delete another user's comment → removed from list
+7. As VIEWER, see comments but input is disabled
+8. Try posting empty comment → submit button disabled
+9. Try posting comment > 2000 chars → see error message
 
