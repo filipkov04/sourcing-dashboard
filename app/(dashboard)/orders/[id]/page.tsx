@@ -48,10 +48,31 @@ import {
   History,
   Shield,
   ClipboardList,
+  Plus,
+  Trash2,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { HorizontalTimeline } from "@/components/timeline";
 import { StageAdminPanel } from "@/components/stage-admin-panel";
 import { OrderAttachments } from "@/components/order-attachments";
+import { OrderComments } from "@/components/order-comments";
 
 type OrderStage = {
   id: string;
@@ -130,6 +151,47 @@ const stageStatusBadgeColors: Record<string, string> = {
   BLOCKED: "bg-red-100 text-red-700",
 };
 
+function SortableMetadataDisplayItem({
+  id,
+  entry,
+  onRemove,
+}: {
+  id: string;
+  entry: { key: string; value: string };
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-1.5 group/row rounded px-1 -mx-1 ${isDragging ? "opacity-50 bg-gray-100 dark:bg-zinc-700/50" : "hover:bg-gray-100/50 dark:hover:bg-zinc-700/30"}`}
+    >
+      <button
+        type="button"
+        className="cursor-grab active:cursor-grabbing p-0.5 text-gray-300 dark:text-zinc-600 hover:text-gray-500 dark:hover:text-zinc-400 touch-none flex-shrink-0"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <p className="text-sm text-gray-900 dark:text-zinc-200 flex-1 min-w-0 truncate">
+        <span className="font-medium text-gray-600 dark:text-zinc-400">{entry.key}:</span>{" "}
+        {entry.value || "—"}
+      </p>
+      <button
+        type="button"
+        className="flex-shrink-0 p-0.5 text-gray-300 dark:text-zinc-600 hover:text-red-500 dark:hover:text-red-400 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        onClick={onRemove}
+      >
+        <Trash2 className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -149,6 +211,7 @@ export default function OrderDetailPage() {
   const [editingProgress, setEditingProgress] = useState<number>(0);
   const [editingStatus, setEditingStatus] = useState<string>("");
   const [editingNotes, setEditingNotes] = useState<string>("");
+  const [editingMetadata, setEditingMetadata] = useState<{ key: string; value: string }[]>([]);
   const [isSavingStage, setIsSavingStage] = useState(false);
 
   // Expanded stages (for viewing notes/delay info)
@@ -156,6 +219,9 @@ export default function OrderDetailPage() {
 
   // Timeline refresh trigger — increment to refetch timeline events
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
+
+  // Order status quick-update
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -207,6 +273,23 @@ export default function OrderDetailPage() {
       fetchAdminNotes();
     }
   }, [params.id]);
+
+  // Drag-and-drop for metadata field reordering (hooks must be before early returns)
+  const metadataSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const metadataIds = editingMetadata.map((_, idx) => `meta-${idx}`);
+
+  const handleMetadataDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = metadataIds.indexOf(String(active.id));
+      const newIndex = metadataIds.indexOf(String(over.id));
+      setEditingMetadata(arrayMove(editingMetadata, oldIndex, newIndex));
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -260,6 +343,17 @@ export default function OrderDetailPage() {
     setEditingProgress(stage.progress);
     setEditingStatus(stage.status);
     setEditingNotes(stage.notes || "");
+    let meta: { key: string; value: string }[] = [];
+    if (stage.metadata && typeof stage.metadata === "object") {
+      if (Array.isArray(stage.metadata)) {
+        // New array format — preserves insertion order
+        meta = (stage.metadata as { key: string; value: unknown }[]).map(({ key, value }) => ({ key, value: String(value) }));
+      } else {
+        // Legacy object format — convert to array
+        meta = Object.entries(stage.metadata as Record<string, unknown>).map(([key, value]) => ({ key, value: String(value) }));
+      }
+    }
+    setEditingMetadata(meta);
   };
 
   const cancelEditingStage = () => {
@@ -267,6 +361,7 @@ export default function OrderDetailPage() {
     setEditingProgress(0);
     setEditingStatus("");
     setEditingNotes("");
+    setEditingMetadata([]);
   };
 
   const saveStageProgress = async (stageId: string) => {
@@ -274,6 +369,11 @@ export default function OrderDetailPage() {
 
     setIsSavingStage(true);
     try {
+      // Build metadata array from key-value pairs (skip empty keys, preserve order)
+      const metadataArr = editingMetadata
+        .filter(({ key }) => key.trim())
+        .map(({ key, value }) => ({ key: key.trim(), value }));
+
       const response = await fetch(
         `/api/orders/${order.id}/stages/${stageId}`,
         {
@@ -283,6 +383,7 @@ export default function OrderDetailPage() {
             progress: editingProgress,
             status: editingStatus,
             notes: editingNotes,
+            metadata: metadataArr,
           }),
         }
       );
@@ -304,6 +405,7 @@ export default function OrderDetailPage() {
                   startedAt: data.data.stage.startedAt,
                   completedAt: data.data.stage.completedAt,
                   notes: data.data.stage.notes,
+                  metadata: data.data.stage.metadata,
                 }
               : s
           ),
@@ -315,6 +417,7 @@ export default function OrderDetailPage() {
         setEditingProgress(0);
         setEditingStatus("");
         setEditingNotes("");
+        setEditingMetadata([]);
       } else {
         console.error("Failed to save stage:", data.error || "Unknown error");
         alert(data.error || "Failed to save changes. Please try again.");
@@ -324,6 +427,37 @@ export default function OrderDetailPage() {
       alert("Failed to save changes. Please try again.");
     } finally {
       setIsSavingStage(false);
+    }
+  };
+
+  const updateOrderStatus = async (newStatus: string) => {
+    if (!order || newStatus === order.status) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      const body: Record<string, unknown> = { status: newStatus };
+
+      const response = await fetch(`/api/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setOrder({
+          ...order,
+          status: data.data.status,
+          overallProgress: data.data.overallProgress,
+          actualDate: data.data.actualDate,
+        });
+        setTimelineRefreshKey((k) => k + 1);
+      }
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -406,7 +540,7 @@ export default function OrderDetailPage() {
 
   // Determine overall progress bar color based on stage statuses
   const getOverallProgressColor = () => {
-    if (order.status === "COMPLETED") return "bg-green-600";
+    if (["COMPLETED", "SHIPPED", "DELIVERED"].includes(order.status)) return "bg-green-600";
     if (hasBlockedStage) return "bg-red-500";
     if (hasDelayedStage) return "bg-orange-500";
     if (order.status === "DELAYED") return "bg-orange-500";
@@ -425,9 +559,35 @@ export default function OrderDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {order.orderNumber}
             </h1>
-            <Badge className={statusColors[order.status]}>
-              {order.status.replace("_", " ")}
-            </Badge>
+            {isAdminOrOwner ? (
+              <Select
+                value={order.status}
+                onValueChange={updateOrderStatus}
+                disabled={isUpdatingStatus}
+              >
+                <SelectTrigger className={`h-6 w-auto gap-1 border-0 px-2.5 py-0 text-xs font-semibold rounded-full ${statusColors[order.status]}`}>
+                  {isUpdatingStatus ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <SelectValue />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                  <SelectItem value="DELAYED">Delayed</SelectItem>
+                  <SelectItem value="DISRUPTED">Disrupted</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="SHIPPED">Shipped</SelectItem>
+                  <SelectItem value="DELIVERED">Delivered</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge className={statusColors[order.status]}>
+                {order.status.replace("_", " ")}
+              </Badge>
+            )}
             <Badge className={priorityColors[order.priority]}>
               {order.priority}
             </Badge>
@@ -666,6 +826,13 @@ export default function OrderDetailPage() {
       {/* Attachments */}
       <OrderAttachments orderId={order.id} isAdmin={isAdminOrOwner} />
 
+      {/* Comments */}
+      <OrderComments
+        orderId={order.id}
+        currentUserId={session?.user?.id}
+        userRole={session?.user?.role}
+      />
+
       {/* Production Stages */}
       {order.stages && order.stages.length > 0 && (
         <Card>
@@ -740,8 +907,8 @@ export default function OrderDetailPage() {
                         >
                           {stage.status.replace("_", " ")}
                         </Badge>
-                        {/* Expand button for stages with notes (especially delayed/blocked) */}
-                        {stage.notes && editingStageId !== stage.id && (
+                        {/* Expand button for stages with notes or metadata */}
+                        {(stage.notes || (stage.metadata && typeof stage.metadata === "object" && !Array.isArray(stage.metadata) && Object.keys(stage.metadata as Record<string, unknown>).length > 0)) && editingStageId !== stage.id && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -909,6 +1076,90 @@ export default function OrderDetailPage() {
                           />
                         </div>
 
+                        {/* Stage Metadata (Key-Value Details) */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-sm text-gray-600 dark:text-zinc-400">
+                              Details
+                            </label>
+                            <div className="flex items-center gap-1">
+                              {editingMetadata.length === 0 && (() => {
+                                const name = stage.name.toLowerCase();
+                                const presets: Record<string, { key: string; value: string }[]> = {
+                                  cutting: [{ key: "Responsible", value: "" }, { key: "Machine", value: "" }, { key: "Fabric Type", value: "" }],
+                                  sewing: [{ key: "Responsible", value: "" }, { key: "Line #", value: "" }, { key: "Operators", value: "" }],
+                                  qc: [{ key: "Inspector", value: "" }, { key: "Sample Count", value: "" }, { key: "Defect Rate", value: "" }],
+                                  quality: [{ key: "Inspector", value: "" }, { key: "Sample Count", value: "" }, { key: "Defect Rate", value: "" }],
+                                  dyeing: [{ key: "Responsible", value: "" }, { key: "Color Code", value: "" }, { key: "Batch #", value: "" }],
+                                  printing: [{ key: "Responsible", value: "" }, { key: "Method", value: "" }, { key: "Colors", value: "" }],
+                                  packing: [{ key: "Responsible", value: "" }, { key: "Box Count", value: "" }, { key: "Label Type", value: "" }],
+                                  shipping: [{ key: "Carrier", value: "" }, { key: "Tracking #", value: "" }, { key: "Delivery Time", value: "" }],
+                                };
+                                const matchedPreset = Object.entries(presets).find(([k]) => name.includes(k));
+                                if (!matchedPreset) return null;
+                                return (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400"
+                                    onClick={() => setEditingMetadata(matchedPreset[1])}
+                                  >
+                                    Use {matchedPreset[0]} preset
+                                  </Button>
+                                );
+                              })()}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => setEditingMetadata([...editingMetadata, { key: "", value: "" }])}
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add field
+                              </Button>
+                            </div>
+                          </div>
+                          {editingMetadata.length > 0 && (
+                            <div className="space-y-1.5">
+                              {editingMetadata.map((entry, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <Input
+                                    value={entry.key}
+                                    onChange={(e) => {
+                                      const updated = [...editingMetadata];
+                                      updated[idx] = { ...updated[idx], key: e.target.value };
+                                      setEditingMetadata(updated);
+                                    }}
+                                    placeholder="Field name"
+                                    className="w-32 h-7 text-xs"
+                                  />
+                                  <Input
+                                    value={entry.value}
+                                    onChange={(e) => {
+                                      const updated = [...editingMetadata];
+                                      updated[idx] = { ...updated[idx], value: e.target.value };
+                                      setEditingMetadata(updated);
+                                    }}
+                                    placeholder="Value"
+                                    className="flex-1 h-7 text-xs"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-gray-400 hover:text-red-500"
+                                    onClick={() => setEditingMetadata(editingMetadata.filter((_, i) => i !== idx))}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
                         {/* Save/Cancel */}
                         <div className="flex items-center gap-2 pt-2 border-t">
                           <Button
@@ -1054,17 +1305,58 @@ export default function OrderDetailPage() {
                       )}
                     </div>
 
-                    {/* Stage Metadata — flexible key-value details */}
-                    {stage.metadata && typeof stage.metadata === "object" && !Array.isArray(stage.metadata) && Object.keys(stage.metadata as Record<string, unknown>).length > 0 && (
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs">
-                        {Object.entries(stage.metadata as Record<string, unknown>).map(([key, value]) => (
-                          <span key={key} className="text-gray-600 dark:text-zinc-400">
-                            <span className="text-gray-500 dark:text-zinc-500">{key}:</span>{" "}
-                            <span className="text-gray-800 dark:text-zinc-300">{String(value)}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {/* Stage Metadata — shown when expanded or editing */}
+                    {(expandedStages.has(stage.id) || editingStageId === stage.id) && (() => {
+                      const isEditingThis = editingStageId === stage.id;
+                      // When editing, use live editingMetadata state; otherwise use saved data
+                      const entries: { key: string; value: string }[] = isEditingThis
+                        ? editingMetadata
+                        : (() => {
+                            if (!stage.metadata || typeof stage.metadata !== "object") return [];
+                            if (Array.isArray(stage.metadata)) {
+                              return (stage.metadata as { key: string; value: unknown }[]).map(({ key, value }) => ({ key, value: String(value) }));
+                            }
+                            return Object.entries(stage.metadata as Record<string, unknown>).map(([key, value]) => ({ key, value: String(value) }));
+                          })();
+                      if (entries.length === 0 && !isEditingThis) return null;
+                      return (
+                        <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <ClipboardList className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" />
+                            <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">Production Stage Details</span>
+                          </div>
+                          {isEditingThis && isAdminOrOwner ? (
+                            <DndContext
+                              sensors={metadataSensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={handleMetadataDragEnd}
+                            >
+                              <SortableContext items={metadataIds} strategy={rectSortingStrategy}>
+                                <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                                  {entries.map((entry, idx) => (
+                                    <SortableMetadataDisplayItem
+                                      key={metadataIds[idx]}
+                                      id={metadataIds[idx]}
+                                      entry={entry}
+                                      onRemove={() => setEditingMetadata(editingMetadata.filter((_, i) => i !== idx))}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                              {entries.map(({ key, value }, idx) => (
+                                <p key={`${key}-${idx}`} className="text-sm text-gray-900 dark:text-zinc-200">
+                                  <span className="font-medium text-gray-600 dark:text-zinc-400">{key}:</span>{" "}
+                                  {value || "—"}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Stage updates from admin notes (visible to everyone) */}
                     {!isAdminOrOwner && stageAdminNotes[stage.id]?.length > 0 && (

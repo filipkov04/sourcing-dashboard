@@ -48,7 +48,7 @@ export async function PATCH(
       return notFound("Stage");
     }
 
-    const { progress, status, notes } = body;
+    const { progress, status, notes, metadata } = body;
 
     // Validate progress
     if (progress !== undefined) {
@@ -130,6 +130,13 @@ export async function PATCH(
 
     if (notes !== undefined) {
       updateData.notes = notes ? notes.trim() : null;
+    }
+
+    if (metadata !== undefined) {
+      if (metadata !== null && typeof metadata !== "object") {
+        return error("Metadata must be an object or null", 400);
+      }
+      updateData.metadata = metadata || [];
     }
 
     // Update stage
