@@ -2,11 +2,39 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 6, 2026 - Session 10
+**Last Updated:** February 7, 2026 - Session 11
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 10):**
+**Completed Today (Session 11):**
+- ✅ **Stage Metadata — Inline Key: Value Display Format**
+  - Switched from vertically stacked (label above value) to compact inline `Key: Value` format
+  - Key gets `font-medium` + softer color, value stays high-contrast
+  - One line per field in existing 2-column grid — much more scannable
+- ✅ **Stage Metadata — Ordered Array Storage Format**
+  - Changed metadata storage from JSON object `{}` to ordered array `[{key, value}]`
+  - Fixes PostgreSQL `jsonb` not preserving key insertion order
+  - Fields now display in chronological order (order they were added)
+  - Backward compatible — display and edit handle both legacy object and new array format
+  - Updated save function, load function, display, and API validation
+- ✅ **Stage Metadata — Drag-and-Drop Reordering in Display**
+  - When editing a stage, the "Production Stage Details" box becomes interactive
+  - Each `Key: Value` line gets a drag handle (GripVertical) and delete button (on hover)
+  - Uses `@dnd-kit` with `rectSortingStrategy` for 2-column grid drag-and-drop
+  - Reorder directly in the display layout — same visual as read-only view
+  - Created `SortableMetadataDisplayItem` component
+  - Display section now shows when stage is expanded OR being edited
+- ✅ **Order Comments System** (pushed with bulk commit)
+  - Created `POST/GET /api/orders/[id]/comments` and `DELETE /api/orders/[id]/comments/[commentId]`
+  - Created `components/order-comments.tsx` UI component
+- ✅ **Bulk Order Actions** — `POST /api/orders/bulk` endpoint
+- ✅ **CSV Export** — `GET /api/orders/export` endpoint
+- ✅ **Git Commits:**
+  - `b8f2c6b` — "Switch stage metadata to ordered array format with inline display and drag-and-drop reordering"
+  - `1d413f4` — "Add order comments, bulk actions, export, and update schema and docs"
+  - Both rebased and pushed to origin/main
+
+**Completed Previously (Session 10):**
 - ✅ **Task 3.7 - File Attachments for Orders**
   - Installed `@supabase/supabase-js` for Supabase Storage
   - Created `lib/supabase.ts` (server-side client with service role key)
@@ -99,7 +127,12 @@ When starting next session, say: "Start where we left off according to CLAUDE.md
 - Task 3.5c (Invitation Accept Page): ✅ COMPLETE (Session 9)
 - Task 3.5d (Update Registration Flow): ✅ COMPLETE (Session 9)
 - Task 3.7 (File Attachments for Orders): ✅ COMPLETE (Session 10)
-- Remaining: 3.6 (Week 3 PR), 3.8-3.12 (Marco's order enhancements)
+- Task 3.8 (Order Notes/Comments): ✅ COMPLETE (Session 11)
+- Task 3.9 (Order Status Update): ✅ COMPLETE (Session 11)
+- Task 3.10 (Bulk Actions): ✅ COMPLETE (Session 11)
+- Task 3.11 (Export to CSV): ✅ COMPLETE (Session 11)
+- Task 3.11b (Stage Metadata System): ✅ COMPLETE (Session 11 — inline display, ordered storage, drag-and-drop reorder)
+- Remaining: 3.6 (Filip's Week 3 PR), 3.12 (Marco's Week 3 PR)
 
 ---
 
@@ -1097,9 +1130,60 @@ Added 64 new tasks (~500 lines):
 
 - **Status:** Filip's Week 3 tasks 100% complete ✅
 
+### Session 11 - Stage Metadata Enhancements & Order Features - Feb 7, 2026
+
+- **Stage Metadata — Inline Display Format:**
+  - Switched from vertical stacking (label above value) to compact `Key: Value` inline format
+  - Key styled with `font-medium text-gray-600 dark:text-zinc-400`, value high-contrast
+  - One line per field in 2-column grid — much easier to scan
+
+- **Stage Metadata — Ordered Array Storage:**
+  - Changed storage from JSON object `{}` to ordered array `[{key, value}]`
+  - Root cause of non-chronological display: PostgreSQL `jsonb` doesn't preserve key order
+  - Updated save function (sends array), load function (handles both formats), display (normalizes both)
+  - API default changed from `{}` to `[]`
+  - Fully backward compatible with existing object-format data
+
+- **Stage Metadata — Drag-and-Drop Reordering in Display:**
+  - Created `SortableMetadataDisplayItem` component with drag handle + delete button
+  - When editing a stage, "Production Stage Details" box becomes interactive
+  - Uses `@dnd-kit` with `rectSortingStrategy` for 2-column grid layout
+  - Drag handle uses `GripVertical` icon (h-4 w-4) — easy to grab
+  - Delete button appears on hover per row
+  - Display section condition updated: shows when stage expanded OR being edited
+  - `useSensors`/`useSensor` hooks placed before early returns (Rules of Hooks fix)
+
+- **Order Comments System:**
+  - `POST /api/orders/[id]/comments` — create comment
+  - `GET /api/orders/[id]/comments` — list comments
+  - `DELETE /api/orders/[id]/comments/[commentId]` — delete comment
+  - `components/order-comments.tsx` — UI component
+
+- **Bulk Order Actions:** `POST /api/orders/bulk` endpoint
+- **CSV Export:** `GET /api/orders/export` endpoint
+- **Prisma Schema:** Added Comment model
+
+- **Files Modified:**
+  - `app/(dashboard)/orders/[id]/page.tsx` — metadata display, storage, drag-and-drop (major changes)
+  - `app/api/orders/[id]/stages/[stageId]/route.ts` — metadata default changed to `[]`
+
+- **Files Created:**
+  - `app/api/orders/[id]/comments/route.ts` — comments API
+  - `app/api/orders/[id]/comments/[commentId]/route.ts` — comment delete API
+  - `app/api/orders/bulk/route.ts` — bulk actions API
+  - `app/api/orders/export/route.ts` — CSV export API
+  - `components/order-comments.tsx` — comments UI
+
+- **Git Commits:**
+  - `b8f2c6b` — "Switch stage metadata to ordered array format with inline display and drag-and-drop reordering"
+  - `1d413f4` — "Add order comments, bulk actions, export, and update schema and docs"
+  - Both pushed to origin/main
+
+- **Status:** Marco's Week 3 tasks (3.7-3.11b) complete ✅
+
 **To Continue Next Session:**
 Say "start where we ended last time" and I will:
-1. Review Week 3 progress (Filip done, Marco's tasks 3.7-3.12 pending)
-2. Suggest next: Task 3.6 (Week 3 PR), Task 2.5 (Week 2 PR), or Marco's tasks
-3. Note: 17/17 stress tests passing, all dependencies working
+1. Review Week 3 progress (Filip done, Marco done except PRs)
+2. Suggest next: Task 3.6 (Week 3 PR), Task 3.12 (Marco's PR), or Week 4 tasks
+3. Note: All features pushed to origin/main
 
