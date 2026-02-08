@@ -68,7 +68,7 @@ export function OrdersByStatusChart({ data }: { data: OrdersByStatusData }) {
                 {item.value}
               </span>
               <span className="text-[10px] text-gray-400 dark:text-zinc-500 tabular-nums w-8 text-right">
-                {item.percentage}%
+                {total > 0 ? Math.round((item.value / total) * 100) : 0}%
               </span>
             </div>
           </div>

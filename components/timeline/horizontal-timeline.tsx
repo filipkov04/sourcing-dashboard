@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { TimelineNode } from "./timeline-node";
 import { TimelineConnector } from "./timeline-connector";
 import { TimelineInlinePanel } from "./timeline-inline-panel";
 import { TimelineCanvas } from "./timeline-canvas";
-import { type StageStatus, type TimelineStage } from "./timeline-types";
+import { TimelineTimeAxis } from "./timeline-time-axis";
+import { TimelineTodayMarker } from "./timeline-today-marker";
+import { TimelineStatusZones } from "./timeline-status-zones";
+import { computeStagePositions, dateToX } from "./timeline-date-utils";
+import { NODE_CARD_WIDTH, NODE_CARD_HEIGHT, type StageStatus, type TimelineStage } from "./timeline-types";
 import { type OrderEvent } from "@/lib/history-utils";
 
 type HorizontalTimelineProps = {
@@ -13,11 +18,30 @@ type HorizontalTimelineProps = {
   stages: TimelineStage[];
   orderStatus: string;
   orderPriority: string;
+  orderDate?: string | null;
   expectedDate?: string | null;
   isAdmin?: boolean;
   currentUserId?: string;
   refreshTrigger?: number;
 };
+
+// Animation config for panel entry/exit only (no drag)
+const panelMotion = {
+  initial: { opacity: 0, scale: 0.95, y: -8 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.95, y: -8 },
+  transition: {
+    scale: { type: "spring" as const, stiffness: 300, damping: 25 },
+    y: { type: "spring" as const, stiffness: 300, damping: 25 },
+    opacity: { duration: 0.2, ease: "easeOut" as const },
+  },
+};
+
+// Fixed height for the node row — never changes regardless of panel state
+const NODE_ROW_HEIGHT = NODE_CARD_HEIGHT + 40;
+const NODE_TOP = (NODE_ROW_HEIGHT - NODE_CARD_HEIGHT) / 2; // constant: 20px
+const PANEL_HEIGHT_ESTIMATE = 400;
+const PANEL_WIDTH = 340;
 
 // --- Summary bar ---
 function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: TimelineStage[]; orderStatus: string; expectedDate?: string | null }) {
@@ -29,7 +53,6 @@ function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: Timeli
     ? Math.round(stages.reduce((sum, s) => sum + s.progress, 0) / total)
     : 0;
 
-  // Days until expected date
   let deadlineText = "";
   let deadlineColor = "text-gray-500 dark:text-zinc-400";
   if (expectedDate && completed < total) {
@@ -95,6 +118,7 @@ export function HorizontalTimeline({
   stages,
   orderStatus,
   orderPriority,
+  orderDate,
   expectedDate,
   isAdmin,
   currentUserId,
@@ -104,10 +128,26 @@ export function HorizontalTimeline({
   const [events, setEvents] = useState<OrderEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetchedEvents, setHasFetchedEvents] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(-1); // -1 = order-info, 0+ = stage index
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [currentZoom, setCurrentZoom] = useState(1);
   const timelineRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all events + admin notes on mount, merge into single timeline
+  // Draggable panel state
+  const [panelPositions, setPanelPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const svgRef = useRef<SVGSVGElement>(null);
+  const currentZoomRef = useRef(currentZoom);
+  currentZoomRef.current = currentZoom;
+
+  // Active drag tracking (only one panel dragged at a time)
+  const activeDragRef = useRef<{
+    nodeId: string;
+    startMouseX: number;
+    startMouseY: number;
+    startPosX: number;
+    startPosY: number;
+  } | null>(null);
+
+  // Fetch all events + admin notes on mount
   useEffect(() => {
     async function fetchAllEvents() {
       setIsLoading(true);
@@ -126,7 +166,6 @@ export function HorizontalTimeline({
           allEvents = eventsData.data.events || [];
         }
 
-        // Merge admin notes as synthetic OrderEvent entries
         if (notesData.success && Array.isArray(notesData.data)) {
           const noteEvents: OrderEvent[] = notesData.data.map(
             (note: {
@@ -152,7 +191,6 @@ export function HorizontalTimeline({
           allEvents = [...allEvents, ...noteEvents];
         }
 
-        // Sort all events by date descending (newest first)
         allEvents.sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -170,7 +208,6 @@ export function HorizontalTimeline({
     fetchAllEvents();
   }, [orderId, refreshTrigger]);
 
-  // Get events for a specific node
   const getEventsForNode = useCallback(
     (nodeId: string) => {
       if (nodeId === "order-info") {
@@ -181,16 +218,9 @@ export function HorizontalTimeline({
     [events]
   );
 
-  // Count events per node for badges
   const eventCounts = useMemo(() => {
-    const counts: Record<string, number> = {
-      "order-info": 0,
-    };
-
-    stages.forEach((stage) => {
-      counts[stage.id] = 0;
-    });
-
+    const counts: Record<string, number> = { "order-info": 0 };
+    stages.forEach((stage) => { counts[stage.id] = 0; });
     events.forEach((event) => {
       if (event.stageId === null || event.stageId === "order-info") {
         counts["order-info"]++;
@@ -198,11 +228,9 @@ export function HorizontalTimeline({
         counts[event.stageId]++;
       }
     });
-
     return counts;
   }, [events, stages]);
 
-  // Get the name of a node
   const getNodeName = useCallback(
     (nodeId: string) => {
       if (nodeId === "order-info") return "Order Information Changes";
@@ -212,19 +240,56 @@ export function HorizontalTimeline({
     [stages]
   );
 
+  // Sort stages by sequence
+  const sortedStages = useMemo(
+    () => [...stages].sort((a, b) => a.sequence - b.sequence),
+    [stages]
+  );
+
+  // Compute date-aware positions
+  const { positions, contentWidth, minDate, maxDate } = useMemo(
+    () => computeStagePositions(sortedStages, orderDate, expectedDate),
+    [sortedStages, orderDate, expectedDate]
+  );
+
+  // Build position map for quick lookup
+  const posMap = useMemo(
+    () => new Map(positions.map((p) => [p.stageId, p.x])),
+    [positions]
+  );
+
+  // Default panel position: centered under the node
+  const getDefaultPanelPosition = useCallback((nodeId: string) => {
+    const nodeX = posMap.get(nodeId) ?? 0;
+    return {
+      x: nodeX + (NODE_CARD_WIDTH / 2) - (PANEL_WIDTH / 2),
+      y: NODE_TOP + NODE_CARD_HEIGHT + 20,
+    };
+  }, [posMap]);
+
   const handleNodeClick = useCallback((nodeId: string) => {
     setExpandedNodeIds((current) => {
       const newSet = new Set(current);
       if (newSet.has(nodeId)) {
         newSet.delete(nodeId);
+        // Reset position so next open spawns at default
+        setPanelPositions((prev) => {
+          const next = { ...prev };
+          delete next[nodeId];
+          return next;
+        });
       } else {
         newSet.add(nodeId);
+        // Always set default position on open
+        setPanelPositions((prev) => ({
+          ...prev,
+          [nodeId]: getDefaultPanelPosition(nodeId),
+        }));
       }
       return newSet;
     });
-  }, []);
+  }, [getDefaultPanelPosition]);
 
-  // When an admin note is updated in the timeline panel, update the synthetic event
   const handleNoteUpdated = useCallback(
     (noteEventId: string, newContent: string) => {
       setEvents((prev) =>
@@ -236,7 +301,6 @@ export function HorizontalTimeline({
     []
   );
 
-  // When an admin note is deleted in the timeline panel, remove the synthetic event
   const handleNoteDeleted = useCallback(
     (noteEventId: string) => {
       setEvents((prev) => prev.filter((e) => e.id !== noteEventId));
@@ -250,13 +314,85 @@ export function HorizontalTimeline({
       newSet.delete(nodeId);
       return newSet;
     });
+    // Reset position so next open spawns at default location
+    setPanelPositions((prev) => {
+      const next = { ...prev };
+      delete next[nodeId];
+      return next;
+    });
   }, []);
 
-  // Sort stages by sequence
-  const sortedStages = useMemo(
-    () => [...stages].sort((a, b) => a.sequence - b.sequence),
-    [stages]
-  );
+  // ---- Custom drag system (bypasses framer-motion drag entirely) ----
+  const handlePanelDragStart = useCallback((nodeId: string, e: React.MouseEvent) => {
+    e.preventDefault(); // prevent text selection
+
+    const pos = panelPositions[nodeId] ?? getDefaultPanelPosition(nodeId);
+    activeDragRef.current = {
+      nodeId,
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startPosX: pos.x,
+      startPosY: pos.y,
+    };
+    document.body.style.cursor = "grabbing";
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      const drag = activeDragRef.current;
+      if (!drag) return;
+
+      // Convert screen-space delta to canvas-space delta (account for zoom)
+      const zoom = currentZoomRef.current;
+      const dx = (ev.clientX - drag.startMouseX) / zoom;
+      const dy = (ev.clientY - drag.startMouseY) / zoom;
+      const newX = drag.startPosX + dx;
+      const newY = drag.startPosY + dy;
+
+      // Direct DOM update — panel element
+      const panelEl = document.querySelector(`[data-panel="${drag.nodeId}"]`) as HTMLElement;
+      if (panelEl) {
+        panelEl.style.left = `${newX}px`;
+        panelEl.style.top = `${newY}px`;
+      }
+
+      // Direct DOM update — SVG connector line
+      const svg = svgRef.current;
+      if (svg) {
+        const line = svg.querySelector(`[data-line="${drag.nodeId}"]`);
+        if (line) {
+          line.setAttribute("x2", String(newX + PANEL_WIDTH / 2));
+          line.setAttribute("y2", String(newY));
+        }
+      }
+    };
+
+    const handleMouseUp = (ev: MouseEvent) => {
+      const drag = activeDragRef.current;
+      if (!drag) return;
+
+      const zoom = currentZoomRef.current;
+      const dx = (ev.clientX - drag.startMouseX) / zoom;
+      const dy = (ev.clientY - drag.startMouseY) / zoom;
+
+      // Commit final position to React state
+      setPanelPositions((prev) => ({
+        ...prev,
+        [drag.nodeId]: {
+          x: drag.startPosX + dx,
+          y: drag.startPosY + dy,
+        },
+      }));
+
+      activeDragRef.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [panelPositions, getDefaultPanelPosition]);
 
   // All node IDs in order for keyboard navigation
   const allNodeIds = useMemo(
@@ -265,6 +401,8 @@ export function HorizontalTimeline({
   );
 
   // Keyboard navigation
+  const hasInteracted = useRef(false);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       hasInteracted.current = true;
@@ -286,16 +424,23 @@ export function HorizontalTimeline({
     [allNodeIds, focusedIndex, handleNodeClick]
   );
 
-  // Focus the right button when focusedIndex changes (only after user interaction)
-  const hasInteracted = useRef(false);
+  // Focus the right button when focusedIndex changes
   useEffect(() => {
     if (!hasInteracted.current || focusedIndex < -1 || !timelineRef.current) return;
     const buttons = timelineRef.current.querySelectorAll<HTMLButtonElement>("[data-timeline-node]");
-    const idx = focusedIndex + 1; // +1 because order-info is at index 0
+    const idx = focusedIndex + 1;
     if (buttons[idx]) {
       buttons[idx].focus({ preventScroll: true });
     }
   }, [focusedIndex]);
+
+  // Container min-height grows when panels are open, but nodes stay at fixed positions
+  const containerMinHeight = expandedNodeIds.size > 0
+    ? NODE_ROW_HEIGHT + PANEL_HEIGHT_ESTIMATE + 20
+    : NODE_ROW_HEIGHT;
+
+  // Collect all expanded node IDs as array for rendering
+  const expandedArray = useMemo(() => Array.from(expandedNodeIds), [expandedNodeIds]);
 
   return (
     <div className="space-y-3">
@@ -304,121 +449,216 @@ export function HorizontalTimeline({
         <TimelineSummary stages={sortedStages} orderStatus={orderStatus} expectedDate={expectedDate} />
       )}
 
-      <TimelineCanvas stageCount={sortedStages.length}>
+      <TimelineCanvas
+        stageCount={sortedStages.length}
+        contentWidth={contentWidth}
+        onZoomChange={setCurrentZoom}
+      >
+        <div
+          className="flex flex-col gap-4 p-4"
+          ref={timelineRef}
+          onKeyDown={handleKeyDown}
+        >
+          {/* Node area — overflow visible so panels can extend below */}
           <div
-            className="flex flex-col items-start gap-4 p-4"
-            ref={timelineRef}
-            onKeyDown={handleKeyDown}
+            className="relative"
+            style={{ width: contentWidth, minHeight: containerMinHeight, overflow: "visible" }}
           >
-            {/* Timeline nodes row */}
-            <div className="flex items-start">
-              {/* Order Info Node (standalone, no connector) */}
-              <div className="flex flex-col mr-6">
-                <TimelineNode
-                  type="order-info"
-                  orderStatus={orderStatus}
-                  orderPriority={orderPriority}
-                  isExpanded={expandedNodeIds.has("order-info")}
-                  onClick={() => handleNodeClick("order-info")}
-                  eventCount={eventCounts["order-info"]}
-                  isFocused={focusedIndex === -1}
-                  data-timeline-node
-                />
+            {/* Time axis (behind everything) */}
+            <TimelineTimeAxis
+              minDate={minDate}
+              maxDate={maxDate}
+              contentWidth={contentWidth}
+              zoom={currentZoom}
+            />
 
-                {/* Order Info expansion panel */}
-                {expandedNodeIds.has("order-info") && (
-                  <div className="mt-2">
+            {/* Status zone backgrounds */}
+            <TimelineStatusZones
+              stages={sortedStages}
+              positions={positions.filter((p) => p.stageId !== "order-info")}
+              height={NODE_ROW_HEIGHT}
+            />
+
+            {/* Expected date range bars behind nodes */}
+            {sortedStages.map((stage) => {
+              if (!stage.expectedStartDate || !stage.expectedEndDate) return null;
+              const startX = dateToX(new Date(stage.expectedStartDate), minDate, maxDate);
+              const endX = dateToX(new Date(stage.expectedEndDate), minDate, maxDate);
+              const barWidth = Math.max(endX - startX, 8);
+              const barY = NODE_TOP + NODE_CARD_HEIGHT + 6;
+
+              const fillColors: Record<string, string> = {
+                NOT_STARTED: "bg-gray-400/30 dark:bg-zinc-500/20",
+                IN_PROGRESS: "bg-blue-400/30 dark:bg-blue-500/20",
+                COMPLETED: "bg-green-400/30 dark:bg-green-500/20",
+                SKIPPED: "bg-gray-400/20 dark:bg-zinc-500/15",
+                DELAYED: "bg-orange-400/30 dark:bg-orange-500/20",
+                BLOCKED: "bg-red-400/30 dark:bg-red-500/20",
+              };
+
+              return (
+                <div key={`bar-${stage.id}`}>
+                  <div
+                    className="absolute h-1.5 rounded-full bg-gray-300/40 dark:bg-zinc-600/30"
+                    style={{ left: startX, top: barY, width: barWidth }}
+                  />
+                  {stage.progress > 0 && (
+                    <div
+                      className={`absolute h-1.5 rounded-full ${fillColors[stage.status] || fillColors.NOT_STARTED}`}
+                      style={{ left: startX, top: barY, width: barWidth * (stage.progress / 100) }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Today marker */}
+            <TimelineTodayMarker
+              minDate={minDate}
+              maxDate={maxDate}
+              height={NODE_ROW_HEIGHT}
+            />
+
+            {/* Order Info Node */}
+            <div
+              className="absolute"
+              style={{ left: posMap.get("order-info") ?? 0, top: NODE_TOP }}
+            >
+              <TimelineNode
+                type="order-info"
+                orderStatus={orderStatus}
+                orderPriority={orderPriority}
+                isExpanded={expandedNodeIds.has("order-info")}
+                onClick={() => handleNodeClick("order-info")}
+                eventCount={eventCounts["order-info"]}
+                isFocused={focusedIndex === -1}
+                data-timeline-node
+              />
+            </div>
+
+            {/* Stage Nodes */}
+            {sortedStages.map((stage, index) => {
+              const x = posMap.get(stage.id) ?? 0;
+              return (
+                <div
+                  key={stage.id}
+                  className="absolute"
+                  style={{ left: x, top: NODE_TOP }}
+                >
+                  <TimelineNode
+                    type="stage"
+                    stage={stage}
+                    isExpanded={expandedNodeIds.has(stage.id)}
+                    onClick={() => handleNodeClick(stage.id)}
+                    eventCount={eventCounts[stage.id]}
+                    isFocused={focusedIndex === index}
+                    data-timeline-node
+                  />
+                </div>
+              );
+            })}
+
+            {/* Connectors between stages */}
+            {sortedStages.map((stage, index) => {
+              if (index >= sortedStages.length - 1) return null;
+
+              const sourceX = posMap.get(stage.id) ?? 0;
+              const targetX = posMap.get(sortedStages[index + 1].id) ?? 0;
+              const connectorWidth = targetX - sourceX - NODE_CARD_WIDTH;
+
+              if (connectorWidth <= 0) return null;
+
+              return (
+                <div
+                  key={`conn-${stage.id}`}
+                  className="absolute"
+                  style={{
+                    left: sourceX + NODE_CARD_WIDTH,
+                    top: NODE_TOP + NODE_CARD_HEIGHT / 2 - 10,
+                  }}
+                >
+                  <TimelineConnector
+                    sourceStatus={(stage.status || "NOT_STARTED") as StageStatus}
+                    targetStatus={(sortedStages[index + 1].status || "NOT_STARTED") as StageStatus}
+                    sourceProgress={stage.progress}
+                    isActive={stage.status === "IN_PROGRESS"}
+                    sourceStartedAt={stage.startedAt}
+                    sourceCompletedAt={stage.completedAt}
+                    sourceStatusSince={stage.startedAt}
+                    sourceStatusLabel={stage.status}
+                    width={connectorWidth}
+                  />
+                </div>
+              );
+            })}
+
+            {/* SVG overlay for dashed connector lines from nodes to panels */}
+            {expandedArray.length > 0 && (
+              <svg
+                ref={svgRef}
+                className="absolute inset-0 z-20 pointer-events-none"
+                style={{ width: contentWidth, height: containerMinHeight, overflow: "visible" }}
+              >
+                {expandedArray.map((nodeId) => {
+                  const nodeX = posMap.get(nodeId) ?? 0;
+                  const nodeBottomCenterX = nodeX + NODE_CARD_WIDTH / 2;
+                  const nodeBottomCenterY = NODE_TOP + NODE_CARD_HEIGHT;
+
+                  const panelPos = panelPositions[nodeId] ?? getDefaultPanelPosition(nodeId);
+                  const panelTopCenterX = panelPos.x + PANEL_WIDTH / 2;
+                  const panelTopCenterY = panelPos.y;
+
+                  return (
+                    <line
+                      key={`line-${nodeId}`}
+                      data-line={nodeId}
+                      x1={nodeBottomCenterX}
+                      y1={nodeBottomCenterY}
+                      x2={panelTopCenterX}
+                      y2={panelTopCenterY}
+                      strokeDasharray="6 4"
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      className="text-gray-300 dark:text-zinc-600"
+                      stroke="currentColor"
+                    />
+                  );
+                })}
+              </svg>
+            )}
+
+            {/* Draggable panels inside the node area */}
+            <AnimatePresence>
+              {expandedArray.map((nodeId) => {
+                const pos = panelPositions[nodeId] ?? getDefaultPanelPosition(nodeId);
+                const isOrderInfo = nodeId === "order-info";
+                return (
+                  <motion.div
+                    key={`panel-${nodeId}`}
+                    data-panel={nodeId}
+                    className="absolute z-30"
+                    style={{ left: pos.x, top: pos.y }}
+                    onMouseDown={(e) => e.stopPropagation()} // prevent canvas pan from any click on panel
+                    {...panelMotion}
+                  >
                     <TimelineInlinePanel
-                      events={getEventsForNode("order-info")}
-                      nodeName="Order Information Changes"
-                      nodeType="order-info"
-                      onClose={() => handlePanelClose("order-info")}
+                      events={getEventsForNode(nodeId)}
+                      nodeName={isOrderInfo ? "Order Information Changes" : getNodeName(nodeId)}
+                      nodeType={isOrderInfo ? "order-info" : "stage"}
+                      onClose={() => handlePanelClose(nodeId)}
                       isLoading={isLoading && !hasFetchedEvents}
                       orderId={orderId}
                       isAdmin={isAdmin}
                       onNoteUpdated={handleNoteUpdated}
                       onNoteDeleted={handleNoteDeleted}
+                      onHeaderMouseDown={(e) => handlePanelDragStart(nodeId, e)}
                     />
-                  </div>
-                )}
-              </div>
-
-              {/* Separator between Order Info and stages */}
-              {sortedStages.length > 0 && (
-                <div className="flex items-center self-center mx-2">
-                  <div className="w-px h-12 bg-gray-300 dark:bg-zinc-700" />
-                </div>
-              )}
-
-              {/* Stage Nodes with Connectors */}
-              {sortedStages.map((stage, index) => (
-                <div key={stage.id} className="flex flex-col">
-                  <div className="flex items-start">
-                    <TimelineNode
-                      type="stage"
-                      stage={stage}
-                      isExpanded={expandedNodeIds.has(stage.id)}
-                      onClick={() => handleNodeClick(stage.id)}
-                      eventCount={eventCounts[stage.id]}
-                      isFocused={focusedIndex === index}
-                      data-timeline-node
-                    />
-
-                    {/* Connector to next stage */}
-                    {index < sortedStages.length - 1 && (
-                      <TimelineConnector
-                        sourceStatus={(stage.status || "NOT_STARTED") as StageStatus}
-                        targetStatus={
-                          (sortedStages[index + 1].status ||
-                            "NOT_STARTED") as StageStatus
-                        }
-                        sourceProgress={stage.progress}
-                        isActive={stage.status === "IN_PROGRESS"}
-                        sourceStartedAt={stage.startedAt}
-                        sourceCompletedAt={stage.completedAt}
-                        sourceStatusSince={stage.startedAt}
-                        sourceStatusLabel={stage.status}
-                      />
-                    )}
-                  </div>
-
-                  {/* Stage expansion panel - below connector */}
-                  {expandedNodeIds.has(stage.id) && index < sortedStages.length - 1 && (
-                    <div className="ml-[110px] mt-2">
-                      <TimelineInlinePanel
-                        events={getEventsForNode(stage.id)}
-                        nodeName={getNodeName(stage.id)}
-                        nodeType="stage"
-                        onClose={() => handlePanelClose(stage.id)}
-                        isLoading={isLoading && !hasFetchedEvents}
-                        orderId={orderId}
-                        isAdmin={isAdmin}
-                        onNoteUpdated={handleNoteUpdated}
-                        onNoteDeleted={handleNoteDeleted}
-                      />
-                    </div>
-                  )}
-
-                  {/* Last stage panel - below the node itself */}
-                  {expandedNodeIds.has(stage.id) && index === sortedStages.length - 1 && (
-                    <div className="mt-2">
-                      <TimelineInlinePanel
-                        events={getEventsForNode(stage.id)}
-                        nodeName={getNodeName(stage.id)}
-                        nodeType="stage"
-                        onClose={() => handlePanelClose(stage.id)}
-                        isLoading={isLoading && !hasFetchedEvents}
-                        orderId={orderId}
-                        isAdmin={isAdmin}
-                        onNoteUpdated={handleNoteUpdated}
-                        onNoteDeleted={handleNoteDeleted}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
+        </div>
       </TimelineCanvas>
     </div>
   );

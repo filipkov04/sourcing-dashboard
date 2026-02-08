@@ -187,9 +187,11 @@ model OrderStage {
   status   StageStatus @default(NOT_STARTED)
 
   // Dates
-  startedAt   DateTime?
-  completedAt DateTime?
-  notes       String?   @db.Text
+  startedAt         DateTime?
+  completedAt       DateTime?
+  expectedStartDate DateTime?
+  expectedEndDate   DateTime?
+  notes             String?   @db.Text
 
   // Flexible key-value metadata per stage (e.g. responsible person, sample count, cost breakdown)
   metadata    Json?     @default("{}")

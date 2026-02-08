@@ -142,23 +142,55 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;
     if (tags !== undefined) updateData.tags = tags;
 
-    // Handle stages update
+    // Handle stages update — upsert by sequence to preserve stage IDs and their linked history
     if (stages !== undefined) {
-      // Delete existing stages and create new ones
-      await prisma.orderStage.deleteMany({
-        where: { orderId: id },
-      });
+      const existingBySeq = new Map<number, { id: string; name: string }>();
+      for (const s of existingOrder.stages) {
+        existingBySeq.set(s.sequence, { id: s.id, name: s.name });
+      }
 
-      if (stages.length > 0) {
-        await prisma.orderStage.createMany({
-          data: stages.map((stage: { name: string; sequence: number; progress?: number; status?: string; notes?: string }) => ({
-            orderId: id,
-            name: stage.name,
-            sequence: stage.sequence,
-            progress: stage.progress || 0,
-            status: stage.status || "NOT_STARTED",
-            notes: stage.notes || null,
-          })),
+      const incomingSequences = new Set<number>();
+      for (const stage of stages as { name: string; sequence: number; progress?: number; status?: string; notes?: string }[]) {
+        incomingSequences.add(stage.sequence);
+        const existing = existingBySeq.get(stage.sequence);
+
+        if (existing) {
+          // Update existing stage in place (preserves ID, history, and admin notes)
+          await prisma.orderStage.update({
+            where: { id: existing.id },
+            data: {
+              name: stage.name,
+              sequence: stage.sequence,
+              progress: stage.progress ?? undefined,
+              status: stage.status ?? undefined,
+              notes: stage.notes !== undefined ? (stage.notes || null) : undefined,
+            },
+          });
+        } else {
+          // Create genuinely new stage
+          await prisma.orderStage.create({
+            data: {
+              orderId: id,
+              name: stage.name,
+              sequence: stage.sequence,
+              progress: stage.progress || 0,
+              status: stage.status || "NOT_STARTED",
+              notes: stage.notes || null,
+            },
+          });
+        }
+      }
+
+      // Delete stages that were removed (sequence no longer present)
+      const removedIds: string[] = [];
+      for (const [seq, s] of existingBySeq) {
+        if (!incomingSequences.has(seq)) {
+          removedIds.push(s.id);
+        }
+      }
+      if (removedIds.length > 0) {
+        await prisma.orderStage.deleteMany({
+          where: { id: { in: removedIds } },
         });
       }
     }
@@ -347,26 +379,29 @@ export async function PATCH(
       );
     }
 
-    // Track stage changes
+    // Track stage changes — match by sequence to detect renames
     if (stages !== undefined) {
-      const existingStageNames = existingOrder.stages.map(s => s.name);
-      const newStageNames = stages.map((s: { name: string }) => s.name);
+      const oldBySeq = new Map<number, string>();
+      for (const s of existingOrder.stages) {
+        oldBySeq.set(s.sequence, s.name);
+      }
+      const newBySeq = new Map<number, string>();
+      for (const s of stages as { name: string; sequence: number }[]) {
+        newBySeq.set(s.sequence, s.name);
+      }
 
-      // Find removed stages
-      for (const stageName of existingStageNames) {
-        if (!newStageNames.includes(stageName)) {
-          eventPromises.push(
-            logOrderEvent(id, "STAGE_REMOVED", null, stageName, null)
-          );
+      for (const [seq, oldName] of oldBySeq) {
+        const newName = newBySeq.get(seq);
+        if (newName === undefined) {
+          eventPromises.push(logOrderEvent(id, "STAGE_REMOVED", null, oldName, null));
+        } else if (newName !== oldName) {
+          eventPromises.push(logOrderEvent(id, "STAGE_RENAMED", null, oldName, newName));
         }
       }
 
-      // Find added stages
-      for (const stageName of newStageNames) {
-        if (!existingStageNames.includes(stageName)) {
-          eventPromises.push(
-            logOrderEvent(id, "STAGE_ADDED", null, null, stageName)
-          );
+      for (const [seq, newName] of newBySeq) {
+        if (!oldBySeq.has(seq)) {
+          eventPromises.push(logOrderEvent(id, "STAGE_ADDED", null, null, newName));
         }
       }
     }

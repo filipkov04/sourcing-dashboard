@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       bestSellers.push({
         productName,
         productSKU: latest.productSKU,
-        productImage: latest.productImage,
+        productImage: null,
         totalQuantity,
         unit: latest.unit,
         orderCount,

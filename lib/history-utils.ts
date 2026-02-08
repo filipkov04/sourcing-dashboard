@@ -9,6 +9,7 @@ export type OrderEventType =
   | "NOTE_CHANGE"
   | "STAGE_ADDED"
   | "STAGE_REMOVED"
+  | "STAGE_RENAMED"
   | "ORDER_CREATED"
   | "ADMIN_NOTE";
 
@@ -157,6 +158,9 @@ export function formatEventMessage(event: OrderEvent): string {
     case "STAGE_REMOVED":
       return `Stage "${oldValue}" was removed`;
 
+    case "STAGE_RENAMED":
+      return `Stage "${oldValue}" was renamed to "${newValue}"`;
+
     case "ADMIN_NOTE":
       return newValue || "Update added";
 
@@ -178,6 +182,7 @@ export function getEventIconType(event: OrderEvent): "status" | "progress" | "no
       return "note";
     case "STAGE_ADDED":
     case "STAGE_REMOVED":
+    case "STAGE_RENAMED":
       return "stage";
     case "ADMIN_NOTE":
       return "admin";
@@ -220,6 +225,7 @@ export function getEventColor(event: OrderEvent): "green" | "blue" | "orange" | 
   // Stage additions are green, removals are red
   if (eventType === "STAGE_ADDED") return "green";
   if (eventType === "STAGE_REMOVED") return "red";
+  if (eventType === "STAGE_RENAMED") return "blue";
 
   // Order created
   if (eventType === "ORDER_CREATED") return "green";

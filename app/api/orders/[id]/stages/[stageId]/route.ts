@@ -48,7 +48,7 @@ export async function PATCH(
       return notFound("Stage");
     }
 
-    const { progress, status, notes, metadata } = body;
+    const { progress, status, notes, metadata, expectedStartDate, expectedEndDate } = body;
 
     // Validate progress
     if (progress !== undefined) {
@@ -130,6 +130,14 @@ export async function PATCH(
 
     if (notes !== undefined) {
       updateData.notes = notes ? notes.trim() : null;
+    }
+
+    if (expectedStartDate !== undefined) {
+      updateData.expectedStartDate = expectedStartDate ? new Date(expectedStartDate) : null;
+    }
+
+    if (expectedEndDate !== undefined) {
+      updateData.expectedEndDate = expectedEndDate ? new Date(expectedEndDate) : null;
     }
 
     if (metadata !== undefined) {

@@ -82,6 +82,8 @@ type OrderStage = {
   status: string;
   startedAt: string | null;
   completedAt: string | null;
+  expectedStartDate: string | null;
+  expectedEndDate: string | null;
   notes: string | null;
   metadata?: Record<string, unknown> | null;
 };
@@ -212,6 +214,8 @@ export default function OrderDetailPage() {
   const [editingStatus, setEditingStatus] = useState<string>("");
   const [editingNotes, setEditingNotes] = useState<string>("");
   const [editingMetadata, setEditingMetadata] = useState<{ key: string; value: string }[]>([]);
+  const [editingExpectedStart, setEditingExpectedStart] = useState<string>("");
+  const [editingExpectedEnd, setEditingExpectedEnd] = useState<string>("");
   const [isSavingStage, setIsSavingStage] = useState(false);
 
   // Expanded stages (for viewing notes/delay info)
@@ -354,6 +358,9 @@ export default function OrderDetailPage() {
       }
     }
     setEditingMetadata(meta);
+    // Initialize expected dates (convert ISO to YYYY-MM-DD for date input)
+    setEditingExpectedStart(stage.expectedStartDate ? new Date(stage.expectedStartDate).toISOString().split("T")[0] : "");
+    setEditingExpectedEnd(stage.expectedEndDate ? new Date(stage.expectedEndDate).toISOString().split("T")[0] : "");
   };
 
   const cancelEditingStage = () => {
@@ -362,6 +369,8 @@ export default function OrderDetailPage() {
     setEditingStatus("");
     setEditingNotes("");
     setEditingMetadata([]);
+    setEditingExpectedStart("");
+    setEditingExpectedEnd("");
   };
 
   const saveStageProgress = async (stageId: string) => {
@@ -384,6 +393,8 @@ export default function OrderDetailPage() {
             status: editingStatus,
             notes: editingNotes,
             metadata: metadataArr,
+            expectedStartDate: editingExpectedStart || "",
+            expectedEndDate: editingExpectedEnd || "",
           }),
         }
       );
@@ -404,6 +415,8 @@ export default function OrderDetailPage() {
                   status: data.data.stage.status,
                   startedAt: data.data.stage.startedAt,
                   completedAt: data.data.stage.completedAt,
+                  expectedStartDate: data.data.stage.expectedStartDate,
+                  expectedEndDate: data.data.stage.expectedEndDate,
                   notes: data.data.stage.notes,
                   metadata: data.data.stage.metadata,
                 }
@@ -418,6 +431,8 @@ export default function OrderDetailPage() {
         setEditingStatus("");
         setEditingNotes("");
         setEditingMetadata([]);
+        setEditingExpectedStart("");
+        setEditingExpectedEnd("");
       } else {
         console.error("Failed to save stage:", data.error || "Unknown error");
         alert(data.error || "Failed to save changes. Please try again.");
@@ -1076,6 +1091,31 @@ export default function OrderDetailPage() {
                           />
                         </div>
 
+                        {/* Expected Start/End Dates */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 space-y-1">
+                            <label className="text-sm text-gray-600 dark:text-zinc-400">Expected Start</label>
+                            <Input
+                              type="date"
+                              value={editingExpectedStart}
+                              onChange={(e) => setEditingExpectedStart(e.target.value)}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <label className="text-sm text-gray-600 dark:text-zinc-400">Expected End</label>
+                            <Input
+                              type="date"
+                              value={editingExpectedEnd}
+                              onChange={(e) => setEditingExpectedEnd(e.target.value)}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                        </div>
+                        {editingExpectedStart && editingExpectedEnd && new Date(editingExpectedEnd) <= new Date(editingExpectedStart) && (
+                          <p className="text-xs text-red-500">Expected end date must be after start date</p>
+                        )}
+
                         {/* Stage Metadata (Key-Value Details) */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
@@ -1294,7 +1334,7 @@ export default function OrderDetailPage() {
                     )}
 
                     {/* Stage Dates */}
-                    <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-zinc-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-zinc-400 flex-wrap">
                       {stage.startedAt && (
                         <span>Started: {formatDateTime(stage.startedAt)}</span>
                       )}
@@ -1303,6 +1343,28 @@ export default function OrderDetailPage() {
                           Completed: {formatDateTime(stage.completedAt)}
                         </span>
                       )}
+                      {stage.expectedStartDate && stage.expectedEndDate && (
+                        <span>
+                          Expected: {new Date(stage.expectedStartDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – {new Date(stage.expectedEndDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                      )}
+                      {/* Schedule indicator pill */}
+                      {stage.expectedEndDate && stage.status !== "COMPLETED" && stage.status !== "SKIPPED" && (() => {
+                        const now = new Date();
+                        const expectedEnd = new Date(stage.expectedEndDate);
+                        const expectedStart = stage.expectedStartDate ? new Date(stage.expectedStartDate) : null;
+                        const daysOverdue = Math.floor((now.getTime() - expectedEnd.getTime()) / (1000 * 60 * 60 * 24));
+
+                        if (daysOverdue >= 3) {
+                          return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">Overdue</span>;
+                        } else if (daysOverdue > 0) {
+                          return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300">Behind Schedule</span>;
+                        } else if (stage.startedAt && expectedStart && new Date(stage.startedAt) > expectedStart) {
+                          return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300">Behind Schedule</span>;
+                        } else {
+                          return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">On Track</span>;
+                        }
+                      })()}
                     </div>
 
                     {/* Stage Metadata — shown when expanded or editing */}
@@ -1429,6 +1491,7 @@ export default function OrderDetailPage() {
             stages={order.stages}
             orderStatus={order.status}
             orderPriority={order.priority}
+            orderDate={order.orderDate}
             expectedDate={order.expectedDate}
             isAdmin={isAdminOrOwner}
             currentUserId={session?.user?.id}

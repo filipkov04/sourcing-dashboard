@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useId } from "react";
-import { statusConfig, type StageStatus } from "./timeline-types";
+import { type StageStatus } from "./timeline-types";
 
 type TimelineConnectorProps = {
   sourceStatus: StageStatus | "ORDER";
@@ -10,10 +10,10 @@ type TimelineConnectorProps = {
   isActive: boolean;
   sourceStartedAt?: string | null;
   sourceCompletedAt?: string | null;
-  /** How long the source stage has been in its current status */
   sourceStatusSince?: string | null;
-  /** The current status label for tooltip context */
   sourceStatusLabel?: string;
+  /** Explicit pixel width for the connector line */
+  width: number;
 };
 
 function formatDuration(startDate: string, endDate?: string | null): string {
@@ -28,7 +28,6 @@ function formatDuration(startDate: string, endDate?: string | null): string {
   return `${diffDays} days`;
 }
 
-// Map status to a hex color for SVG gradients
 const statusHexColors: Record<string, string> = {
   COMPLETED: "#22c55e",
   ORDER: "#a855f7",
@@ -52,11 +51,11 @@ export function TimelineConnector({
   sourceCompletedAt,
   sourceStatusSince,
   sourceStatusLabel,
+  width,
 }: TimelineConnectorProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const gradientId = useId();
 
-  // Calculate fill percentage
   const fillPercentage =
     sourceStatus === "COMPLETED" || sourceProgress === 100
       ? 100
@@ -64,22 +63,16 @@ export function TimelineConnector({
       ? Math.min(50 + sourceProgress / 2, 90)
       : 0;
 
-  // Arrow color follows the gradient end (or unfilled color)
   const arrowColor = fillPercentage >= 100
     ? getHexColor(targetStatus)
-    : "#3f3f46"; // zinc-700
+    : "#3f3f46";
 
-  // Tooltip text — show status duration + overall stage duration
   const tooltipText = useMemo(() => {
     const parts: string[] = [];
-
-    // Status-specific duration (how long in current status)
     if (sourceStatusSince && sourceStatusLabel) {
       const statusStr = sourceStatusLabel.replace(/_/g, " ").toLowerCase();
       parts.push(`${statusStr} for ${formatDuration(sourceStatusSince)}`);
     }
-
-    // Overall stage duration
     if (sourceStartedAt && sourceCompletedAt) {
       parts.push(`Completed in ${formatDuration(sourceStartedAt, sourceCompletedAt)}`);
     } else if (sourceStartedAt && !sourceCompletedAt) {
@@ -87,21 +80,18 @@ export function TimelineConnector({
         parts.push(`In progress for ${formatDuration(sourceStartedAt)}`);
       }
     }
-
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [sourceStartedAt, sourceCompletedAt, sourceStatusSince, sourceStatusLabel]);
 
-  const nodeHeight = 110;
-  const minWidth = 360;
-  const lineHeight = 8;
-  const arrowW = 12;
-  const arrowH = 8;
-  const dotSize = 12;
+  const lineHeight = 6;
+  const arrowW = 10;
+  const arrowH = 6;
+  const dotSize = 10;
 
   return (
     <div
-      className="relative flex items-center self-start mt-0"
-      style={{ height: nodeHeight, minWidth }}
+      className="relative flex items-center"
+      style={{ width, height: 20 }}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
@@ -112,7 +102,7 @@ export function TimelineConnector({
         </div>
       )}
 
-      {/* SVG gradient definition (hidden) */}
+      {/* SVG gradient definition */}
       <svg width="0" height="0" className="absolute">
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -154,12 +144,12 @@ export function TimelineConnector({
         )}
       </div>
 
-      {/* Directional arrow using SVG for gradient color */}
+      {/* Arrow */}
       <svg
         width={arrowW}
         height={arrowH * 2}
         viewBox={`0 0 ${arrowW} ${arrowH * 2}`}
-        className="flex-shrink-0 mr-1 transition-colors duration-500"
+        className="flex-shrink-0 transition-colors duration-500"
       >
         <polygon
           points={`0,0 ${arrowW},${arrowH} 0,${arrowH * 2}`}

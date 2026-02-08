@@ -6,9 +6,13 @@ import { TimelineControls } from "./timeline-controls";
 type TimelineCanvasProps = {
   children: ReactNode;
   stageCount?: number;
+  /** Explicit content width from date-based positioning. Overrides measurement if provided. */
+  contentWidth?: number;
+  /** Called when zoom changes, so parent can pass it to time axis */
+  onZoomChange?: (zoom: number) => void;
 };
 
-export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps) {
+export function TimelineCanvas({ children, stageCount = 0, contentWidth: explicitWidth, onZoomChange }: TimelineCanvasProps) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -19,32 +23,32 @@ export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps
   const canvasRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Notify parent of zoom changes
+  useEffect(() => {
+    onZoomChange?.(zoom);
+  }, [zoom, onZoomChange]);
+
   // Helper: compute auto-fit zoom and centering pan for non-fullscreen
   const calcFitView = useCallback(() => {
     const vw = viewportRef.current?.clientWidth || 800;
     const vh = viewportRef.current?.clientHeight || 300;
     if (stageCount <= 0) return { zoom: 1, pan: { x: 0, y: 0 } };
 
-    // Measure actual rendered content size (most accurate), fallback to estimate
-    // The 1.06 factor accounts for absolutely-positioned badges and arrow tips
-    // that extend beyond the measured scrollWidth
+    // Use explicit width if provided, otherwise measure
     const fallbackWidth = (stageCount + 1) * 110 + stageCount * 360 + 96;
-    const measuredWidth = canvasRef.current?.scrollWidth || fallbackWidth;
+    const measuredWidth = explicitWidth || canvasRef.current?.scrollWidth || fallbackWidth;
     const canvasWidth = measuredWidth * 1.06;
 
     const fitZoom = Math.max(0.2, Math.min(1, vw / canvasWidth));
-    // Center the actual content — distributes breathing room equally on both sides
     const panX = Math.max(0, (vw - measuredWidth * fitZoom) / 2 - 12);
 
-    // For vertical centering, use actual content height (not canvas min-h-full)
-    // Content sits at y=32 (p-8 padding) inside the canvas div
     const contentHeight = contentRef.current?.offsetHeight || 200;
-    const contentTop = 32; // p-8 top padding on canvas div
+    const contentTop = 32;
     const contentCenterScaled = (contentTop + contentHeight / 2) * fitZoom;
     const panY = Math.max(0, vh / 2 - contentCenterScaled);
 
     return { zoom: fitZoom, pan: { x: panX, y: panY } };
-  }, [stageCount]);
+  }, [stageCount, explicitWidth]);
 
   // Auto-fit zoom on mount for non-fullscreen mode
   useEffect(() => {
@@ -173,7 +177,6 @@ export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((prev) => {
       if (prev) {
-        // Exiting fullscreen — wait for viewport to resize, then center
         requestAnimationFrame(() => {
           const fit = calcFitView();
           setZoom(fit.zoom);
@@ -195,7 +198,7 @@ export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps
       {/* Viewport - clips the visible area */}
       <div
         ref={viewportRef}
-        className={`${viewportHeight} overflow-hidden timeline-canvas select-none ${
+        className={`${viewportHeight} overflow-hidden timeline-canvas timeline-dot-grid select-none ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         onMouseDown={handleMouseDown}
@@ -218,7 +221,7 @@ export function TimelineCanvas({ children, stageCount = 0 }: TimelineCanvasProps
             transformOrigin: "0 0",
           }}
         >
-          {/* Timeline content — centering is handled by pan offsets in calcFitView */}
+          {/* Timeline content */}
           <div ref={contentRef} className="min-h-[200px]">
             {children}
           </div>

@@ -85,6 +85,20 @@ export const stageIcons: Record<string, string> = {
   // Default fallback handled in component
 };
 
+// Status zone background colors (very low opacity to stay subtle)
+export const statusZoneColors: Record<string, { light: string; dark: string } | null> = {
+  COMPLETED: { light: "bg-green-500/[0.04]", dark: "dark:bg-green-400/[0.06]" },
+  IN_PROGRESS: { light: "bg-blue-500/[0.04]", dark: "dark:bg-blue-400/[0.06]" },
+  DELAYED: { light: "bg-orange-500/[0.05]", dark: "dark:bg-orange-400/[0.07]" },
+  BLOCKED: { light: "bg-red-500/[0.05]", dark: "dark:bg-red-400/[0.07]" },
+  NOT_STARTED: null, // skip — gray on gray adds nothing
+  SKIPPED: null,     // skip
+};
+
+// Node card dimensions (rectangular cards)
+export const NODE_CARD_WIDTH = 160;
+export const NODE_CARD_HEIGHT = 110;
+
 export type TimelineStage = {
   id: string;
   name: string;
@@ -93,6 +107,8 @@ export type TimelineStage = {
   status: string;
   startedAt: string | null;
   completedAt: string | null;
+  expectedStartDate: string | null;
+  expectedEndDate: string | null;
   notes: string | null;
   metadata?: Record<string, unknown> | null;
 };

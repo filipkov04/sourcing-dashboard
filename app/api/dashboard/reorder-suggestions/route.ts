@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
         lastOrderId: latest.id,
         productName,
         productSKU: latest.productSKU,
-        productImage: latest.productImage,
+        productImage: null,
         lastQuantity: latest.quantity,
         unit: latest.unit,
         avgQuantity,

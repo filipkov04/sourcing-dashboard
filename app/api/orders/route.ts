@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         orderNumber,
         productName,
         productSKU,
-        productImage: productImage || null,
+        // productImage: productImage || null, // Field not yet in Prisma schema
         quantity,
         unit: unit || "pieces",
         factoryId,

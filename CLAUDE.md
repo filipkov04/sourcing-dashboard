@@ -1320,9 +1320,156 @@ Say "start where we ended last time" and I will:
   - `scripts/stress-test.js` — Added geocode endpoint test
   - `CLAUDE.md` — Session 13 update
 
-**To Continue Next Session:**
-Say "start where we ended last time" and I will:
-1. Check globe zoom is working visually
-2. Suggest next: Task 3.6 (Week 3 PR), BL-1 (Project Selector), or Week 4 tasks
-3. Note: Google Maps API key optional, static geocode works for all seeded factories
+---
+
+## 🔜 PENDING IMPLEMENTATION: Timeline Redesign Plan
+
+**Status:** READY TO IMPLEMENT (approved plan, not yet executed)
+**When:** Next session — say "implement the timeline redesign from CLAUDE.md" or "read CLAUDE.md and all relevant files"
+**Transcript:** `/Users/marcokrakovsky/.claude/projects/-Users-marcokrakovsky/5b90fd5d-8ad8-4d3c-8b37-6fced8603305.jsonl`
+
+### Context
+
+The current timeline canvas has a plain empty background and uses equal-spaced 110px circle nodes. While functional, it feels visually bare and doesn't communicate temporal information (dates, durations, schedule gaps). This redesign adds spatial texture, date-aware positioning, richer node visuals, and animated interactions to make the timeline a more informative and polished tool.
+
+### Features (in implementation order)
+
+#### 1. Dotted Grid Background
+**File:** `components/timeline/timeline-canvas.tsx`, `app/globals.css`
+
+- Add CSS class `.timeline-dot-grid` using `radial-gradient(circle, ...)` with 20px spacing
+- Light mode: `rgba(0,0,0,0.07)` dots on `bg-gray-50`
+- Dark mode: `rgba(255,255,255,0.06)` dots on `bg-zinc-900/50`
+- Apply to the viewport div (dots stay fixed while content pans — "infinite canvas" feel)
+
+#### 2. Time Axis / Gantt-Style Layout (foundational)
+**New files:** `components/timeline/timeline-date-utils.ts`, `components/timeline/timeline-time-axis.tsx`
+**Modify:** `horizontal-timeline.tsx`, `timeline-canvas.tsx`, `timeline-connector.tsx`, `timeline-types.ts`
+
+**Date-to-pixel positioning:**
+- `computeStagePositions(stages, orderDate, expectedDate)` returns x-position for each node
+- Stages with `startedAt` → positioned at that date; stages with only `completedAt` → positioned there
+- Undated stages (NOT_STARTED) → interpolated evenly between last dated stage and `expectedDate`
+- Minimum 200px gap enforced between adjacent nodes to prevent overlap
+- `PIXELS_PER_DAY = 40`, padding on edges
+
+**Time axis component:**
+- Renders inside the canvas transform group (pans/zooms with content)
+- Adaptive tick granularity: days/weeks/months depending on zoom level
+- Labels like "Jan 15", "Feb 1" with thin vertical tick lines
+- Styled: `text-xs text-gray-400 dark:text-zinc-500`
+
+**Layout refactor in `horizontal-timeline.tsx`:**
+- Switch from flex row to `position: relative` container with absolute-positioned nodes
+- Connectors get explicit `width` prop (distance between nodes minus card width) and absolute positioning
+- Pass `contentWidth` to `TimelineCanvas` for accurate `calcFitView`
+- Pass `orderDate={order.orderDate}` from the order detail page
+
+**Connector changes (`timeline-connector.tsx`):**
+- Accept new `width: number` prop for explicit pixel width
+- Remove `minWidth: 360` and flex-1 approach
+- Position absolutely between two node x-coordinates
+
+#### 3. Current-Time "Today" Marker
+**New file:** `components/timeline/timeline-today-marker.tsx`
+**Modify:** `horizontal-timeline.tsx`
+
+- Compute today's x-position using the same date-to-pixel function
+- Render vertical dashed line: `border-l-2 border-dashed border-red-400/60 dark:border-red-500/50`
+- Small "Today" pill label at top: `bg-red-500 text-white text-[10px] rounded-full`
+- Only render if today falls within the date range
+- Placed behind nodes (z-0) inside the node area container
+
+#### 4. Status Zone Backgrounds
+**New file:** `components/timeline/timeline-status-zones.tsx`
+**Modify:** `horizontal-timeline.tsx`, `timeline-types.ts`
+
+- Group consecutive stages sharing the same status
+- Render translucent rounded rectangles behind each group spanning their x-range + 20px padding
+- Very low opacity to avoid distraction:
+  - COMPLETED: `bg-green-500/[0.04] dark:bg-green-400/[0.06]`
+  - IN_PROGRESS: `bg-blue-500/[0.04] dark:bg-blue-400/[0.06]`
+  - DELAYED: `bg-orange-500/[0.05] dark:bg-orange-400/[0.07]`
+  - BLOCKED: `bg-red-500/[0.05] dark:bg-red-400/[0.07]`
+  - NOT_STARTED / SKIPPED: skip (gray on gray adds nothing)
+- Add `statusZoneColors` record to `timeline-types.ts`
+- Rendered at z-0 inside node area, before nodes and connectors
+
+#### 5. Richer Node Cards
+**Modify:** `components/timeline/timeline-node.tsx`, `timeline-types.ts`
+
+Replace 110px circles with ~160w x ~110h rounded rectangular cards:
+
+```
++---------------------------+
+| [icon]     [Status Badge] |
+| Stage Name                |
+| [====progress bar=====  ] |
+| 75% complete              |
++---------------------------+
+```
+
+- Icon shrinks from h-12 to h-5, moves to top-left
+- Stage name displayed on card (remove external label below)
+- CSS progress bar replaces SVG ring: `h-1.5 rounded-full` with colored fill
+- Status badge: small pill top-right (`text-[10px] px-1.5 py-0.5 rounded-full`)
+- Event count badge and completed checkmark remain as absolute overlays
+- Order-info node: distinct purple card with order status + priority badges
+- Update constants: `NODE_CARD_WIDTH = 160`, `NODE_CARD_HEIGHT = 110`
+
+#### 6. Animated Panel Transitions
+**Modify:** `components/timeline/horizontal-timeline.tsx`
+
+- Import `motion`, `AnimatePresence` from `framer-motion` (already installed)
+- Wrap each expansion panel conditional in `<AnimatePresence>` with `<motion.div>`:
+  - `initial={{ opacity: 0, height: 0, y: -10 }}`
+  - `animate={{ opacity: 1, height: "auto", y: 0 }}`
+  - `exit={{ opacity: 0, height: 0, y: -10 }}`
+  - `transition={{ duration: 0.25, ease: "easeOut" }}`
+- Apply to all 3 panel render locations (order-info, mid-stages, last stage)
+- Add `overflow-hidden` on motion div to clip during height animation
+
+### Files Summary
+
+| Action | File |
+|--------|------|
+| Create | `components/timeline/timeline-date-utils.ts` |
+| Create | `components/timeline/timeline-time-axis.tsx` |
+| Create | `components/timeline/timeline-today-marker.tsx` |
+| Create | `components/timeline/timeline-status-zones.tsx` |
+| Modify | `components/timeline/horizontal-timeline.tsx` (major refactor) |
+| Modify | `components/timeline/timeline-canvas.tsx` (dot grid + contentWidth prop) |
+| Modify | `components/timeline/timeline-node.tsx` (circle → card redesign) |
+| Modify | `components/timeline/timeline-connector.tsx` (explicit width, absolute pos) |
+| Modify | `components/timeline/timeline-types.ts` (zone colors, constants) |
+| Modify | `app/globals.css` (dot grid class) |
+| Modify | `app/(dashboard)/orders/[id]/page.tsx` (pass orderDate prop) |
+
+### Key Decisions
+
+- **Dots stay fixed** while content pans (like Figma) — more natural canvas feel
+- **Time axis renders inside** the canvas transform group so it zooms/pans with nodes
+- **Undated stages** get interpolated positions rather than being excluded from the axis
+- **CSS progress bar** replaces SVG ring — simpler for rectangular cards
+- **Status zones** use extremely low opacity (4-7%) to stay subtle
+- **Panel animations last** — polish layer that doesn't affect layout logic
+
+### Verification Checklist
+
+1. Check dot grid visible in both light/dark mode, stays fixed during pan
+2. Verify nodes position correctly based on stage dates; undated stages space evenly
+3. Confirm time axis ticks adapt when zooming in/out
+4. Check "Today" marker appears at correct position and hides when out of range
+5. Verify status zones render behind correct stage groups with proper colors
+6. Test node cards show name, progress bar, status badge at a glance
+7. Click nodes — panels should slide down smoothly and collapse on close
+8. Pan/zoom still works correctly with all features active
+9. Test with orders that have: all dates, some missing dates, no dates at all
+10. Test fullscreen mode still works
+
+### Implementation Notes
+
+- Read ALL existing timeline files first before making changes
+- Implement features in the numbered order (1→6) since later features depend on earlier ones
+- The plan transcript with detailed code snippets is at the path listed above
 

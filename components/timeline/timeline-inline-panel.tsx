@@ -13,6 +13,7 @@ import {
   Trash2,
   Loader2,
   Inbox,
+  GripVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,8 @@ type TimelineInlinePanelProps = {
   isAdmin?: boolean;
   onNoteUpdated?: (noteId: string, newContent: string) => void;
   onNoteDeleted?: (noteId: string) => void;
+  /** Called on header mousedown to initiate panel drag */
+  onHeaderMouseDown?: (e: React.MouseEvent) => void;
 };
 
 type FilterCategory = "all" | "events" | "progress" | "notes";
@@ -158,6 +161,7 @@ export function TimelineInlinePanel({
   isAdmin = false,
   onNoteUpdated,
   onNoteDeleted,
+  onHeaderMouseDown,
 }: TimelineInlinePanelProps) {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [showOlder, setShowOlder] = useState(false);
@@ -371,9 +375,15 @@ export function TimelineInlinePanel({
   return (
     <div className="w-[340px]">
       <div className="bg-white dark:bg-zinc-800/90 border border-gray-200 dark:border-zinc-700 rounded-lg backdrop-blur-sm shadow-lg">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-zinc-700">
-          <h3 className="font-medium text-sm text-gray-900 dark:text-zinc-200 truncate">{title}</h3>
+        {/* Header — acts as drag handle */}
+        <div
+          className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-zinc-700 cursor-grab active:cursor-grabbing"
+          onMouseDown={onHeaderMouseDown}
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
+            <GripVertical className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+            <h3 className="font-medium text-sm text-gray-900 dark:text-zinc-200 truncate">{title}</h3>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -386,7 +396,7 @@ export function TimelineInlinePanel({
 
         {/* Filter Pills (hidden for order-info) */}
         {!isLoading && nodeType !== "order-info" && (
-          <div className="px-3 pt-2.5 pb-1 flex flex-wrap gap-1.5">
+          <div className="px-3 pt-2.5 pb-1 flex flex-wrap gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
             {filterPills.map(({ key, label }) => {
               const isActive = activeFilter === key;
               const style = pillStyles[key];
@@ -407,10 +417,11 @@ export function TimelineInlinePanel({
           </div>
         )}
 
-        {/* Content */}
+        {/* Content — stopPropagation prevents drag from content area */}
         <div
           className="p-3 max-h-[320px] overflow-y-auto timeline-scroll"
           onWheel={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           {isLoading ? (
             <div className="flex items-center justify-center py-4">

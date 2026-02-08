@@ -3,4 +3,8 @@ export { TimelineNode } from "./timeline-node";
 export { TimelineConnector } from "./timeline-connector";
 export { TimelineExpansionPanel } from "./timeline-expansion-panel";
 export { TimelineInlinePanel } from "./timeline-inline-panel";
+export { TimelineTimeAxis } from "./timeline-time-axis";
+export { TimelineTodayMarker } from "./timeline-today-marker";
+export { TimelineStatusZones } from "./timeline-status-zones";
 export * from "./timeline-types";
+export * from "./timeline-date-utils";
