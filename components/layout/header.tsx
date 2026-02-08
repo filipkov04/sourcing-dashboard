@@ -73,7 +73,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
+            <button suppressHydrationWarning className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EB5D2E] text-sm font-semibold text-white">
                 {user.initials}
               </div>

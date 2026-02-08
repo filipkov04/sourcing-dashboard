@@ -98,6 +98,8 @@ model Factory {
   name     String
   location String // "Guangzhou, China"
   address  String? @db.Text
+  latitude  Float?
+  longitude Float?
 
   // Contact info
   contactName  String?

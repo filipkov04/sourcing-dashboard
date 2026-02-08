@@ -2,20 +2,31 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 7, 2026 - Session 12
+**Last Updated:** February 8, 2026 - Session 13
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 12):**
-- ✅ **Best Sellers Dashboard Card** — New card showing top 5 products by total order quantity
-  - Created `/api/dashboard/best-sellers` endpoint (org-scoped, groups by productName)
-  - Created `best-sellers.tsx` component with ranked list, image fallback, loading/empty states
-  - Added to dashboard in 3-column grid alongside Exchange Rates & Reorder Suggestions
-- ✅ **Fixed Supabase Storage** — Added `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` to `.env`, made bucket public for product images
-- ✅ **Fixed broken product images** — Added `onError` fallback in orders list and best sellers card
-- ✅ **Redesigned Reorder Suggestions card** — Clean minimal style (initials circle, product name + SKU, quantity + status label, divider lines)
-- ✅ **Product Image Upload endpoint** — `POST /api/orders/product-image` for Supabase Storage uploads
-- ✅ **Git:** Commit `a5d6afa` pushed to origin/main
+**Completed Today (Session 13):**
+- ✅ **Enhanced Factory Globe with Zoom Levels** — Full rebuild of globe component
+  - 3 zoom tiers: Country (1.0-1.3), City (1.4-2.2), Precise/Factory (2.3-4.0)
+  - Scroll wheel zoom on canvas, clamped 1.0-4.0, cobe `scale` param tied to zoom
+  - Marker aggregation per tier (country centroids → city centroids → individual factories)
+  - Floating tooltip on hover showing label + factory/order counts
+  - Zoom indicator badge (Country/City/Factory) + zoom progress bar with +/- buttons
+  - Marker list adapts to current tier
+- ✅ **Google Maps Geocoding Support** — Added to `lib/geo.ts`
+  - `geocodeWithGoogle(address)` — calls Google Maps Geocoding API
+  - `geocodeFactory(location, address?)` — tries Google API first, falls back to static lookup
+  - `parseCountry()` and `parseCity()` helper functions
+  - Works without API key (static lookup covers 50+ manufacturing cities)
+- ✅ **Geocode API Endpoints** — Single + batch geocoding
+  - `POST /api/factories/[id]/geocode` — geocode one factory, save lat/lng to DB
+  - `POST /api/factories/geocode-all` — batch geocode all factories missing coordinates
+- ✅ **Factory Schema Update** — Added `latitude Float?` and `longitude Float?` to Factory model
+- ✅ **Updated factory-locations API** — Returns country, city, address fields; prefers DB lat/lng over static geocode
+- ✅ **Seeded 10 test factories** across China, Bangladesh, Turkey, Vietnam, India, Indonesia, Italy, Thailand, Portugal
+- ✅ **Fixed Radix hydration mismatch** — Added `suppressHydrationWarning` to header dropdown trigger
+- ✅ **Updated stress test** — Added geocode-all endpoint
 
 **Planned (Backlog BL-1): Project Selector for Dashboard**
 - Add `Project` model + `projectId` on Order
@@ -1256,4 +1267,62 @@ Say "start where we ended last time" and I will:
 1. Review Week 3 progress (Filip done, Marco done except PRs)
 2. Suggest next: Task 3.6 (Week 3 PR), BL-1 (Project Selector), or Week 4 tasks
 3. Note: All features pushed to origin/main
+
+### Session 13 - Enhanced Factory Globe with Zoom Levels - Feb 8, 2026
+
+- **Enhanced Factory Globe — Full Rebuild with Zoom Tiers:**
+  - 3 zoom tiers: Country (1.0-1.3x), City (1.4-2.2x), Precise/Factory (2.3-4.0x)
+  - Scroll wheel zoom on canvas, clamped 1.0-4.0
+  - cobe `scale` parameter tied to zoom value for visual zoom effect
+  - Marker aggregation: country centroids → city centroids → individual factory pins
+  - Floating tooltip on hover showing label + factory/order counts
+  - Zoom indicator badge showing current tier (Country/City/Factory)
+  - Zoom progress bar with +/- buttons
+  - Marker list adapts per tier (factories+orders at country/city, orders at precise)
+  - Light mode globe visibility improved (slightly gray base instead of pure white)
+
+- **Google Maps Geocoding Integration:**
+  - Added `geocodeWithGoogle(address)` to `lib/geo.ts` — calls Google Geocoding API
+  - Added `geocodeFactory(location, address?)` — tries Google first, falls back to static lookup
+  - Added `parseCountry()` and `parseCity()` helpers for tier aggregation
+  - Fully optional — works without `GOOGLE_MAPS_API_KEY` using static 50+ city lookup
+
+- **Geocode API Endpoints:**
+  - `POST /api/factories/[id]/geocode` — geocode single factory, save lat/lng to DB
+  - `POST /api/factories/geocode-all` — batch geocode all org factories missing lat/lng
+
+- **Database Schema Update:**
+  - Added `latitude Float?` and `longitude Float?` to Factory model
+  - Ran `npx prisma db push` (accepted data loss for old unused OrderStage columns)
+
+- **Factory Locations API Enhanced:**
+  - Returns `country`, `city`, `address` fields for tier aggregation
+  - Prefers DB lat/lng coordinates, falls back to static geocode
+
+- **Test Data:**
+  - Seeded 10 factories across 9 countries (China x2, Bangladesh, Turkey, Vietnam, India, Indonesia, Italy, Thailand, Portugal)
+  - Created `scripts/seed-factories.ts` for reproducible seeding
+
+- **Bug Fix:**
+  - Fixed Radix UI hydration mismatch in header — added `suppressHydrationWarning` to dropdown trigger button
+
+- **Files Created:**
+  - `app/api/factories/[id]/geocode/route.ts` — Single factory geocode API
+  - `app/api/factories/geocode-all/route.ts` — Batch geocode API
+  - `scripts/seed-factories.ts` — Factory seed script
+
+- **Files Modified:**
+  - `prisma/schema.prisma` — Added latitude/longitude to Factory
+  - `lib/geo.ts` — Added Google geocoding + parseCountry/parseCity
+  - `app/api/dashboard/factory-locations/route.ts` — Enhanced with country/city/address + DB coords
+  - `app/(dashboard)/dashboard/_components/factory-globe.tsx` — Full rebuild with zoom tiers
+  - `components/layout/header.tsx` — Hydration fix
+  - `scripts/stress-test.js` — Added geocode endpoint test
+  - `CLAUDE.md` — Session 13 update
+
+**To Continue Next Session:**
+Say "start where we ended last time" and I will:
+1. Check globe zoom is working visually
+2. Suggest next: Task 3.6 (Week 3 PR), BL-1 (Project Selector), or Week 4 tasks
+3. Note: Google Maps API key optional, static geocode works for all seeded factories
 
