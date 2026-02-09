@@ -2,33 +2,15 @@
 
 import { useMemo } from "react";
 import {
-  Scissors,
-  ShieldCheck,
-  Package,
-  Paintbrush,
-  Printer,
-  Sparkles,
-  ScanSearch,
-  Wrench,
-  Award,
-  Waves,
-  Wind,
-  Tag,
-  FlaskConical,
   ClipboardList,
-  Layers,
   Check,
-  Shirt,
-  Truck,
-  PackageCheck,
-  Ruler,
-  Cog,
 } from "lucide-react";
 import { statusConfig, NODE_CARD_WIDTH, NODE_CARD_HEIGHT, type StageStatus, type TimelineStage } from "./timeline-types";
 
 type TimelineNodeProps = {
   type: "order-info" | "stage";
   stage?: TimelineStage;
+  sequence?: number;
   orderStatus?: string;
   orderPriority?: string;
   isExpanded: boolean;
@@ -37,32 +19,6 @@ type TimelineNodeProps = {
   isFocused?: boolean;
   "data-timeline-node"?: boolean;
 };
-
-// Map stage names to icons
-function getStageIcon(stageName: string) {
-  const name = stageName.toLowerCase();
-
-  if (name.includes("cut")) return Scissors;
-  if (name.includes("sew") || name.includes("stitch")) return Shirt;
-  if (name.includes("qc") || name.includes("quality")) return ShieldCheck;
-  if (name.includes("ship")) return Truck;
-  if (name.includes("pack")) return PackageCheck;
-  if (name.includes("dye") || name.includes("color")) return Paintbrush;
-  if (name.includes("print")) return Printer;
-  if (name.includes("embroid")) return Sparkles;
-  if (name.includes("inspect") || name.includes("search")) return ScanSearch;
-  if (name.includes("assembl")) return Wrench;
-  if (name.includes("finish")) return Award;
-  if (name.includes("wash")) return Waves;
-  if (name.includes("iron") || name.includes("press")) return Wind;
-  if (name.includes("label") || name.includes("tag")) return Tag;
-  if (name.includes("sampl") || name.includes("proto")) return FlaskConical;
-  if (name.includes("measur") || name.includes("pattern")) return Ruler;
-  if (name.includes("receiv") || name.includes("inbound")) return Package;
-  if (name.includes("process")) return Cog;
-
-  return Layers;
-}
 
 // Format status text for display
 function formatStatus(status: string): string {
@@ -100,6 +56,7 @@ const progressBarColors: Record<string, string> = {
 export function TimelineNode({
   type,
   stage,
+  sequence,
   orderStatus,
   orderPriority,
   isExpanded,
@@ -112,11 +69,6 @@ export function TimelineNode({
     const status = (stage?.status || "NOT_STARTED") as StageStatus;
     return statusConfig[status] || statusConfig.NOT_STARTED;
   }, [type, stage?.status]);
-
-  const Icon = useMemo(() => {
-    if (type === "order-info") return ClipboardList;
-    return getStageIcon(stage?.name || "");
-  }, [type, stage?.name]);
 
   const progress = stage?.progress ?? 0;
   const isCompleted = stage?.status === "COMPLETED";
@@ -145,7 +97,7 @@ export function TimelineNode({
       >
         {/* Top row: icon */}
         <div className="flex items-center w-full mb-1.5">
-          <Icon className="h-5 w-5 text-purple-500 dark:text-purple-400" />
+          <ClipboardList className="h-5 w-5 text-purple-500 dark:text-purple-400" />
         </div>
 
         {/* Name */}
@@ -193,9 +145,11 @@ export function TimelineNode({
       aria-expanded={isExpanded}
       aria-label={`${label}, ${progress}% complete`}
     >
-      {/* Top row: icon + status badge */}
+      {/* Top row: sequence number + status badge */}
       <div className="flex items-center justify-between w-full mb-1">
-        <Icon className={`h-5 w-5 ${config.iconColor}`} />
+        <span className={`h-6 w-6 flex items-center justify-center rounded-full text-xs font-bold ${config.iconColor} ${config.sequenceBgColor}`}>
+          {sequence ?? stage?.sequence ?? ""}
+        </span>
         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${statusBadgeColors[status] || statusBadgeColors.NOT_STARTED}`}>
           {formatStatus(status)}
         </span>

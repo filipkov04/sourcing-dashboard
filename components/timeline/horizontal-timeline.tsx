@@ -9,7 +9,7 @@ import { TimelineCanvas } from "./timeline-canvas";
 import { TimelineTimeAxis } from "./timeline-time-axis";
 import { TimelineTodayMarker } from "./timeline-today-marker";
 import { TimelineStatusZones } from "./timeline-status-zones";
-import { computeStagePositions, dateToX } from "./timeline-date-utils";
+import { computeStagePositions } from "./timeline-date-utils";
 import { NODE_CARD_WIDTH, NODE_CARD_HEIGHT, type StageStatus, type TimelineStage } from "./timeline-types";
 import { type OrderEvent } from "@/lib/history-utils";
 
@@ -479,39 +479,6 @@ export function HorizontalTimeline({
               height={NODE_ROW_HEIGHT}
             />
 
-            {/* Expected date range bars behind nodes */}
-            {sortedStages.map((stage) => {
-              if (!stage.expectedStartDate || !stage.expectedEndDate) return null;
-              const startX = dateToX(new Date(stage.expectedStartDate), minDate, maxDate);
-              const endX = dateToX(new Date(stage.expectedEndDate), minDate, maxDate);
-              const barWidth = Math.max(endX - startX, 8);
-              const barY = NODE_TOP + NODE_CARD_HEIGHT + 6;
-
-              const fillColors: Record<string, string> = {
-                NOT_STARTED: "bg-gray-400/30 dark:bg-zinc-500/20",
-                IN_PROGRESS: "bg-blue-400/30 dark:bg-blue-500/20",
-                COMPLETED: "bg-green-400/30 dark:bg-green-500/20",
-                SKIPPED: "bg-gray-400/20 dark:bg-zinc-500/15",
-                DELAYED: "bg-orange-400/30 dark:bg-orange-500/20",
-                BLOCKED: "bg-red-400/30 dark:bg-red-500/20",
-              };
-
-              return (
-                <div key={`bar-${stage.id}`}>
-                  <div
-                    className="absolute h-1.5 rounded-full bg-gray-300/40 dark:bg-zinc-600/30"
-                    style={{ left: startX, top: barY, width: barWidth }}
-                  />
-                  {stage.progress > 0 && (
-                    <div
-                      className={`absolute h-1.5 rounded-full ${fillColors[stage.status] || fillColors.NOT_STARTED}`}
-                      style={{ left: startX, top: barY, width: barWidth * (stage.progress / 100) }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-
             {/* Today marker */}
             <TimelineTodayMarker
               minDate={minDate}
@@ -548,6 +515,7 @@ export function HorizontalTimeline({
                   <TimelineNode
                     type="stage"
                     stage={stage}
+                    sequence={stage.sequence}
                     isExpanded={expandedNodeIds.has(stage.id)}
                     onClick={() => handleNodeClick(stage.id)}
                     eventCount={eventCounts[stage.id]}

@@ -1473,3 +1473,86 @@ Replace 110px circles with ~160w x ~110h rounded rectangular cards:
 - Implement features in the numbered order (1→6) since later features depend on earlier ones
 - The plan transcript with detailed code snippets is at the path listed above
 
+---
+
+## 🔜 PENDING IMPLEMENTATION: Enlarge Timeline Node Cards for Breathing Room
+
+**Status:** READY TO IMPLEMENT (approved plan, not yet executed)
+**When:** Next session — say "implement the card enlargement plan from CLAUDE.md"
+**Transcript:** `/Users/marcokrakovsky/.claude/projects/-Users-marcokrakovsky/228f1c0c-7eda-4a11-9a34-37cd182995c5.jsonl`
+
+### Context
+
+After replacing stage icons with sequence numbers, the 160×110px cards with `p-3` feel cramped — the sequence circle, stage name, date range, progress bar, and schedule indicator are all squeezed together with minimal spacing. Enlarging the cards gives each element room to breathe.
+
+### Changes
+
+#### 1. Bump card dimensions — `components/timeline/timeline-types.ts` (line 107-108)
+
+- `NODE_CARD_WIDTH`: 160 → 180
+- `NODE_CARD_HEIGHT`: 110 → 134
+
+All layout calculations in `horizontal-timeline.tsx`, `timeline-status-zones.tsx`, and `timeline-node.tsx` already import these constants, so they auto-adjust.
+
+#### 2. Fix 3 hardcoded duplicates
+
+**`components/timeline/timeline-date-utils.ts`** — two instances of hardcoded `160` (lines ~97, ~176):
+- Import `NODE_CARD_WIDTH` from `./timeline-types`
+- Replace both `160` literals with `NODE_CARD_WIDTH`
+
+**`components/timeline/timeline-canvas.tsx`** — one instance of hardcoded `110` (line ~38):
+- Import `NODE_CARD_WIDTH` from `./timeline-types`
+- Replace `110` in fallback width calc with `NODE_CARD_WIDTH` (the formula uses it as a width estimate, not height)
+
+#### 3. Increase card padding & spacing — `components/timeline/timeline-node.tsx`
+
+**Both cards (order-info and stage):**
+- Padding: `p-3` → `p-3.5`
+
+**Stage card only — widen vertical gaps between rows:**
+- Top row (sequence + badge): `mb-1` → `mb-1.5`
+- Stage name: `mb-auto` stays (flex spacer)
+- Progress bar bottom area: `mt-1` → `mt-1.5` (between bar and percent text)
+
+### Files to modify
+
+| File | What changes |
+|------|-------------|
+| `components/timeline/timeline-types.ts` | `NODE_CARD_WIDTH` 160→180, `NODE_CARD_HEIGHT` 110→134 |
+| `components/timeline/timeline-node.tsx` | `p-3`→`p-3.5`, `mb-1`→`mb-1.5`, `mt-1`→`mt-1.5` |
+| `components/timeline/timeline-date-utils.ts` | Import constant, replace 2× hardcoded `160` |
+| `components/timeline/timeline-canvas.tsx` | Import constant, replace 1× hardcoded `110` |
+
+### Verification
+
+1. Cards visibly larger with clear spacing between sequence circle, name, dates, and progress bar
+2. Connectors still attach to the correct edges of cards (auto-calculated from constants)
+3. Status zone backgrounds still span the correct width behind stage groups
+4. Panel dashed lines still originate from card bottom-center
+5. Pan/zoom and "fit to view" still work correctly
+6. No hardcoded 160 or 110 left in the timeline folder
+
+---
+
+### Session 14 - Replace Stage Icons with Sequence Numbers - Feb 9, 2026
+
+- **Timeline Node Cards — Icons → Sequence Numbers:**
+  - Removed `getStageIcon()` function and all 20+ icon imports (Scissors, Shirt, ShieldCheck, etc.)
+  - Added `sequence` prop to `TimelineNode` component
+  - Stage cards now show a numbered circle (1, 2, 3…) instead of inferred icons
+  - Sequence circle styled with status-aware background via new `sequenceBgColor` in `statusConfig`
+  - Order-info card still uses `ClipboardList` icon (not a numbered stage)
+
+- **Added `sequenceBgColor` to Status Config (`timeline-types.ts`):**
+  - Each status gets a matching light background for the sequence circle
+  - e.g. IN_PROGRESS → `bg-blue-100 dark:bg-blue-900/60`
+
+- **Removed Expected Date Range Bars (`horizontal-timeline.tsx`):**
+  - Deleted the bars that rendered behind nodes showing expected start→end date ranges
+  - Simplifies the timeline visual; date info conveyed via card content instead
+
+- **Files Modified:**
+  - `components/timeline/timeline-types.ts` — added `sequenceBgColor` to all 7 status configs
+  - `components/timeline/timeline-node.tsx` — removed icon mapping, added sequence circle
+  - `components/timeline/horizontal-timeline.tsx` — removed date range bars, pass `sequence` prop
+

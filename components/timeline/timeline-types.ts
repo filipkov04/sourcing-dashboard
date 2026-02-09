@@ -14,6 +14,7 @@ export type StatusConfigItem = {
   bgColor: string;
   borderColor: string;
   iconColor: string;
+  sequenceBgColor: string;
   glowColor: string;
 };
 
@@ -22,42 +23,49 @@ export const statusConfig: Record<StageStatus | "ORDER", StatusConfigItem> = {
     bgColor: "bg-gray-100 dark:bg-zinc-800",
     borderColor: "border-gray-300 dark:border-zinc-600",
     iconColor: "text-gray-400 dark:text-zinc-500",
+    sequenceBgColor: "bg-gray-200 dark:bg-zinc-700",
     glowColor: "shadow-zinc-500/20",
   },
   IN_PROGRESS: {
     bgColor: "bg-blue-50 dark:bg-blue-900/40",
     borderColor: "border-blue-400 dark:border-blue-500",
     iconColor: "text-blue-500 dark:text-blue-400",
+    sequenceBgColor: "bg-blue-100 dark:bg-blue-900/60",
     glowColor: "shadow-blue-500/40",
   },
   COMPLETED: {
     bgColor: "bg-green-50 dark:bg-green-900/40",
     borderColor: "border-green-400 dark:border-green-500",
     iconColor: "text-green-500 dark:text-green-400",
+    sequenceBgColor: "bg-green-100 dark:bg-green-900/60",
     glowColor: "shadow-green-500/30",
   },
   DELAYED: {
     bgColor: "bg-orange-50 dark:bg-orange-900/40",
     borderColor: "border-orange-400 dark:border-orange-500",
     iconColor: "text-orange-500 dark:text-orange-400",
+    sequenceBgColor: "bg-orange-100 dark:bg-orange-900/60",
     glowColor: "shadow-orange-500/30",
   },
   BLOCKED: {
     bgColor: "bg-red-50 dark:bg-red-900/40",
     borderColor: "border-red-400 dark:border-red-500",
     iconColor: "text-red-500 dark:text-red-400",
+    sequenceBgColor: "bg-red-100 dark:bg-red-900/60",
     glowColor: "shadow-red-500/30",
   },
   SKIPPED: {
     bgColor: "bg-gray-100 dark:bg-zinc-800/60",
     borderColor: "border-gray-300 dark:border-zinc-600",
     iconColor: "text-gray-400 dark:text-zinc-500",
+    sequenceBgColor: "bg-gray-200 dark:bg-zinc-700",
     glowColor: "shadow-zinc-500/10",
   },
   ORDER: {
     bgColor: "bg-purple-50 dark:bg-purple-900/40",
     borderColor: "border-purple-400 dark:border-purple-500",
     iconColor: "text-purple-500 dark:text-purple-400",
+    sequenceBgColor: "bg-purple-100 dark:bg-purple-900/60",
     glowColor: "shadow-purple-500/30",
   },
 };
