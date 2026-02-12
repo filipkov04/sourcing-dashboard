@@ -76,6 +76,15 @@ function NewOrderForm() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // Cleanup blob URL on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (productImagePreview && productImagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(productImagePreview);
+      }
+    };
+  }, [productImagePreview]);
+
   // Fetch factories
   useEffect(() => {
     async function fetchFactories() {
@@ -117,7 +126,7 @@ function NewOrderForm() {
           }
           if (order.stages && order.stages.length > 0) {
             setStages(
-              order.stages.map((s: any) => ({
+              order.stages.map((s: { id?: string; name: string; sequence: number }) => ({
                 id: s.id || String(s.sequence),
                 name: s.name,
                 sequence: s.sequence,

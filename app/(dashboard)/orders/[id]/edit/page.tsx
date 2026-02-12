@@ -55,6 +55,7 @@ export default function EditOrderPage() {
   const [fetchError, setFetchError] = useState("");
   const [factories, setFactories] = useState<Factory[]>([]);
   const [stages, setStages] = useState<Stage[]>([]);
+  const [prevImagePreview, setPrevImagePreview] = useState<string | null>(null);
 
   // Form state
   const [orderNumber, setOrderNumber] = useState("");
@@ -119,7 +120,7 @@ export default function EditOrderPage() {
           setProductImage(order.productImage || null);
           setProductImagePreview(order.productImage || null);
           setStages(
-            order.stages.map((s: any) => ({
+            order.stages.map((s: { id: string; name: string; sequence: number; progress: number; status: string }) => ({
               id: s.id,
               name: s.name,
               sequence: s.sequence,
@@ -168,6 +169,15 @@ export default function EditOrderPage() {
     setStages(stages.map((s) => (s.id === id ? { ...s, name } : s)));
   };
 
+  // Cleanup blob URL on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (prevImagePreview && prevImagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(prevImagePreview);
+      }
+    };
+  }, [prevImagePreview]);
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -179,8 +189,14 @@ export default function EditOrderPage() {
       setError("Image must be under 5MB");
       return;
     }
+    // Revoke previous blob URL before creating new one
+    if (productImagePreview && productImagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(productImagePreview);
+    }
     setProductImageFile(file);
-    setProductImagePreview(URL.createObjectURL(file));
+    const newUrl = URL.createObjectURL(file);
+    setProductImagePreview(newUrl);
+    setPrevImagePreview(newUrl);
   };
 
   const removeImage = () => {
@@ -274,6 +290,7 @@ export default function EditOrderPage() {
           notes: notes.trim() || null,
           tags,
           stages: validStages.map((s) => ({
+            ...(s.id && !s.id.startsWith("new-") ? { id: s.id } : {}),
             name: s.name,
             sequence: s.sequence,
             progress: s.progress,

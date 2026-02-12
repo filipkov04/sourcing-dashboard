@@ -10,6 +10,7 @@ import { DashboardHeader } from "./_components/dashboard-header";
 import { FactoryPerformanceSection } from "./_components/factory-performance-section";
 import { BestSellers } from "./_components/best-sellers";
 import { ExchangeRateCards } from "./_components/exchange-rate-cards";
+import { FactoryGlobe } from "./_components/factory-globe";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -19,26 +20,31 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Page Header */}
       <DashboardHeader userName={session.user.name || session.user.email} />
 
-      {/* Stats Cards with Period Selector — 5 cards, 3-column grid */}
+      {/* Stats Cards with Period Selector */}
       <div className="animate-in fade-in slide-in-from-top-4 duration-700">
         <DashboardStatsCards />
       </div>
 
-      {/* Status Breakdown + Product Portfolio — right after stats */}
-      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-top-4 duration-700 -mt-2">
+      {/* Status Breakdown + Product Portfolio */}
+      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-top-4 duration-700">
         <OrdersByStatusSection />
         <ProductPortfolioSection />
       </div>
 
-      {/* Exchange Rates, Reorder Suggestions & Best Sellers */}
-      <div className="grid gap-5 lg:grid-cols-3 items-start animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
-        <ExchangeRateCards />
+      {/* Reorder Suggestions & Best Sellers */}
+      <div className="grid gap-5 lg:grid-cols-2 items-start animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
         <ReorderSuggestions />
         <BestSellers />
+      </div>
+
+      {/* Exchange Rates & Factory Globe */}
+      <div className="grid gap-5 lg:grid-cols-2 items-start animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
+        <ExchangeRateCards />
+        <FactoryGlobe />
       </div>
 
       {/* Factory Performance Section */}
@@ -50,7 +56,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Activity & Quick Actions Grid */}
-      <div className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
+      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
         <RecentActivityFeed />
         <QuickActions />
       </div>

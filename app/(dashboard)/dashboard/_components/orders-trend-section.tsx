@@ -34,7 +34,7 @@ export function OrdersTrendSection() {
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="bg-white rounded-lg border border-gray-100 p-8 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
       <div className="mb-6">
         <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Orders over time</h3>
         <p className="mt-1 text-sm text-gray-400 dark:text-zinc-500">Last 12 weeks</p>

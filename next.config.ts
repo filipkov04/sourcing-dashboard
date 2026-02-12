@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: ".",
-  },
+  distDir: "/tmp/sourcing-dashboard-next",
 };
 
 export default nextConfig;

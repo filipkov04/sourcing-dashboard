@@ -234,7 +234,7 @@ export function DashboardStatsCards() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 animate-pulse"
+              className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 animate-pulse"
               style={{ minHeight: "120px" }}
             >
               <div className="h-3 w-20 bg-gray-100 dark:bg-zinc-800 rounded" />
@@ -247,7 +247,7 @@ export function DashboardStatsCards() {
           {statsCards.map((stat, index) => (
             <div
               key={index}
-              className={`group relative rounded-2xl border p-6 shadow-sm transition-all ${
+              className={`group relative rounded-lg border p-6 shadow-sm transition-all ${
                 stat.highlight
                   ? "bg-red-50/50 border-red-100 dark:bg-red-950/20 dark:border-red-900/30"
                   : "bg-white border-gray-100 hover:shadow-md dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700"

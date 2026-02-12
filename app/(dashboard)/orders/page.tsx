@@ -89,6 +89,7 @@ export default function OrdersPage() {
   const [bulkStatus, setBulkStatus] = useState<string>("");
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Fetch factories for filter dropdown
   useEffect(() => {
@@ -179,6 +180,7 @@ export default function OrdersPage() {
   const handleBulkUpdate = async () => {
     if (!bulkStatus || selectedIds.size === 0) return;
 
+    setActionError(null);
     setIsBulkUpdating(true);
     try {
       const res = await fetch("/api/orders/bulk", {
@@ -214,9 +216,11 @@ export default function OrdersPage() {
           )
         );
         clearSelection();
+      } else {
+        setActionError(data.error || "Failed to update orders");
       }
     } catch {
-      // Silently fail
+      setActionError("Failed to update orders. Please try again.");
     } finally {
       setIsBulkUpdating(false);
     }
@@ -232,7 +236,10 @@ export default function OrdersPage() {
       if (priorityFilter && priorityFilter !== "all") params.set("priority", priorityFilter);
 
       const res = await fetch(`/api/orders/export?${params.toString()}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        setActionError("Failed to export orders");
+        return;
+      }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -244,7 +251,7 @@ export default function OrdersPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
-      // Silently fail
+      setActionError("Failed to export orders. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -277,6 +284,16 @@ export default function OrdersPage() {
           </Link>
         </div>
       </div>
+
+      {/* Action Error */}
+      {actionError && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+          <p className="text-sm text-red-600 dark:text-red-400 flex-1">{actionError}</p>
+          <Button variant="ghost" size="sm" onClick={() => setActionError(null)} className="h-6 w-6 p-0">
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
@@ -508,7 +525,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[order.status] || ""}>
-                      {order.status.replace("_", " ")}
+                      {order.status.replaceAll("_", " ")}
                     </Badge>
                   </TableCell>
                   <TableCell>

@@ -64,7 +64,7 @@ export async function PATCH(
     }
 
     // Build update data
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     // Check if stage is in a "problem" state (DELAYED or BLOCKED)
     const isProblemStatus = existingStage.status === "DELAYED" || existingStage.status === "BLOCKED";
@@ -147,16 +147,64 @@ export async function PATCH(
       updateData.metadata = metadata || [];
     }
 
-    // Update stage
-    const updatedStage = await prisma.orderStage.update({
-      where: { id: stageId },
-      data: updateData,
+    // Use transaction to prevent race conditions in progress calculation
+    const result = await prisma.$transaction(async (tx) => {
+      // Update stage
+      const updatedStage = await tx.orderStage.update({
+        where: { id: stageId },
+        data: updateData,
+      });
+
+      // Recalculate overall order progress
+      const allStages = await tx.orderStage.findMany({
+        where: { orderId: orderId },
+      });
+
+      const totalProgress = allStages.reduce((sum, s) => sum + s.progress, 0);
+      const overallProgress = Math.round(totalProgress / allStages.length);
+
+      // Determine order status based on stage statuses
+      const hasBlockedStage = allStages.some((s) => s.status === "BLOCKED");
+      const hasDelayedStage = allStages.some((s) => s.status === "DELAYED");
+      const allCompleted = allStages.every((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
+      const anyInProgress = allStages.some((s) => s.status === "IN_PROGRESS");
+      const allNotStarted = allStages.every((s) => s.status === "NOT_STARTED");
+
+      // Only auto-update status for active orders (not completed, shipped, delivered, or cancelled)
+      const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
+      let newOrderStatus: string | undefined;
+
+      if (activeStatuses.includes(order.status)) {
+        if (hasBlockedStage) {
+          newOrderStatus = "DISRUPTED";
+        } else if (hasDelayedStage) {
+          newOrderStatus = "DELAYED";
+        } else if (allCompleted) {
+          newOrderStatus = "COMPLETED";
+        } else if (allNotStarted && overallProgress === 0) {
+          newOrderStatus = "PENDING";
+        } else if (anyInProgress || overallProgress > 0) {
+          newOrderStatus = "IN_PROGRESS";
+        }
+      }
+
+      // Update order's overall progress and status
+      const orderUpdateData: Record<string, unknown> = { overallProgress };
+      if (newOrderStatus) {
+        orderUpdateData.status = newOrderStatus;
+      }
+
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: orderUpdateData,
+      });
+
+      return { updatedStage, overallProgress, orderStatus: updatedOrder.status };
     });
 
-    // Log events for changed fields
-    const eventPromises: Promise<any>[] = [];
+    // Log events outside the transaction (non-critical, fire-and-forget)
+    const eventPromises: Promise<unknown>[] = [];
 
-    // Log status change
     if (updateData.status !== undefined && updateData.status !== existingStage.status) {
       eventPromises.push(
         logOrderEvent(
@@ -164,14 +212,13 @@ export async function PATCH(
           "STATUS_CHANGE",
           "status",
           existingStage.status,
-          updateData.status,
+          String(updateData.status),
           stageId,
           existingStage.name
         )
       );
     }
 
-    // Log progress change
     if (updateData.progress !== undefined && updateData.progress !== existingStage.progress) {
       eventPromises.push(
         logOrderEvent(
@@ -186,7 +233,6 @@ export async function PATCH(
       );
     }
 
-    // Log notes change
     if (updateData.notes !== undefined && updateData.notes !== existingStage.notes) {
       eventPromises.push(
         logOrderEvent(
@@ -194,66 +240,21 @@ export async function PATCH(
           "NOTE_CHANGE",
           "notes",
           existingStage.notes,
-          updateData.notes,
+          updateData.notes as string | null,
           stageId,
           existingStage.name
         )
       );
     }
 
-    // Execute all event logging in parallel
     if (eventPromises.length > 0) {
-      await Promise.all(eventPromises);
+      Promise.all(eventPromises).catch(console.error);
     }
-
-    // Recalculate overall order progress
-    const allStages = await prisma.orderStage.findMany({
-      where: { orderId: orderId },
-    });
-
-    const totalProgress = allStages.reduce((sum, s) => sum + s.progress, 0);
-    const overallProgress = Math.round(totalProgress / allStages.length);
-
-    // Determine order status based on stage statuses
-    const hasBlockedStage = allStages.some((s) => s.status === "BLOCKED");
-    const hasDelayedStage = allStages.some((s) => s.status === "DELAYED");
-    const allCompleted = allStages.every((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
-    const anyInProgress = allStages.some((s) => s.status === "IN_PROGRESS");
-    const allNotStarted = allStages.every((s) => s.status === "NOT_STARTED");
-
-    // Only auto-update status for active orders (not completed, shipped, delivered, or cancelled)
-    const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
-    let newOrderStatus: string | undefined;
-
-    if (activeStatuses.includes(order.status)) {
-      if (hasBlockedStage) {
-        newOrderStatus = "DISRUPTED";
-      } else if (hasDelayedStage) {
-        newOrderStatus = "DELAYED";
-      } else if (allCompleted) {
-        newOrderStatus = "COMPLETED";
-      } else if (allNotStarted && overallProgress === 0) {
-        newOrderStatus = "PENDING";
-      } else if (anyInProgress || overallProgress > 0) {
-        newOrderStatus = "IN_PROGRESS";
-      }
-    }
-
-    // Update order's overall progress and status
-    const orderUpdateData: any = { overallProgress };
-    if (newOrderStatus) {
-      orderUpdateData.status = newOrderStatus;
-    }
-
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: orderUpdateData,
-    });
 
     return success({
-      stage: updatedStage,
-      overallProgress,
-      orderStatus: updatedOrder.status,
+      stage: result.updatedStage,
+      overallProgress: result.overallProgress,
+      orderStatus: result.orderStatus,
     }, "Stage updated successfully");
   } catch (err) {
     return handleError(err);

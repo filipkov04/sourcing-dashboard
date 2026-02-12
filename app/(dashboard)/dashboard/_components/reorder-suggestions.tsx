@@ -52,7 +52,7 @@ export function ReorderSuggestions() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex items-center gap-2 mb-4">
           <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
@@ -74,7 +74,7 @@ export function ReorderSuggestions() {
 
   if (suggestions.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex items-center gap-2 mb-4">
           <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
@@ -91,7 +91,7 @@ export function ReorderSuggestions() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
       <div className="flex items-center gap-2 mb-4">
         <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>

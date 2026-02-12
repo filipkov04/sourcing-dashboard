@@ -23,6 +23,10 @@ export async function PATCH(request: NextRequest) {
       return error("orderIds must be a non-empty array");
     }
 
+    if (orderIds.length > 100) {
+      return error("Cannot update more than 100 orders at once");
+    }
+
     const validStatuses = [
       "PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED",
       "COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED",

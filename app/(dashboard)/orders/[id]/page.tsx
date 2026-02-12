@@ -227,6 +227,9 @@ export default function OrderDetailPage() {
   // Order status quick-update
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
+  // Error state for stage saves (replaces alert())
+  const [stageSaveError, setStageSaveError] = useState<string | null>(null);
+
   useEffect(() => {
     async function fetchOrder() {
       try {
@@ -425,6 +428,7 @@ export default function OrderDetailPage() {
         });
         // Trigger timeline refresh to show new events
         setTimelineRefreshKey((k) => k + 1);
+        setStageSaveError(null);
         // Close the editing panel
         setEditingStageId(null);
         setEditingProgress(0);
@@ -435,11 +439,11 @@ export default function OrderDetailPage() {
         setEditingExpectedEnd("");
       } else {
         console.error("Failed to save stage:", data.error || "Unknown error");
-        alert(data.error || "Failed to save changes. Please try again.");
+        setStageSaveError(data.error || "Failed to save changes. Please try again.");
       }
     } catch (err) {
       console.error("Failed to update stage:", err);
-      alert("Failed to save changes. Please try again.");
+      setStageSaveError("Failed to save changes. Please try again.");
     } finally {
       setIsSavingStage(false);
     }
@@ -859,6 +863,16 @@ export default function OrderDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Stage save error banner */}
+              {stageSaveError && (
+                <div className="flex items-center justify-between rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 p-3 text-sm text-red-600 dark:text-red-300">
+                  <span>{stageSaveError}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setStageSaveError(null)} className="h-6 w-6 p-0">
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+
               {/* Order Information Changes — admin-only notes section */}
               {isAdminOrOwner && (
                 <div className="p-4 rounded-lg border border-dashed border-purple-200 dark:border-zinc-600 bg-purple-50/50 dark:bg-zinc-800/50">
@@ -923,7 +937,9 @@ export default function OrderDetailPage() {
                           {stage.status.replace("_", " ")}
                         </Badge>
                         {/* Expand button for stages with notes or metadata */}
-                        {(stage.notes || (stage.metadata && typeof stage.metadata === "object" && !Array.isArray(stage.metadata) && Object.keys(stage.metadata as Record<string, unknown>).length > 0)) && editingStageId !== stage.id && (
+                        {(stage.notes || (stage.metadata && typeof stage.metadata === "object" && (
+                          Array.isArray(stage.metadata) ? (stage.metadata as { key: string; value: unknown }[]).length > 0 : Object.keys(stage.metadata as Record<string, unknown>).length > 0
+                        ))) && editingStageId !== stage.id && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -942,7 +958,7 @@ export default function OrderDetailPage() {
                         <span className="text-sm font-medium">
                           {stage.progress}%
                         </span>
-                        {editingStageId !== stage.id && (
+                        {isAdminOrOwner && editingStageId !== stage.id && (
                           <Button
                             variant="ghost"
                             size="sm"

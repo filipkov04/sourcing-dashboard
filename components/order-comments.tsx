@@ -131,8 +131,8 @@ export function OrderComments({
       if (data.success) {
         setComments(data.data);
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Failed to fetch comments:", err);
     } finally {
       setIsLoading(false);
     }
@@ -209,8 +209,8 @@ export function OrderComments({
         setEditingId(null);
         setEditContent("");
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Failed to save comment edit:", err);
     } finally {
       setIsSaving(false);
     }
@@ -229,8 +229,8 @@ export function OrderComments({
       if (res.ok && data.success) {
         setComments((prev) => prev.filter((c) => c.id !== commentId));
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
     } finally {
       setDeletingId(null);
     }
@@ -439,7 +439,7 @@ export function OrderComments({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400 dark:text-zinc-600 hidden sm:inline">
-                    {navigator.platform?.includes("Mac") ? "⌘" : "Ctrl"}+Enter to send
+                    {typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘" : "Ctrl"}+Enter to send
                   </span>
                   <Button
                     size="sm"

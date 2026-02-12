@@ -411,14 +411,14 @@ export function HorizontalTimeline({
         setFocusedIndex((prev) => Math.min(prev + 1, allNodeIds.length - 1));
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
-        setFocusedIndex((prev) => Math.max(prev - 1, -1));
+        setFocusedIndex((prev) => Math.max(prev - 1, 0));
       } else if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        const nodeId = focusedIndex === -1 ? "order-info" : allNodeIds[focusedIndex];
+        const nodeId = allNodeIds[focusedIndex];
         if (nodeId) handleNodeClick(nodeId);
       } else if (e.key === "Escape") {
         setExpandedNodeIds(new Set());
-        setFocusedIndex(-1);
+        setFocusedIndex(0);
       }
     },
     [allNodeIds, focusedIndex, handleNodeClick]
@@ -426,7 +426,7 @@ export function HorizontalTimeline({
 
   // Focus the right button when focusedIndex changes
   useEffect(() => {
-    if (!hasInteracted.current || focusedIndex < -1 || !timelineRef.current) return;
+    if (!hasInteracted.current || focusedIndex < 0 || !timelineRef.current) return;
     const buttons = timelineRef.current.querySelectorAll<HTMLButtonElement>("[data-timeline-node]");
     const idx = focusedIndex + 1;
     if (buttons[idx]) {

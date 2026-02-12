@@ -10,6 +10,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!["OWNER", "ADMIN", "MEMBER"].includes(session.user.role)) {
+      return NextResponse.json({ error: "Viewers cannot export data" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
 
     // Same filters as the orders list
@@ -102,7 +106,7 @@ export async function GET(request: NextRequest) {
       ].map(escapeCSV).join(",");
     });
 
-    const csv = [headers.join(","), ...rows].join("\n");
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
 
     const filename = `orders-export-${new Date().toISOString().split("T")[0]}.csv`;
 

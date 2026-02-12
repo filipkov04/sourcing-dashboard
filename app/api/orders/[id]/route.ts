@@ -112,7 +112,7 @@ export async function PATCH(
     }
 
     // Build update data
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (orderNumber !== undefined && orderNumber !== null) updateData.orderNumber = orderNumber.trim();
     if (productName !== undefined && productName !== null) updateData.productName = productName.trim();
     if (productSKU !== undefined) updateData.productSKU = productSKU ? productSKU.trim() : null;
@@ -142,32 +142,34 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;
     if (tags !== undefined) updateData.tags = tags;
 
-    // Handle stages update — upsert by sequence to preserve stage IDs and their linked history
+    // Handle stages update — upsert to preserve IDs, metadata, timestamps, and relations
     if (stages !== undefined) {
-      const existingBySeq = new Map<number, { id: string; name: string }>();
-      for (const s of existingOrder.stages) {
-        existingBySeq.set(s.sequence, { id: s.id, name: s.name });
+      type StageInput = { id?: string; name: string; sequence: number; progress?: number; status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED"; notes?: string };
+      const incomingStages: StageInput[] = stages;
+      const existingStageIds = existingOrder.stages.map((s) => s.id);
+      const incomingIds = incomingStages.filter((s) => s.id).map((s) => s.id!);
+
+      // Delete stages that were removed (not in incoming list)
+      const idsToDelete = existingStageIds.filter((eid) => !incomingIds.includes(eid));
+      if (idsToDelete.length > 0) {
+        await prisma.orderStage.deleteMany({
+          where: { id: { in: idsToDelete }, orderId: id },
+        });
       }
 
-      const incomingSequences = new Set<number>();
-      for (const stage of stages as { name: string; sequence: number; progress?: number; status?: string; notes?: string }[]) {
-        incomingSequences.add(stage.sequence);
-        const existing = existingBySeq.get(stage.sequence);
-
-        if (existing) {
-          // Update existing stage in place (preserves ID, history, and admin notes)
+      // Update existing stages and create new ones
+      for (const stage of incomingStages) {
+        if (stage.id && existingStageIds.includes(stage.id)) {
+          // Update existing — only touch name and sequence, preserve everything else
           await prisma.orderStage.update({
-            where: { id: existing.id },
+            where: { id: stage.id },
             data: {
               name: stage.name,
               sequence: stage.sequence,
-              progress: stage.progress ?? undefined,
-              status: stage.status ?? undefined,
-              notes: stage.notes !== undefined ? (stage.notes || null) : undefined,
             },
           });
         } else {
-          // Create genuinely new stage
+          // Create new stage
           await prisma.orderStage.create({
             data: {
               orderId: id,
@@ -179,19 +181,6 @@ export async function PATCH(
             },
           });
         }
-      }
-
-      // Delete stages that were removed (sequence no longer present)
-      const removedIds: string[] = [];
-      for (const [seq, s] of existingBySeq) {
-        if (!incomingSequences.has(seq)) {
-          removedIds.push(s.id);
-        }
-      }
-      if (removedIds.length > 0) {
-        await prisma.orderStage.deleteMany({
-          where: { id: { in: removedIds } },
-        });
       }
     }
 
@@ -208,10 +197,10 @@ export async function PATCH(
     });
 
     // Log events for changed fields
-    const eventPromises: Promise<any>[] = [];
+    const eventPromises: Promise<unknown>[] = [];
 
     // Track field changes
-    const fieldsToTrack: { field: string; oldValue: any; newValue: any; eventType: OrderEventType }[] = [];
+    const fieldsToTrack: { field: string; oldValue: string | null; newValue: string | null; eventType: OrderEventType }[] = [];
 
     // Status change
     if (status !== undefined && status !== existingOrder.status) {

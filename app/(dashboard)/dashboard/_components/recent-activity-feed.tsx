@@ -49,7 +49,7 @@ export function RecentActivityFeed() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         </div>
@@ -70,7 +70,7 @@ export function RecentActivityFeed() {
 
   if (activities.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
         <div className="text-center py-8">
           <Clock className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500 mb-3" />
@@ -81,7 +81,7 @@ export function RecentActivityFeed() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         <Link

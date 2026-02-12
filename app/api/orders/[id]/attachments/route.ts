@@ -99,9 +99,16 @@ export async function POST(
       );
     }
 
+    // Sanitize file name: remove path traversal, special chars, keep extension
+    const sanitizedName = file.name
+      .replace(/[/\\]/g, "_")       // remove path separators
+      .replace(/\.\./g, "_")        // remove path traversal
+      .replace(/[^a-zA-Z0-9._-]/g, "_")  // only safe chars
+      .slice(0, 200);               // cap length
+
     // Upload to Supabase Storage
     const fileId = crypto.randomUUID();
-    const storagePath = `${id}/${fileId}-${file.name}`;
+    const storagePath = `${id}/${fileId}-${sanitizedName}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const { error: uploadError } = await supabase.storage

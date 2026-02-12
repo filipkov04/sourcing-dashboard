@@ -105,8 +105,8 @@ export function OrderAttachments({ orderId, isAdmin }: OrderAttachmentsProps) {
       if (data.success) {
         setAttachments(data.data);
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Failed to fetch attachments:", err);
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +116,7 @@ export function OrderAttachments({ orderId, isAdmin }: OrderAttachmentsProps) {
     fetchAttachments();
   }, [fetchAttachments]);
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = useCallback(async (file: File) => {
     setUploadError(null);
 
     if (file.size > MAX_FILE_SIZE) {
@@ -141,12 +141,13 @@ export function OrderAttachments({ orderId, isAdmin }: OrderAttachmentsProps) {
       } else {
         setUploadError(data.error || "Upload failed");
       }
-    } catch {
+    } catch (err) {
+      console.error("Failed to upload file:", err);
       setUploadError("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [orderId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,13 +164,13 @@ export function OrderAttachments({ orderId, isAdmin }: OrderAttachmentsProps) {
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) {
-        uploadFile(file);
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        // Upload all dropped files sequentially
+        Array.from(files).forEach((file) => uploadFile(file));
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [orderId]
+    [uploadFile]
   );
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -197,8 +198,8 @@ export function OrderAttachments({ orderId, isAdmin }: OrderAttachmentsProps) {
         link.click();
         document.body.removeChild(link);
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Failed to download attachment:", err);
     }
   };
 
@@ -213,8 +214,8 @@ export function OrderAttachments({ orderId, isAdmin }: OrderAttachmentsProps) {
       if (res.ok && data.success) {
         setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Failed to delete attachment:", err);
     } finally {
       setDeletingId(null);
     }

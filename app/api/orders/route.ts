@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { success, error, unauthorized, handleError } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
@@ -20,20 +21,26 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority");
 
     // Build where clause
-    const where: any = {
+    const validStatuses = [
+      "PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED",
+      "COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED",
+    ] as const;
+    const validPriorities = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
+
+    const where: Prisma.OrderWhereInput = {
       organizationId: session.user.organizationId,
     };
 
-    if (status) {
-      where.status = status;
+    if (status && (validStatuses as readonly string[]).includes(status)) {
+      where.status = status as (typeof validStatuses)[number];
     }
 
     if (factoryId) {
       where.factoryId = factoryId;
     }
 
-    if (priority) {
-      where.priority = priority;
+    if (priority && (validPriorities as readonly string[]).includes(priority)) {
+      where.priority = priority as (typeof validPriorities)[number];
     }
 
     if (search) {

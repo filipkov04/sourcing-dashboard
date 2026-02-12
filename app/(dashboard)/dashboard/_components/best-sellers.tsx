@@ -58,7 +58,7 @@ export function BestSellers() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Best Sellers</h2>
@@ -83,7 +83,7 @@ export function BestSellers() {
 
   if (bestSellers.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Best Sellers</h2>
           <p className="text-sm text-gray-500 dark:text-zinc-400">Based on order volume</p>
@@ -100,7 +100,7 @@ export function BestSellers() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Best Sellers</h2>
