@@ -64,7 +64,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <ThemeToggle />
 
         {/* Notifications */}
-        <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300">
+        <button aria-label="Notifications" className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300">
           <Bell className="h-5 w-5" />
           {/* Badge for unread notifications */}
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />

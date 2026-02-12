@@ -536,12 +536,12 @@ export default function TeamPage() {
       </Card>
 
       {/* Pending Invitations */}
-      {isAdminOrOwner && invitations.length > 0 && (
+      {isAdminOrOwner && invitations.filter((inv) => inv.status === "PENDING").length > 0 && (
         <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
               <Mail className="h-5 w-5 text-orange-500" />
-              Pending Invitations ({invitations.length})
+              Pending Invitations ({invitations.filter((inv) => inv.status === "PENDING").length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -567,7 +567,7 @@ export default function TeamPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invitations.map((invitation) => {
+                  {invitations.filter((inv) => inv.status === "PENDING").map((invitation) => {
                     const invitedDate = new Date(invitation.createdAt).toLocaleDateString(
                       "en-US",
                       { month: "short", day: "numeric" }

@@ -2,31 +2,44 @@
 
 ## 🎯 Current Status & Next Steps
 
-**Last Updated:** February 8, 2026 - Session 13
+**Last Updated:** February 12, 2026 - Session 15
 
 **Current Week:** Week 3 of 8
 
-**Completed Today (Session 13):**
+**Completed Today (Session 15):**
+- ✅ **Product Image on Order Detail Page** — Redesigned product info section
+  - Added `productImage` field to Order type
+  - Product image displays as 40×40 rounded thumbnail alongside product details
+  - Layout changed from grid to flex with image + stacked text (name, SKU, quantity, tags)
+  - `onError` fallback hides broken images gracefully
+  - Uncommented `productImage` field in order creation API (`POST /api/orders`)
+- ✅ **Light Mode Fixes — Factory Pages**
+  - Factory edit page: Fixed 6 hardcoded `text-white` → `text-gray-900 dark:text-white`
+  - Factory edit page: Fixed error message colors for light mode
+  - Factory detail page: Updated all status badge colors with proper light/dark variants
+  - Factory detail page: Updated all priority badge colors with proper light/dark variants
+- ✅ **Team Page — Pending Invitations Filter Fix**
+  - Filtered invitations to only show `PENDING` status (was showing all statuses)
+  - Fixed count badge to reflect pending-only count
+  - Fixed table rows to only render pending invitations
+- ✅ **Registration — Email Normalization**
+  - Normalized email to `.trim().toLowerCase()` at the top of the handler
+  - Applied consistently across: existence check, invitation match, user creation, whitelist check
+- ✅ **Types — Missing Status Values**
+  - Added `DISRUPTED` to `OrderUpdateFormData.status` and `OrderFilters.status`
+  - Added `DELAYED` and `BLOCKED` to `StageProgressUpdate.status`
+- ✅ **Header Accessibility** — Added `aria-label="Notifications"` to bell button
+
+**Completed Previously (Session 14):**
+- ✅ **Timeline Node Cards — Icons → Sequence Numbers**
+- ✅ **Removed Expected Date Range Bars from Timeline**
+
+**Completed Previously (Session 13):**
 - ✅ **Enhanced Factory Globe with Zoom Levels** — Full rebuild of globe component
-  - 3 zoom tiers: Country (1.0-1.3), City (1.4-2.2), Precise/Factory (2.3-4.0)
-  - Scroll wheel zoom on canvas, clamped 1.0-4.0, cobe `scale` param tied to zoom
-  - Marker aggregation per tier (country centroids → city centroids → individual factories)
-  - Floating tooltip on hover showing label + factory/order counts
-  - Zoom indicator badge (Country/City/Factory) + zoom progress bar with +/- buttons
-  - Marker list adapts to current tier
 - ✅ **Google Maps Geocoding Support** — Added to `lib/geo.ts`
-  - `geocodeWithGoogle(address)` — calls Google Maps Geocoding API
-  - `geocodeFactory(location, address?)` — tries Google API first, falls back to static lookup
-  - `parseCountry()` and `parseCity()` helper functions
-  - Works without API key (static lookup covers 50+ manufacturing cities)
 - ✅ **Geocode API Endpoints** — Single + batch geocoding
-  - `POST /api/factories/[id]/geocode` — geocode one factory, save lat/lng to DB
-  - `POST /api/factories/geocode-all` — batch geocode all factories missing coordinates
 - ✅ **Factory Schema Update** — Added `latitude Float?` and `longitude Float?` to Factory model
-- ✅ **Updated factory-locations API** — Returns country, city, address fields; prefers DB lat/lng over static geocode
-- ✅ **Seeded 10 test factories** across China, Bangladesh, Turkey, Vietnam, India, Indonesia, Italy, Thailand, Portugal
-- ✅ **Fixed Radix hydration mismatch** — Added `suppressHydrationWarning` to header dropdown trigger
-- ✅ **Updated stress test** — Added geocode-all endpoint
+- ✅ **Seeded 10 test factories** across 9 countries
 
 **Planned (Backlog BL-1): Project Selector for Dashboard**
 - Add `Project` model + `projectId` on Order
@@ -1555,4 +1568,41 @@ All layout calculations in `horizontal-timeline.tsx`, `timeline-status-zones.tsx
   - `components/timeline/timeline-types.ts` — added `sequenceBgColor` to all 7 status configs
   - `components/timeline/timeline-node.tsx` — removed icon mapping, added sequence circle
   - `components/timeline/horizontal-timeline.tsx` — removed date range bars, pass `sequence` prop
+
+### Session 15 - Product Image on Order Page, Light Mode & Code Cleanup - Feb 12, 2026
+
+- **Product Image on Order Detail Page:**
+  - Added `productImage: string | null` to Order type in `orders/[id]/page.tsx`
+  - Redesigned "Product Information" card: flex layout with image thumbnail + stacked text
+  - Product image renders as 160×160 rounded cover image (hidden on error via `onError`)
+  - Product name, SKU, quantity, and tags displayed alongside image
+  - Uncommented `productImage` field in `POST /api/orders` creation endpoint
+
+- **Light Mode Fixes — Factory Pages:**
+  - `factories/[id]/edit/page.tsx`: Fixed 6× hardcoded `text-white` headings → `text-gray-900 dark:text-white`
+  - `factories/[id]/edit/page.tsx`: Fixed error banner colors for light mode (`bg-red-50`, `text-red-600`)
+  - `factories/[id]/page.tsx`: Updated 8 status badge colors + 4 priority badge colors with proper light/dark variants
+
+- **Team Page — Pending Invitations Filter:**
+  - `team/page.tsx`: Filtered invitations list, count badge, and table to only show `PENDING` status
+
+- **Registration — Email Normalization:**
+  - `api/auth/register/route.ts`: Normalized email once at top (`trim().toLowerCase()`), applied to all 5 usage points
+
+- **Types — Missing Status Values:**
+  - `lib/types.ts`: Added `DISRUPTED` to `OrderUpdateFormData` and `OrderFilters` status unions
+  - `lib/types.ts`: Added `DELAYED` | `BLOCKED` to `StageProgressUpdate` status union
+
+- **Header Accessibility:**
+  - `components/layout/header.tsx`: Added `aria-label="Notifications"` to bell icon button
+
+- **Files Modified (8):**
+  - `app/(dashboard)/orders/[id]/page.tsx` — product image display + layout redesign
+  - `app/api/orders/route.ts` — uncommented productImage field
+  - `app/(dashboard)/factories/[id]/edit/page.tsx` — light mode text/error fixes
+  - `app/(dashboard)/factories/[id]/page.tsx` — status/priority badge color updates
+  - `app/(dashboard)/team/page.tsx` — pending invitations filter
+  - `app/api/auth/register/route.ts` — email normalization
+  - `lib/types.ts` — added missing status values
+  - `components/layout/header.tsx` — aria-label for notifications
 

@@ -67,21 +67,21 @@ type Factory = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  IN_PROGRESS: "bg-blue-100 text-blue-800",
-  DELAYED: "bg-orange-100 text-orange-800",
-  DISRUPTED: "bg-red-100 text-red-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-200",
-  CANCELLED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
+  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  DELAYED: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+  DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+  COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+  SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  DELIVERED: "bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300",
+  CANCELLED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-300",
-  NORMAL: "bg-blue-100 text-blue-800",
-  HIGH: "bg-orange-100 text-orange-800",
-  URGENT: "bg-red-100 text-red-800",
+  LOW: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
+  NORMAL: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+  HIGH: "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+  URGENT: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
 };
 
 export default function FactoryDetailPage() {

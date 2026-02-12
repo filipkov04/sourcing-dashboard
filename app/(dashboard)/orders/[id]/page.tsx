@@ -93,6 +93,7 @@ type Order = {
   orderNumber: string;
   productName: string;
   productSKU: string | null;
+  productImage: string | null;
   quantity: number;
   unit: string;
   overallProgress: number;
@@ -684,23 +685,34 @@ export default function OrderDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">Product Name</p>
-                <p className="font-medium">{order.productName}</p>
-              </div>
-              {order.productSKU && (
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">SKU</p>
-                  <p className="font-medium">{order.productSKU}</p>
-                </div>
+            <div className="flex items-start gap-5">
+              {order.productImage && (
+                <img
+                  src={order.productImage}
+                  alt={order.productName}
+                  className="w-40 h-40 rounded-lg object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
               )}
-              <div>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">Quantity</p>
-                <p className="font-medium">
-                  {order.quantity.toLocaleString()} {order.unit}
+              <div className="space-y-1.5">
+                <p className="text-lg font-semibold">{order.productName}</p>
+                {order.productSKU && (
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">SKU: {order.productSKU}</p>
+                )}
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
+                  Quantity: {order.quantity.toLocaleString()} {order.unit}
                 </p>
+                {order.tags && order.tags.length > 0 && (
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">
+                    Category: {order.tags.join(', ')}
+                  </p>
+                )}
               </div>
+            </div>
+
+            <hr className="my-4" />
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Order Number</p>
                 <p className="font-medium">{order.orderNumber}</p>

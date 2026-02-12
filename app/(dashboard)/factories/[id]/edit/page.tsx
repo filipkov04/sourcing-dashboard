@@ -151,7 +151,7 @@ export default function EditFactoryPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">Edit Factory</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Factory</h1>
           <p className="text-sm text-gray-500 dark:text-zinc-400">Update factory information</p>
         </div>
       </div>
@@ -163,7 +163,7 @@ export default function EditFactoryPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Error Message */}
             {error && (
-              <div className="rounded-md bg-red-900/50 border border-red-700 p-4 text-sm text-red-300">
+              <div className="rounded-md bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 p-4 text-sm text-red-600 dark:text-red-300">
                 {error}
               </div>
             )}
@@ -171,7 +171,7 @@ export default function EditFactoryPage() {
             {/* Basic Information */}
             <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
-                <CardTitle className="text-white">Basic Information</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white">Basic Information</CardTitle>
                 <CardDescription className="text-gray-500 dark:text-zinc-400">
                   Essential details about the factory
                 </CardDescription>
@@ -239,7 +239,7 @@ export default function EditFactoryPage() {
             {/* Contact Information */}
             <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
-                <CardTitle className="text-white">Contact Information</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white">Contact Information</CardTitle>
                 <CardDescription className="text-gray-500 dark:text-zinc-400">
                   Primary contact at the factory (optional)
                 </CardDescription>
@@ -310,7 +310,7 @@ export default function EditFactoryPage() {
             {/* Submit Card */}
             <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
-                <CardTitle className="text-white">Save Changes?</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white">Save Changes?</CardTitle>
                 <CardDescription className="text-gray-500 dark:text-zinc-400">
                   Review the information and submit
                 </CardDescription>
@@ -346,7 +346,7 @@ export default function EditFactoryPage() {
             {/* Help Card */}
             <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
               <CardHeader>
-                <CardTitle className="text-base text-white">Need help?</CardTitle>
+                <CardTitle className="text-base text-gray-900 dark:text-white">Need help?</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-gray-500 dark:text-zinc-400">
                 <ul className="space-y-2">

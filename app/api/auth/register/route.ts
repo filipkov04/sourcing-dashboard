@@ -7,6 +7,9 @@ export async function POST(request: Request) {
   try {
     const { name, email, password, organizationName, invitationToken } = await request.json();
 
+    // Normalize email
+    const normalizedEmail = email?.trim().toLowerCase();
+
     // Validate input
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -24,7 +27,7 @@ export async function POST(request: Request) {
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -69,7 +72,7 @@ export async function POST(request: Request) {
         );
       }
 
-      if (invitation.email !== email.trim().toLowerCase()) {
+      if (invitation.email !== normalizedEmail) {
         return NextResponse.json(
           { error: "This invitation was sent to a different email address" },
           { status: 400 }
@@ -81,7 +84,7 @@ export async function POST(request: Request) {
         const user = await tx.user.create({
           data: {
             name,
-            email: email.trim().toLowerCase(),
+            email: normalizedEmail,
             password: hashedPassword,
             role: invitation.role,
             organizationId: invitation.organizationId,
@@ -118,7 +121,7 @@ export async function POST(request: Request) {
     }
 
     // Check if email is whitelisted
-    if (!isEmailWhitelisted(email)) {
+    if (!isEmailWhitelisted(normalizedEmail)) {
       return NextResponse.json(
         { error: getWhitelistErrorMessage() },
         { status: 403 }
@@ -155,7 +158,7 @@ export async function POST(request: Request) {
       const user = await tx.user.create({
         data: {
           name,
-          email,
+          email: normalizedEmail,
           password: hashedPassword,
           role: "OWNER",
           organizationId: organization.id,
