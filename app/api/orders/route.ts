@@ -51,6 +51,8 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    const includeStages = searchParams.get("include") === "stages";
+
     const orders = await prisma.order.findMany({
       where,
       include: {
@@ -61,11 +63,25 @@ export async function GET(request: NextRequest) {
             location: true,
           },
         },
-        stages: {
-          select: {
-            status: true,
-          },
-        },
+        stages: includeStages
+          ? {
+              select: {
+                id: true,
+                name: true,
+                sequence: true,
+                status: true,
+                expectedStartDate: true,
+                expectedEndDate: true,
+                startedAt: true,
+                completedAt: true,
+              },
+              orderBy: { sequence: "asc" },
+            }
+          : {
+              select: {
+                status: true,
+              },
+            },
         _count: {
           select: { stages: true },
         },

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Factory,
   Package,
+  CalendarRange,
   Users,
   Settings,
   ChevronLeft,
@@ -28,6 +29,11 @@ const navigation = [
     name: "Orders",
     href: "/orders",
     icon: Package,
+  },
+  {
+    name: "Timeline",
+    href: "/timeline",
+    icon: CalendarRange,
   },
   {
     name: "Team",

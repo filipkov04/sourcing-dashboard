@@ -948,10 +948,8 @@ export default function OrderDetailPage() {
                         >
                           {stage.status.replace("_", " ")}
                         </Badge>
-                        {/* Expand button for stages with notes or metadata */}
-                        {(stage.notes || (stage.metadata && typeof stage.metadata === "object" && (
-                          Array.isArray(stage.metadata) ? (stage.metadata as { key: string; value: unknown }[]).length > 0 : Object.keys(stage.metadata as Record<string, unknown>).length > 0
-                        ))) && editingStageId !== stage.id && (
+                        {/* Expand button — always visible so users can view/add metadata */}
+                        {editingStageId !== stage.id && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1408,6 +1406,14 @@ export default function OrderDetailPage() {
                             }
                             return Object.entries(stage.metadata as Record<string, unknown>).map(([key, value]) => ({ key, value: String(value) }));
                           })();
+                      const hasNotes = !!stage.notes;
+                      if (entries.length === 0 && !isEditingThis && !hasNotes) {
+                        return (
+                          <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
+                            <p className="text-sm text-gray-400 dark:text-zinc-500 italic">No additional information added yet.</p>
+                          </div>
+                        );
+                      }
                       if (entries.length === 0 && !isEditingThis) return null;
                       return (
                         <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">

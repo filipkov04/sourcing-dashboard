@@ -57,3 +57,26 @@ The current timeline canvas has a plain empty background and uses equal-spaced 1
 | `components/timeline/timeline-node.tsx` | Increase padding/spacing |
 | `components/timeline/timeline-date-utils.ts` | Import constant, replace hardcoded 160 |
 | `components/timeline/timeline-canvas.tsx` | Import constant, replace hardcoded 110 |
+
+---
+
+## 3. Globe Zoom & Tier Selector Redesign
+
+**Status:** READY TO IMPLEMENT
+**Trigger:** Say "implement the globe zoom redesign"
+
+### Context
+
+Currently the globe zoom (1x–4x) only scales the sphere and auto-switches the label tier (country → city → factory). Tooltip accuracy degrades at higher zoom because markers don't spread apart — the sphere just gets bigger. Users want Google Maps-style zoom that moves the camera closer, spreading markers apart, and a manual selector for the label tier.
+
+### Changes
+
+1. **Real camera zoom** — Replace cobe `scale` with cobe `offset` (camera distance). This makes zoom actually move into the globe so markers spread apart at higher zoom, improving tooltip accuracy.
+2. **Manual tier selector** — Replace the auto-switching "Country" / "City" / "Factory" badge with a 3-segment toggle the user can click to choose which aggregation level they see (country, city, or factory names), independent of zoom level.
+3. **Tooltip accuracy** — The projection math (already using cobe's `J(theta, phi)` rotation matrix) should stay accurate since real zoom spreads markers apart rather than just scaling.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `app/(dashboard)/dashboard/_components/factory-globe.tsx` | Replace `scale` zoom with `offset`-based zoom, add tier toggle UI, decouple tier from zoom state |

@@ -102,9 +102,10 @@ function precisMarkers(locations: FactoryLocation[]): AggregatedMarker[] {
 export function FactoryGlobe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const pointerInteracting = useRef<number | null>(null);
-  const pointerInteractionMovement = useRef(0);
+  const pointerInteracting = useRef<{ x: number; y: number } | null>(null);
+  const pointerInteractionMovement = useRef({ x: 0, y: 0 });
   const phiRef = useRef(0);
+  const thetaRef = useRef(0);
   const globeRef = useRef<ReturnType<typeof createGlobe> | null>(null);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -145,22 +146,21 @@ export function FactoryGlobe() {
     fetchLocations();
   }, []);
 
-  const setupGlobe = useCallback(() => {
-    if (!canvasRef.current) return;
+  // Use refs for values that change often so we don't recreate the globe
+  const markersRef = useRef(markers);
+  markersRef.current = markers;
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const [globeError, setGlobeError] = useState(false);
 
-    if (globeRef.current) {
-      globeRef.current.destroy();
-      globeRef.current = null;
-    }
+  // Create globe only once when canvas is available and locations are loaded
+  useEffect(() => {
+    if (isLoading || !canvasRef.current) return;
 
-    const cobeMarkers = markers.map((m) => ({
-      location: [m.lat, m.lng] as [number, number],
-      size: tier === "country"
-        ? Math.min(0.15 + m.factories * 0.04, 0.35)
-        : tier === "city"
-          ? Math.min(0.1 + m.factories * 0.03, 0.25)
-          : Math.min(0.06 + m.count * 0.015, 0.15),
-    }));
+    // Use a fresh canvas element to avoid stale WebGL context issues
+    const canvas = canvasRef.current;
 
     let focusLat = 25;
     let focusLng = 110;
@@ -172,29 +172,48 @@ export function FactoryGlobe() {
     const initialPhi = ((90 - focusLat) * Math.PI) / 180;
     const initialTheta = ((focusLng + 180) * Math.PI) / 180;
     phiRef.current = initialTheta;
+    thetaRef.current = initialPhi - Math.PI / 2;
 
-    globeRef.current = createGlobe(canvasRef.current, {
-      devicePixelRatio: 2,
-      width: 500,
-      height: 500,
-      phi: initialTheta,
-      theta: initialPhi - Math.PI / 2,
-      dark: isDark ? 1 : 0,
-      diffuse: isDark ? 1.2 : 2,
-      mapSamples: 16000,
-      mapBrightness: isDark ? 2.5 : 8,
-      baseColor: isDark ? [0.15, 0.15, 0.18] : [0.95, 0.95, 0.97],
-      markerColor: [0.92, 0.36, 0.18],
-      glowColor: isDark ? [0.08, 0.08, 0.12] : [0.85, 0.85, 0.9],
-      markers: cobeMarkers,
-      scale: zoom,
-      onRender: (state) => {
-        if (!pointerInteracting.current) {
-          phiRef.current += 0.003;
-        }
-        state.phi = phiRef.current + pointerInteractionMovement.current;
-      },
-    });
+    const currentMarkers = markersRef.current;
+    const currentTier = getTier(zoomRef.current);
+    const cobeMarkers = currentMarkers.map((m) => ({
+      location: [m.lat, m.lng] as [number, number],
+      size: currentTier === "country"
+        ? Math.min(0.15 + m.factories * 0.04, 0.35)
+        : currentTier === "city"
+          ? Math.min(0.1 + m.factories * 0.03, 0.25)
+          : Math.min(0.06 + m.count * 0.015, 0.15),
+    }));
+
+    const dark = isDarkRef.current;
+
+    try {
+      globeRef.current = createGlobe(canvas, {
+        devicePixelRatio: 2,
+        width: 500,
+        height: 500,
+        phi: initialTheta,
+        theta: initialPhi - Math.PI / 2,
+        dark: dark ? 1 : 0,
+        diffuse: dark ? 1.2 : 2,
+        mapSamples: 16000,
+        mapBrightness: dark ? 2.5 : 8,
+        baseColor: dark ? [0.15, 0.15, 0.18] : [0.95, 0.95, 0.97],
+        markerColor: [0.92, 0.36, 0.18],
+        glowColor: dark ? [0.08, 0.08, 0.12] : [0.85, 0.85, 0.9],
+        markers: cobeMarkers,
+        scale: zoomRef.current,
+        onRender: (state) => {
+          if (!pointerInteracting.current) {
+            phiRef.current += 0.003;
+          }
+          state.phi = phiRef.current + pointerInteractionMovement.current.x;
+          state.theta = thetaRef.current + pointerInteractionMovement.current.y;
+        },
+      });
+    } catch {
+      setGlobeError(true);
+    }
 
     return () => {
       if (globeRef.current) {
@@ -202,12 +221,9 @@ export function FactoryGlobe() {
         globeRef.current = null;
       }
     };
-  }, [markers, isDark, zoom, locations]);
-
-  useEffect(() => {
-    const cleanup = setupGlobe();
-    return cleanup;
-  }, [setupGlobe]);
+    // Only recreate when locations change (initial load) — not on zoom/theme
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, locations]);
 
   // Scroll zoom handler
   useEffect(() => {
@@ -230,8 +246,9 @@ export function FactoryGlobe() {
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (pointerInteracting.current !== null) {
-        const delta = e.clientX - pointerInteracting.current;
-        pointerInteractionMovement.current = delta / 100;
+        const deltaX = e.clientX - pointerInteracting.current.x;
+        const deltaY = e.clientY - pointerInteracting.current.y;
+        pointerInteractionMovement.current = { x: deltaX / 100, y: deltaY / 100 };
         setTooltip(null);
         return;
       }
@@ -248,27 +265,41 @@ export function FactoryGlobe() {
       const mouseY = e.clientY - rect.top;
       const cx = rect.width / 2;
       const cy = rect.height / 2;
-      const r = (rect.width / 2) * zoom * 0.6;
+      // 0.8 matches cobe's sphere radius in normalized coords (sqrt(0.64))
+      const r = 0.8 * zoom * rect.width / 2;
+
+      // Current globe rotation matching cobe's J(theta, phi) matrix
+      const globePhi = phiRef.current + pointerInteractionMovement.current.x;
+      const globeTheta = thetaRef.current + pointerInteractionMovement.current.y;
+      const cp = Math.cos(globePhi), sp = Math.sin(globePhi);
+      const ct = Math.cos(globeTheta), st = Math.sin(globeTheta);
 
       let closest: AggregatedMarker | null = null;
       let closestDist = Infinity;
 
       for (const m of markers) {
-        // Simple equirectangular approximation for visible markers
-        const phi = (m.lng * Math.PI) / 180;
-        const theta = (m.lat * Math.PI) / 180;
+        // Convert lat/lng to 3D world position (matching cobe's coordinate system)
+        const latRad = (m.lat * Math.PI) / 180;
+        const lngRad = (m.lng * Math.PI) / 180;
+        const cosLat = Math.cos(latRad);
+        const px = cosLat * Math.cos(lngRad);
+        const py = Math.sin(latRad);
+        const pz = -cosLat * Math.sin(lngRad);
 
-        // Adjust for globe rotation
-        const rotatedPhi = phi - (phiRef.current + pointerInteractionMovement.current - Math.PI);
-        const x = cx + r * Math.cos(theta) * Math.sin(rotatedPhi);
-        const y = cy - r * Math.sin(theta);
+        // Apply cobe's rotation matrix J(theta, phi): world → view space
+        const vx = cp * px + sp * pz;
+        const vy = sp * st * px + ct * py - cp * st * pz;
+        const vz = -sp * ct * px + st * py + cp * ct * pz;
 
-        // Only show tooltip for markers on visible side
-        const visible = Math.cos(theta) * Math.cos(rotatedPhi) > 0;
-        if (!visible) continue;
+        // Only show tooltip for markers on visible side (facing camera)
+        if (vz <= 0) continue;
+
+        // Orthographic projection to screen coords
+        const x = cx + vx * r;
+        const y = cy - vy * r;
 
         const dist = Math.sqrt((mouseX - x) ** 2 + (mouseY - y) ** 2);
-        if (dist < 20 && dist < closestDist) {
+        if (dist < 25 && dist < closestDist) {
           closest = m;
           closestDist = dist;
         }
@@ -320,19 +351,37 @@ export function FactoryGlobe() {
 
       {/* Globe */}
       <div className="relative flex items-center justify-center">
+        {globeError && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-xs text-gray-400 dark:text-zinc-500">WebGL unavailable</p>
+          </div>
+        )}
         <canvas
           ref={canvasRef}
           style={{ width: 260, height: 260, maxWidth: "100%", aspectRatio: "1" }}
           className="cursor-grab active:cursor-grabbing"
           onPointerDown={(e) => {
-            pointerInteracting.current = e.clientX - pointerInteractionMovement.current;
+            pointerInteracting.current = {
+              x: e.clientX - pointerInteractionMovement.current.x,
+              y: e.clientY - pointerInteractionMovement.current.y,
+            };
             canvasRef.current && (canvasRef.current.style.cursor = "grabbing");
           }}
           onPointerUp={() => {
+            if (pointerInteracting.current) {
+              phiRef.current += pointerInteractionMovement.current.x;
+              thetaRef.current += pointerInteractionMovement.current.y;
+              pointerInteractionMovement.current = { x: 0, y: 0 };
+            }
             pointerInteracting.current = null;
             canvasRef.current && (canvasRef.current.style.cursor = "grab");
           }}
           onPointerOut={() => {
+            if (pointerInteracting.current) {
+              phiRef.current += pointerInteractionMovement.current.x;
+              thetaRef.current += pointerInteractionMovement.current.y;
+              pointerInteractionMovement.current = { x: 0, y: 0 };
+            }
             pointerInteracting.current = null;
             canvasRef.current && (canvasRef.current.style.cursor = "grab");
             setTooltip(null);
@@ -340,8 +389,9 @@ export function FactoryGlobe() {
           onMouseMove={handleMouseMove}
           onTouchMove={(e) => {
             if (pointerInteracting.current !== null && e.touches[0]) {
-              const delta = e.touches[0].clientX - pointerInteracting.current;
-              pointerInteractionMovement.current = delta / 100;
+              const deltaX = e.touches[0].clientX - pointerInteracting.current.x;
+              const deltaY = e.touches[0].clientY - pointerInteracting.current.y;
+              pointerInteractionMovement.current = { x: deltaX / 100, y: deltaY / 100 };
             }
           }}
         />
