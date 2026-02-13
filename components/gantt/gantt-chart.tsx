@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState, useMemo, useEffect } from "react";
+import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
+import { toPng } from "html-to-image";
+import { Download, Loader2 } from "lucide-react";
 import {
   computeGanttRange,
   dateToPixel,
@@ -79,8 +81,10 @@ interface GanttChartProps {
 export function GanttChart({ orders, highlightCritical = true }: GanttChartProps) {
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const [isExporting, setIsExporting] = useState(false);
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
@@ -197,6 +201,51 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
     setTooltip(null);
   };
 
+  const handleExport = useCallback(async () => {
+    const container = chartContainerRef.current;
+    const scrollEl = scrollRef.current;
+    if (!container || !scrollEl) return;
+
+    setIsExporting(true);
+
+    // Save original scroll state and styles
+    const origScrollLeft = scrollEl.scrollLeft;
+    const origOverflow = scrollEl.style.overflow;
+    const origWidth = scrollEl.style.width;
+    const origMinWidth = scrollEl.style.minWidth;
+
+    try {
+      // Expand the scroll container to show full timeline
+      scrollEl.style.overflow = "visible";
+      scrollEl.style.width = `${totalWidth}px`;
+      scrollEl.style.minWidth = `${totalWidth}px`;
+
+      // Wait for layout to settle
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      const dataUrl = await toPng(container, {
+        backgroundColor: isDark ? "#18181b" : "#ffffff",
+        pixelRatio: 2,
+      });
+
+      // Trigger download
+      const date = new Date().toISOString().slice(0, 10);
+      const link = document.createElement("a");
+      link.download = `timeline-${date}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to export timeline:", err);
+    } finally {
+      // Restore original state
+      scrollEl.style.overflow = origOverflow;
+      scrollEl.style.width = origWidth;
+      scrollEl.style.minWidth = origMinWidth;
+      scrollEl.scrollLeft = origScrollLeft;
+      setIsExporting(false);
+    }
+  }, [totalWidth, isDark]);
+
   return (
     <div className="space-y-3">
     {/* Zoom controls */}
@@ -216,7 +265,21 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
           </button>
         ))}
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleExport}
+          disabled={isExporting || orders.length === 0}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title="Download timeline as PNG"
+        >
+          {isExporting ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Download className="h-3.5 w-3.5" />
+          )}
+          {isExporting ? "Exporting…" : "Export PNG"}
+        </button>
+        <div className="flex items-center gap-1.5">
         <button
           onClick={() => handleZoom(pixelsPerDay - 4)}
           disabled={pixelsPerDay <= MIN_PIXELS_PER_DAY}
@@ -236,10 +299,11 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
         >
           +
         </button>
+        </div>
       </div>
     </div>
 
-    <div className="flex border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+    <div ref={chartContainerRef} className="flex border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
       {/* Fixed left labels */}
       <div
         className="flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700 z-10"
