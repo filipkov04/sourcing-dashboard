@@ -227,10 +227,10 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 4.16 | News Feed Data Layer | Filip | Create RSS parser utility, commodity price fetcher, and shared types for the live news system | `/lib/news/rss-parser.ts`, `/lib/news/commodity-prices.ts`, `/lib/news/types.ts` | 2h | ⏳ |
-| 4.17 | News Feed API Endpoint | Filip | Create API that fetches RSS feeds (Supply Chain Dive, FreightWaves, Commodity-TV) + commodity prices (API Ninjas), merges and caches results for 15 min | `/app/api/news/feed/route.ts` | 2h | ⏳ |
-| 4.18 | News Ticker UI Component | Filip | Build rotating headline bar with 6s auto-rotation, fade transitions, pause on hover, category badges, dismiss button (localStorage), dark/light theme | `/components/layout/news-ticker.tsx` | 3h | ⏳ |
-| 4.19 | Integrate News Ticker into Layout | Filip | Add ticker above header in AppLayout, install fast-xml-parser, add /api/news/ to middleware public routes | Modified: `app-layout.tsx`, `middleware.ts`, `package.json` | 1h | ⏳ |
+| 4.16 | News Feed Data Layer | Filip | Create RSS parser utility, commodity price fetcher, and shared types for the live news system | `/lib/news/rss-parser.ts`, `/lib/news/commodity-prices.ts`, `/lib/news/types.ts` | 2h | ✅ |
+| 4.17 | News Feed API Endpoint | Filip | Create API that fetches RSS feeds (Supply Chain Dive, FreightWaves, Supply Chain Brain) + commodity prices (API Ninjas), merges and caches results for 15 min | `/app/api/news/feed/route.ts` | 2h | ✅ |
+| 4.18 | News Ticker UI Component | Filip | Build rotating headline bar with 6s auto-rotation, fade transitions, pause on hover, category badges, brand orange theme, hover-to-reveal | `/components/layout/news-ticker.tsx` | 3h | ✅ |
+| 4.19 | Integrate News Ticker into Layout | Filip | Add ticker above header in AppLayout, install fast-xml-parser, add /api/news/ to middleware public routes | Modified: `app-layout.tsx`, `middleware.ts`, `package.json` | 1h | ✅ |
 
 **What Filip Creates:** A live sourcing news ticker bar at the top of every page showing rotating headlines about tariffs, raw material prices, supply chain disruptions, and trade policy — sourced from free RSS feeds and commodity price APIs.
 

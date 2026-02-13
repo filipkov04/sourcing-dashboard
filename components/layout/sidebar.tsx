@@ -63,7 +63,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-gray-100 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900",
+          "fixed lg:static inset-y-0 left-0 z-50 flex h-full flex-col border-r border-gray-100 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900",
           collapsed ? "w-16" : "w-64",
           // Mobile: hide by default, show when mobileOpen
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -98,7 +98,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               href={item.href}
               onClick={() => onMobileClose?.()}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center rounded-lg text-sm font-medium transition-colors",
+                collapsed ? "justify-center p-2" : "gap-3 px-3 py-2",
                 isActive
                   ? "bg-[#EB5D2E]/10 text-[#EB5D2E] font-semibold dark:bg-[#EB5D2E]/15 dark:text-[#EB5D2E]"
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
