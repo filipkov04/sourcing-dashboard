@@ -14,7 +14,7 @@ Web dashboard for fashion/manufacturing brands to track real-time production sta
 - **Database:** PostgreSQL on Supabase | **ORM:** Prisma 7
 - **Auth:** NextAuth.js v5
 - **Styling:** Tailwind CSS 4 (dark theme default) | **UI:** shadcn/ui (Radix)
-- **Charts:** Recharts | **DnD:** @dnd-kit | **Deployment:** Vercel
+- **Charts:** Recharts | **DnD:** @dnd-kit | **Export:** html-to-image | **Deployment:** Vercel
 
 ## Key Conventions
 
@@ -46,23 +46,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 16 — Feb 13, 2026)
+## Current Status (Session 17 — Feb 13, 2026)
 
-**Last completed:** Tasks 4.8–4.11 (Timeline/Gantt chart page with filters, critical path highlighting, zoom controls)
+**Last completed:** Task 4.12 (Export Timeline Image), dashboard design polish (on `dashboard-redesign` branch)
 
-**Session 16 changes:**
-- **Task 4.8** — Timeline View Page: `/timeline` route with SVG Gantt chart (`components/gantt/`), sidebar nav item, API `include=stages` param
-- **Task 4.9** — Timeline Filters: status, factory, priority dropdowns + date range (month pickers), active filter count badge
-- **Task 4.10** — Critical Path Highlighting: risk detection (critical/at-risk), red/amber row tinting, overdue striped extensions, legend
-- **Task 4.11** — Timeline Zoom Controls: 5 presets (Month→Detail), +/− buttons, scroll-position-preserving zoom, `pixelsPerDay` parameterized throughout utils
-- **Sound notification hook** added to `~/.claude/settings.json` (Glass.aiff on all notifications)
+**Session 17 changes:**
+- **Task 4.12** — Export Timeline PNG: `html-to-image` library, export button next to zoom controls, full-timeline capture at 2x resolution. **Known issue:** exports full timeline instead of visible viewport — fix planned for next session.
+- **Dashboard redesign** (on `dashboard-redesign` branch, not merged): stats card value enlargement + icon pills, disrupted card accent glow, hover float + orange glow on all cards, frosted glass tooltips, light/dark/system mode support, portfolio chart tooltip z-index fix
+- **Plugin cleanup**: removed `serena` and `typescript-lsp` plugins (missing dependencies)
 
-**Next task:** Task 4.12 (Export Timeline Image) OR Task 3.6 (Week 3 PR) OR BL-1 (Project Selector)
+**Next task:** Fix timeline export to capture visible viewport only, then Task 3.6 (Week 3 PR) OR BL-1 (Project Selector)
 
 **Pending implementations** (ready but not started):
+- Timeline export viewport-only capture (replace full-timeline export)
 - Timeline redesign plan → `docs/plans/PENDING_IMPLEMENTATIONS.md`
 - Card enlargement plan → `docs/plans/PENDING_IMPLEMENTATIONS.md`
 - Project Selector (BL-1) → `.claude/plans/reactive-scribbling-island.md`
+- Dashboard redesign merge (on `dashboard-redesign` branch)
 
 ## Plugins
 
