@@ -102,3 +102,13 @@ Detailed log of all development sessions. Referenced from CLAUDE.md when needed.
 - Registration: email normalization (trim + lowercase)
 - Types: added missing DISRUPTED, DELAYED, BLOCKED status values
 - Header: added aria-label for notifications button
+
+## Session 16
+- Live sourcing news ticker (Tasks 4.16-4.19)
+- RSS parser fetching Supply Chain Dive, FreightWaves, Supply Chain Brain
+- Commodity price fetcher via API Ninjas (optional)
+- News feed API endpoint with in-memory 15-min cache
+- Full-width ticker bar in brand orange, slides down on hover near top edge
+- Auto-rotation every 6s, pause on hover, manual nav arrows
+- Layout shifts down smoothly when ticker is visible
+- Fixed sidebar collapse toggle visibility when ticker active

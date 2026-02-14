@@ -46,23 +46,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 17 — Feb 13, 2026)
+## Current Status (Session 18 — Feb 14, 2026)
 
-**Last completed:** Task 4.12 (Export Timeline Image), dashboard design polish (on `dashboard-redesign` branch)
+**Last completed:** Alert system (Tasks 5.1-5.6) — database model, generation logic, bell icon, dropdown, alerts page, mark read/resolve actions.
 
-**Session 17 changes:**
-- **Task 4.12** — Export Timeline PNG: `html-to-image` library, export button next to zoom controls, full-timeline capture at 2x resolution. **Known issue:** exports full timeline instead of visible viewport — fix planned for next session.
-- **Dashboard redesign** (on `dashboard-redesign` branch, not merged): stats card value enlargement + icon pills, disrupted card accent glow, hover float + orange glow on all cards, frosted glass tooltips, light/dark/system mode support, portfolio chart tooltip z-index fix
-- **Plugin cleanup**: removed `serena` and `typescript-lsp` plugins (missing dependencies)
+**Session 18 changes:**
+- **Tasks 5.1-5.6** — Full alert system: Alert model + Severity enum, alert generation (overdue/at-risk/blocked/delayed), inline firing on stage updates, bell icon with unread count badge, notification dropdown with full message + View Order CTA, /alerts page with severity/status filters, mark read/resolve actions
+- Stress test updated to 25 endpoints (added /alerts, /api/alerts, /api/alerts/unread-count)
 
-**Next task:** Fix timeline export to capture visible viewport only, then Task 3.6 (Week 3 PR) OR BL-1 (Project Selector)
-
-**Pending implementations** (ready but not started):
-- Timeline export viewport-only capture (replace full-timeline export)
-- Timeline redesign plan → `docs/plans/PENDING_IMPLEMENTATIONS.md`
-- Card enlargement plan → `docs/plans/PENDING_IMPLEMENTATIONS.md`
-- Project Selector (BL-1) → `.claude/plans/reactive-scribbling-island.md`
-- Dashboard redesign merge (on `dashboard-redesign` branch)
+**Next task:** Task 5.7 (Week 5 PR) OR Week 5 Marco tasks OR BL-1 (Project Selector)
 
 ## Plugins
 
