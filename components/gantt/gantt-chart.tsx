@@ -10,6 +10,8 @@ import {
   dateToPixel,
   generateMonthLabels,
   generateWeekLines,
+  generateDayLabels,
+  generateDayLines,
   statusBarColors,
   statusTrackColors,
   statusBarColorsDark,
@@ -91,11 +93,22 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
     order: GanttOrder;
   } | null>(null);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [hoveredBar, setHoveredBar] = useState<string | null>(null);
   const [pixelsPerDay, setPixelsPerDay] = useState(DEFAULT_PIXELS_PER_DAY);
 
   const range = useMemo(() => computeGanttRange(orders, pixelsPerDay), [orders, pixelsPerDay]);
   const monthLabels = useMemo(() => generateMonthLabels(range, pixelsPerDay), [range, pixelsPerDay]);
   const weekLines = useMemo(() => generateWeekLines(range, pixelsPerDay), [range, pixelsPerDay]);
+  const dayLabels = useMemo(() => generateDayLabels(range, pixelsPerDay), [range, pixelsPerDay]);
+  const dayLines = useMemo(() => generateDayLines(range, pixelsPerDay), [range, pixelsPerDay]);
+
+  // Whether we're at close zoom (show day-level detail)
+  const showDayDetail = pixelsPerDay >= 16;
+  // Whether to show day-of-week letters (Detail zoom)
+  const showDayLetters = pixelsPerDay >= 40;
+  // Header row heights when split
+  const monthRowHeight = showDayDetail ? 24 : HEADER_HEIGHT;
+  const dayRowHeight = showDayDetail ? 24 : 0;
 
   // Compute risk levels for all orders
   const riskLevels = useMemo(() => {
@@ -208,17 +221,23 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
 
     setIsExporting(true);
 
-    // Save original scroll state and styles
+    // Save current scroll position and styles
     const origScrollLeft = scrollEl.scrollLeft;
     const origOverflow = scrollEl.style.overflow;
-    const origWidth = scrollEl.style.width;
-    const origMinWidth = scrollEl.style.minWidth;
+    const origMaxWidth = scrollEl.style.maxWidth;
+    const visibleWidth = scrollEl.clientWidth;
 
     try {
-      // Expand the scroll container to show full timeline
-      scrollEl.style.overflow = "visible";
-      scrollEl.style.width = `${totalWidth}px`;
-      scrollEl.style.minWidth = `${totalWidth}px`;
+      // Clip the scroll container to only show the visible viewport
+      scrollEl.style.overflow = "hidden";
+      scrollEl.style.maxWidth = `${visibleWidth}px`;
+
+      // Shift the SVG left so the currently scrolled-to area is visible
+      const svg = scrollEl.querySelector("svg");
+      const origTransform = svg?.style.transform || "";
+      if (svg) {
+        svg.style.transform = `translateX(-${origScrollLeft}px)`;
+      }
 
       // Wait for layout to settle
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -234,42 +253,51 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
       link.download = `timeline-${date}.png`;
       link.href = dataUrl;
       link.click();
+
+      // Restore SVG transform
+      if (svg) {
+        svg.style.transform = origTransform;
+      }
     } catch (err) {
       console.error("Failed to export timeline:", err);
     } finally {
       // Restore original state
       scrollEl.style.overflow = origOverflow;
-      scrollEl.style.width = origWidth;
-      scrollEl.style.minWidth = origMinWidth;
+      scrollEl.style.maxWidth = origMaxWidth;
       scrollEl.scrollLeft = origScrollLeft;
       setIsExporting(false);
     }
-  }, [totalWidth, isDark]);
+  }, [isDark]);
 
   return (
     <div className="space-y-3">
     {/* Zoom controls */}
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-1">
+      {/* Preset buttons in pill container */}
+      <div className="flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-lg p-1">
         {ZOOM_PRESETS.map((preset, i) => (
           <button
             key={preset.label}
             onClick={() => handleZoom(preset.ppd)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+            className={`relative px-3 py-1 text-xs font-medium rounded-md transition-all ${
               currentPresetIndex === i
-                ? "bg-[#EB5D2E] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                ? "bg-white dark:bg-zinc-700 shadow-sm text-[#EB5D2E]"
+                : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
             }`}
           >
             {preset.label}
+            {currentPresetIndex === i && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-[#EB5D2E] rounded-full" />
+            )}
           </button>
         ))}
       </div>
       <div className="flex items-center gap-3">
+        {/* Export button — outline style */}
         <button
           onClick={handleExport}
           disabled={isExporting || orders.length === 0}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 hover:border-[#EB5D2E]/30 hover:bg-[#EB5D2E]/5 hover:text-[#EB5D2E] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           title="Download timeline as PNG"
         >
           {isExporting ? (
@@ -279,34 +307,35 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
           )}
           {isExporting ? "Exporting…" : "Export PNG"}
         </button>
-        <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => handleZoom(pixelsPerDay - 4)}
-          disabled={pixelsPerDay <= MIN_PIXELS_PER_DAY}
-          className="flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
-          title="Zoom out"
-        >
-          −
-        </button>
-        <span className="text-xs text-gray-500 dark:text-zinc-400 w-8 text-center tabular-nums">
-          {Math.round((pixelsPerDay / DEFAULT_PIXELS_PER_DAY) * 100)}%
-        </span>
-        <button
-          onClick={() => handleZoom(pixelsPerDay + 4)}
-          disabled={pixelsPerDay >= MAX_PIXELS_PER_DAY}
-          className="flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
-          title="Zoom in"
-        >
-          +
-        </button>
+        {/* +/- zoom in pill container */}
+        <div className="flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-lg p-1 gap-0.5">
+          <button
+            onClick={() => handleZoom(pixelsPerDay - 4)}
+            disabled={pixelsPerDay <= MIN_PIXELS_PER_DAY}
+            className="flex items-center justify-center w-7 h-7 rounded-md text-gray-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-bold"
+            title="Zoom out"
+          >
+            −
+          </button>
+          <span className="text-xs text-gray-500 dark:text-zinc-400 w-8 text-center tabular-nums">
+            {Math.round((pixelsPerDay / DEFAULT_PIXELS_PER_DAY) * 100)}%
+          </span>
+          <button
+            onClick={() => handleZoom(pixelsPerDay + 4)}
+            disabled={pixelsPerDay >= MAX_PIXELS_PER_DAY}
+            className="flex items-center justify-center w-7 h-7 rounded-md text-gray-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-bold"
+            title="Zoom in"
+          >
+            +
+          </button>
         </div>
       </div>
     </div>
 
-    <div ref={chartContainerRef} className="flex border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+    <div ref={chartContainerRef} className="flex border border-gray-100 dark:border-zinc-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {/* Fixed left labels */}
       <div
-        className="flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700 z-10"
+        className="flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700 z-10 shadow-[2px_0_8px_rgba(0,0,0,0.03)]"
         style={{ width: LEFT_LABEL_WIDTH }}
       >
         {/* Header spacer */}
@@ -397,18 +426,30 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             return null;
           })}
 
-          {/* Week grid lines */}
-          {weekLines.map((line, i) => (
-            <line
-              key={i}
-              x1={line.x}
-              y1={HEADER_HEIGHT}
-              x2={line.x}
-              y2={totalHeight}
-              stroke={isDark ? "#3f3f46" : "#e5e7eb"}
-              strokeWidth={1}
-            />
-          ))}
+          {/* Grid lines: daily when zoomed in, weekly when zoomed out */}
+          {showDayDetail
+            ? dayLines.map((line, i) => (
+                <line
+                  key={i}
+                  x1={line.x}
+                  y1={HEADER_HEIGHT}
+                  x2={line.x}
+                  y2={totalHeight}
+                  stroke={isDark ? "#2a2a2e" : "#f0f0f0"}
+                  strokeWidth={1}
+                />
+              ))
+            : weekLines.map((line, i) => (
+                <line
+                  key={i}
+                  x1={line.x}
+                  y1={HEADER_HEIGHT}
+                  x2={line.x}
+                  y2={totalHeight}
+                  stroke={isDark ? "#3f3f46" : "#e5e7eb"}
+                  strokeWidth={1}
+                />
+              ))}
 
           {/* Row dividers */}
           {orders.map((_, i) => (
@@ -457,12 +498,23 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             />
           )}
 
-          {/* Month header background */}
+          {/* Header background */}
           <rect
             width={totalWidth}
             height={HEADER_HEIGHT}
             fill={isDark ? "#18181b" : "#ffffff"}
           />
+          {/* Divider between header rows (when split) */}
+          {showDayDetail && (
+            <line
+              x1={0}
+              y1={monthRowHeight}
+              x2={totalWidth}
+              y2={monthRowHeight}
+              stroke={isDark ? "#2a2a2e" : "#e5e7eb"}
+              strokeWidth={1}
+            />
+          )}
           <line
             x1={0}
             y1={HEADER_HEIGHT}
@@ -472,7 +524,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             strokeWidth={1}
           />
 
-          {/* Month labels */}
+          {/* Month labels (top row when split, full height when not) */}
           {monthLabels.map((month, i) => (
             <g key={i}>
               {/* Month divider */}
@@ -486,7 +538,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
               />
               <text
                 x={month.x + 8}
-                y={HEADER_HEIGHT / 2 + 1}
+                y={monthRowHeight / 2 + 1}
                 dominantBaseline="middle"
                 className="text-xs font-medium"
                 fill={isDark ? "#a1a1aa" : "#6b7280"}
@@ -496,7 +548,62 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             </g>
           ))}
 
-          {/* Overdue stripe pattern */}
+          {/* Day labels (bottom row, only at close zoom) */}
+          {showDayDetail && dayLabels.map((day, i) => (
+            <g key={i}>
+              {/* Weekend tint in day header cells */}
+              {day.isWeekend && (
+                <rect
+                  x={day.x}
+                  y={monthRowHeight}
+                  width={pixelsPerDay}
+                  height={dayRowHeight}
+                  fill={isDark ? "#1f1f23" : "#f5f5f5"}
+                />
+              )}
+              {/* Day cell border */}
+              <line
+                x1={day.x}
+                y1={monthRowHeight}
+                x2={day.x}
+                y2={HEADER_HEIGHT}
+                stroke={isDark ? "#2a2a2e" : "#e5e7eb"}
+                strokeWidth={1}
+              />
+              {/* Day number + optional day letter */}
+              <text
+                x={day.x + pixelsPerDay / 2}
+                y={showDayLetters
+                  ? monthRowHeight + dayRowHeight * 0.38
+                  : monthRowHeight + dayRowHeight / 2 + 1}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="font-medium"
+                style={{ fontSize: showDayLetters ? 9 : 10 }}
+                fill={day.isWeekend
+                  ? (isDark ? "#52525b" : "#9ca3af")
+                  : (isDark ? "#a1a1aa" : "#6b7280")}
+              >
+                {day.label}
+              </text>
+              {showDayLetters && (
+                <text
+                  x={day.x + pixelsPerDay / 2}
+                  y={monthRowHeight + dayRowHeight * 0.75}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  style={{ fontSize: 8 }}
+                  fill={day.isWeekend
+                    ? (isDark ? "#3f3f46" : "#d1d5db")
+                    : (isDark ? "#71717a" : "#9ca3af")}
+                >
+                  {day.dayLetter}
+                </text>
+              )}
+            </g>
+          ))}
+
+          {/* Overdue stripe pattern & bar filters */}
           <defs>
             <pattern
               id="overdue-stripes"
@@ -511,6 +618,18 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
                 strokeWidth="3"
               />
             </pattern>
+            {/* Subtle drop shadow for normal bars */}
+            <filter id="bar-shadow" x="-10%" y="-10%" width="120%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.15" />
+            </filter>
+            {/* Red glow for delayed/overdue bars */}
+            <filter id="critical-glow" x="-20%" y="-20%" width="140%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#ef4444" floodOpacity="0.6" />
+            </filter>
+            {/* Amber glow for at-risk bars */}
+            <filter id="at-risk-glow" x="-20%" y="-20%" width="140%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#f59e0b" floodOpacity="0.5" />
+            </filter>
           </defs>
 
           {/* Order bars */}
@@ -536,13 +655,34 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             const isOverdue = !doneStatuses.includes(order.status) && todayInRange && todayX > barX + barWidth;
             const overdueWidth = isOverdue ? todayX - (barX + barWidth) : 0;
 
+            const isHovered = hoveredBar === order.id;
+            const isAnyBarHovered = hoveredBar !== null;
+            const filterUrl =
+              risk === "critical"
+                ? "url(#critical-glow)"
+                : risk === "at-risk"
+                ? "url(#at-risk-glow)"
+                : "url(#bar-shadow)";
+
             return (
               <g
                 key={order.id}
                 className="cursor-pointer"
+                style={{
+                  filter: filterUrl,
+                  transform: isHovered ? "translate(0, -1px)" : undefined,
+                  opacity: isAnyBarHovered && !isHovered ? 0.7 : 1,
+                  transition: "transform 0.15s ease, opacity 0.15s ease",
+                }}
                 onClick={() => handleBarClick(order.id)}
-                onMouseEnter={(e) => handleMouseEnter(e, order)}
-                onMouseLeave={handleMouseLeave}
+                onMouseEnter={(e) => {
+                  setHoveredBar(order.id);
+                  handleMouseEnter(e, order);
+                }}
+                onMouseLeave={() => {
+                  setHoveredBar(null);
+                  handleMouseLeave();
+                }}
                 onMouseOver={() => setHoveredRow(order.id)}
                 onMouseOut={() => setHoveredRow(null)}
               >
@@ -659,71 +799,82 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
         {/* Tooltip */}
         {tooltip && (
           <div
-            className="absolute z-50 pointer-events-none bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg shadow-lg px-3 py-2 text-sm"
+            className="absolute z-50 pointer-events-none backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 border border-white/20 dark:border-zinc-600/50 rounded-lg shadow-xl px-4 py-2.5 text-sm whitespace-nowrap"
             style={{
-              left: Math.min(tooltip.x + 12, totalWidth - 220),
-              top: tooltip.y - 70,
+              left: Math.min(tooltip.x + 12, totalWidth - 360),
+              top: tooltip.y - 50,
             }}
           >
-            <div className="font-semibold text-gray-900 dark:text-white">
-              {tooltip.order.orderNumber}
-            </div>
-            <div className="text-gray-500 dark:text-zinc-400 text-xs">
-              {tooltip.order.productName}
-            </div>
-            <div className="text-gray-500 dark:text-zinc-400 text-xs mt-1">
-              {formatDate(tooltip.order.orderDate)} →{" "}
-              {formatDate(tooltip.order.expectedDate)}
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className="inline-block w-2 h-2 rounded-full"
-                style={{
-                  backgroundColor:
-                    barColors[tooltip.order.status] || barColors.PENDING,
-                }}
-              />
-              <span className="text-xs text-gray-600 dark:text-zinc-300">
-                {tooltip.order.status.replaceAll("_", " ")} —{" "}
-                {tooltip.order.overallProgress}%
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {tooltip.order.orderNumber}
+              </span>
+              <span className="text-gray-400 dark:text-zinc-500">·</span>
+              <span className="text-gray-500 dark:text-zinc-400 text-xs">
+                {tooltip.order.productName}
               </span>
             </div>
-            {(() => {
-              const risk = riskLevels.get(tooltip.order.id);
-              if (!risk || risk === "none") return null;
-              return (
-                <div className={`flex items-center gap-1.5 mt-1 text-xs font-medium ${
-                  risk === "critical" ? "text-red-500" : "text-amber-500"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${
-                    risk === "critical" ? "bg-red-500" : "bg-amber-500"
-                  }`} />
-                  {risk === "critical" ? "Delayed / Overdue" : "At risk"}
-                </div>
-              );
-            })()}
+            <div className="flex items-center gap-3 mt-1 text-xs">
+              <span className="text-gray-500 dark:text-zinc-400">
+                {formatDate(tooltip.order.orderDate)} → {formatDate(tooltip.order.expectedDate)}
+              </span>
+              <span className="text-gray-300 dark:text-zinc-600">|</span>
+              <span className="flex items-center gap-1.5">
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      barColors[tooltip.order.status] || barColors.PENDING,
+                  }}
+                />
+                <span className="text-gray-600 dark:text-zinc-300">
+                  {tooltip.order.status.replaceAll("_", " ")} — {tooltip.order.overallProgress}%
+                </span>
+              </span>
+              {(() => {
+                const risk = riskLevels.get(tooltip.order.id);
+                if (!risk || risk === "none") return null;
+                return (
+                  <>
+                    <span className="text-gray-300 dark:text-zinc-600">|</span>
+                    <span className={`flex items-center gap-1.5 font-medium ${
+                      risk === "critical" ? "text-red-500" : "text-amber-500"
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        risk === "critical" ? "bg-red-500" : "bg-amber-500"
+                      }`} />
+                      {risk === "critical" ? "Delayed / Overdue" : "At risk"}
+                    </span>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         )}
       </div>
     </div>
 
     {/* Legend */}
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-1 text-xs text-gray-500 dark:text-zinc-400">
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 bg-gray-50/50 dark:bg-zinc-800/30 rounded-lg px-4 py-3 border border-gray-100 dark:border-zinc-800 text-xs text-gray-500 dark:text-zinc-400">
+      <div className="flex items-center gap-1.5 font-medium">
         <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
         Delayed / Overdue{criticalCount > 0 && ` (${criticalCount})`}
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 font-medium">
         <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
         At risk{atRiskCount > 0 && ` (${atRiskCount})`}
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 font-medium">
         <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#ef4444" strokeWidth="2" strokeDasharray="4,3" /></svg>
         Today
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 font-medium">
         <svg width="16" height="8"><rect x="0" y="0" width="16" height="8" rx="2" fill={isDark ? "#172554" : "#dbeafe"} stroke={isDark ? "#2563eb" : "#3b82f6"} strokeWidth="1" /></svg>
         On track
+      </div>
+      <div className="flex items-center gap-1.5 font-medium">
+        <svg width="16" height="8"><rect x="0" y="0" width="16" height="8" rx="2" fill={isDark ? "#2a2a2f" : "#f0f1f3"} stroke={isDark ? "#3f3f46" : "#d1d5db"} strokeWidth="1" /></svg>
+        Weekend
       </div>
     </div>
     </div>

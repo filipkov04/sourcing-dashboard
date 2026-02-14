@@ -149,6 +149,47 @@ export function isWeekend(date: Date): boolean {
   return day === 0 || day === 6;
 }
 
+const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+
+/** Generate day-level labels for the header (only at close zoom) */
+export function generateDayLabels(
+  range: GanttRange,
+  pixelsPerDay: number,
+): Array<{ x: number; date: Date; label: string; dayLetter: string; isWeekend: boolean }> {
+  if (pixelsPerDay < 16) return [];
+  const labels: Array<{ x: number; date: Date; label: string; dayLetter: string; isWeekend: boolean }> = [];
+  const current = new Date(range.minDate);
+  while (current <= range.maxDate) {
+    labels.push({
+      x: dateToPixel(current, range.minDate, pixelsPerDay),
+      date: new Date(current),
+      label: String(current.getDate()),
+      dayLetter: DAY_LETTERS[current.getDay()],
+      isWeekend: isWeekend(current),
+    });
+    current.setDate(current.getDate() + 1);
+  }
+  return labels;
+}
+
+/** Generate daily vertical grid lines (only at close zoom) */
+export function generateDayLines(
+  range: GanttRange,
+  pixelsPerDay: number,
+): Array<{ x: number; isWeekend: boolean }> {
+  if (pixelsPerDay < 16) return [];
+  const lines: Array<{ x: number; isWeekend: boolean }> = [];
+  const current = new Date(range.minDate);
+  while (current <= range.maxDate) {
+    lines.push({
+      x: dateToPixel(current, range.minDate, pixelsPerDay),
+      isWeekend: isWeekend(current),
+    });
+    current.setDate(current.getDate() + 1);
+  }
+  return lines;
+}
+
 // Status → bar fill colors (solid colors for SVG)
 export const statusBarColors: Record<string, string> = {
   PENDING: "#f59e0b",     // amber-500

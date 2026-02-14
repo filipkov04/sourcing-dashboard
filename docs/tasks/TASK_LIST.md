@@ -196,11 +196,11 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 4.8 | Timeline View Page | Marco | Create visual timeline showing all orders on calendar | Page at /timeline showing Gantt-chart style view | 4h | ⏳ |
-| 4.9 | Timeline Filters | Marco | Add filters for timeline (factory, status, date range) | Filter controls that update timeline | 2h | ⏳ |
-| 4.10 | Critical Path Highlighting | Marco | Highlight orders that are at risk or delayed | Red highlighting for delayed orders, yellow for at-risk | 2h | ⏳ |
-| 4.11 | Timeline Zoom Controls | Marco | Add zoom in/out to see more or less detail | Zoom buttons to change timeline scale (day/week/month view) | 2h | ⏳ |
-| 4.12 | Export Timeline Image | Marco | Allow exporting timeline as image | Export button that downloads timeline as PNG | 2h | ⏳ |
+| 4.8 | Timeline View Page | Marco | Create visual timeline showing all orders on calendar | Page at /timeline showing Gantt-chart style view | 4h | ✅ |
+| 4.9 | Timeline Filters | Marco | Add filters for timeline (factory, status, date range) | Filter controls that update timeline | 2h | ✅ |
+| 4.10 | Critical Path Highlighting | Marco | Highlight orders that are at risk or delayed | Red highlighting for delayed orders, yellow for at-risk | 2h | ✅ |
+| 4.11 | Timeline Zoom Controls | Marco | Add zoom in/out to see more or less detail | Zoom buttons to change timeline scale (day/week/month view) | 2h | ✅ |
+| 4.12 | Export Timeline Image | Marco | Allow exporting timeline as image | Export button that downloads timeline as PNG | 2h | ✅ |
 | 4.13 | Week 4 PR | Marco | Package timeline features | Pull request for review | 30min | ⏳ |
 
 **What Marco Creates This Week:** Visual timeline showing all orders in calendar/Gantt format with filters and export.
