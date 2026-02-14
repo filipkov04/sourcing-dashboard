@@ -248,12 +248,12 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 5.1 | Alert Database Models | Filip | Add database tables for alerts | Alert table in database | 1h | ⏳ |
-| 5.2 | Alert Generation Logic | Filip | Create system to automatically generate alerts for delayed orders | Background process that checks for delays and creates alerts | 3h | ⏳ |
-| 5.3 | Alert Bell Icon | Filip | Add bell icon to header showing unread alert count | Bell icon with red badge showing number of unread alerts | 2h | ⏳ |
-| 5.4 | Alert Dropdown | Filip | Create dropdown showing recent alerts | Dropdown menu showing last 5 alerts when clicking bell | 2h | ⏳ |
-| 5.5 | Alert List Page | Filip | Build page showing all alerts with filters | Page at /alerts showing all alerts, filterable by type | 2h | ⏳ |
-| 5.6 | Alert Actions | Filip | Add ability to mark alerts as read or resolved | Buttons to mark as read, resolve, or dismiss alerts | 2h | ⏳ |
+| 5.1 | Alert Database Models | Filip | Add database tables for alerts | Alert table in database | 1h | ✅ |
+| 5.2 | Alert Generation Logic | Filip | Create system to automatically generate alerts for delayed orders | Background process that checks for delays and creates alerts | 3h | ✅ |
+| 5.3 | Alert Bell Icon | Filip | Add bell icon to header showing unread alert count | Bell icon with red badge showing number of unread alerts | 2h | ✅ |
+| 5.4 | Alert Dropdown | Filip | Create dropdown showing recent alerts | Dropdown menu showing last 5 alerts when clicking bell | 2h | ✅ |
+| 5.5 | Alert List Page | Filip | Build page showing all alerts with filters | Page at /alerts showing all alerts, filterable by type | 2h | ✅ |
+| 5.6 | Alert Actions | Filip | Add ability to mark alerts as read or resolved | Buttons to mark as read, resolve, or dismiss alerts | 2h | ✅ |
 | 5.7 | Week 5 PR | Filip | Package alert system | Pull request for review | 30min | ⏳ |
 
 **What Filip Creates This Week:** Alert system that notifies users about delayed orders and problems.

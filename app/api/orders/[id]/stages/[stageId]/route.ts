@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent } from "@/lib/history";
+import { fireAlert } from "@/lib/alert-generator";
 
 // PATCH /api/orders/[id]/stages/[stageId] - Update a stage's progress
 // NOTE: This is an admin-only feature. Role-based access control will be added in Week 5.
@@ -201,6 +202,29 @@ export async function PATCH(
 
       return { updatedStage, overallProgress, orderStatus: updatedOrder.status };
     });
+
+    // Fire inline alerts for problem statuses (non-critical, fire-and-forget)
+    if (updateData.status !== undefined && updateData.status !== existingStage.status) {
+      if (updateData.status === "BLOCKED") {
+        fireAlert({
+          organizationId: session.user.organizationId,
+          title: "Stage blocked",
+          message: `Stage "${existingStage.name}" on order ${order.orderNumber} has been blocked.`,
+          severity: "CRITICAL",
+          orderId: orderId,
+          factoryId: order.factoryId,
+        });
+      } else if (updateData.status === "DELAYED") {
+        fireAlert({
+          organizationId: session.user.organizationId,
+          title: "Stage delayed",
+          message: `Stage "${existingStage.name}" on order ${order.orderNumber} has been delayed.`,
+          severity: "WARNING",
+          orderId: orderId,
+          factoryId: order.factoryId,
+        });
+      }
+    }
 
     // Log events outside the transaction (non-critical, fire-and-forget)
     const eventPromises: Promise<unknown>[] = [];

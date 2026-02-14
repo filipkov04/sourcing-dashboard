@@ -63,6 +63,7 @@ model Organization {
   factories   Factory[]
   orders      Order[]
   invitations UserInvitation[]
+  alerts      Alert[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -110,6 +111,7 @@ model Factory {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orders         Order[]
+  alerts         Alert[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -148,6 +150,7 @@ model Order {
   adminNotes     StageAdminNote[]
   attachments    OrderAttachment[]
   comments       OrderComment[]
+  alerts         Alert[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -291,4 +294,45 @@ model OrderComment {
   updatedAt  DateTime @updatedAt
 
   @@index([orderId, createdAt])
+}
+
+// ============================================
+// ALERTS & NOTIFICATIONS
+// ============================================
+
+model Alert {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Alert details
+  title           String
+  message         String   @db.Text
+  severity        Severity @default(INFO)
+
+  // Related entities (optional)
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  factoryId       String?
+  factory         Factory? @relation(fields: [factoryId], references: [id], onDelete: SetNull)
+
+  // Status
+  read            Boolean  @default(false)
+  resolved        Boolean  @default(false)
+  resolvedAt      DateTime?
+  resolvedBy      String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId, read])
+  @@index([organizationId, createdAt])
+  @@index([orderId])
+  @@index([factoryId])
+}
+
+enum Severity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
 }

@@ -47,6 +47,11 @@ const tests = [
   // Geocoding APIs
   { name: 'Geocode All API', path: '/api/factories/geocode-all', expectedStatus: [200, 307, 401, 405] },
 
+  // Alert System (Tasks 5.1–5.5)
+  { name: 'Alerts Page', path: '/alerts', expectedStatus: [200, 302, 307] },
+  { name: 'Alerts List API', path: '/api/alerts', expectedStatus: [200, 307, 401] },
+  { name: 'Alerts Unread Count API', path: '/api/alerts/unread-count', expectedStatus: [200, 307, 401] },
+
   // Invitation System (Task 3.5)
   { name: 'Invitations API (list)', path: '/api/invitations', expectedStatus: [200, 307, 401] },
   { name: 'Invite Token Validate', path: '/api/invitations/invalid-token-test', expectedStatus: [400, 404] },
