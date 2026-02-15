@@ -80,6 +80,19 @@ export function Header({ onMenuClick }: HeaderProps) {
     }
   };
 
+  const handleViewChat = async (e: React.MouseEvent, alert: Alert) => {
+    e.stopPropagation();
+    if (!alert.read) {
+      await markAlertRead(alert.id);
+      refreshCount();
+      refreshAlerts();
+    }
+    const match = alert.message.match(/^\[chat:([^\]]+)\]/);
+    if (match) {
+      window.dispatchEvent(new CustomEvent("open-chat", { detail: { conversationId: match[1] } }));
+    }
+  };
+
   const handleMarkAllRead = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -180,16 +193,23 @@ export function Header({ onMenuClick }: HeaderProps) {
                         {severityEmoji(alert.severity)} {alert.title}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-zinc-400 leading-snug">
-                        {alert.message}
+                        {alert.message.replace(/^\[chat:[^\]]+\]\s*/, "")}
                       </p>
-                      {(alert.orderId || alert.factoryId) && (
+                      {alert.message.startsWith("[chat:") ? (
+                        <button
+                          onClick={(e) => handleViewChat(e, alert)}
+                          className="inline-block rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1 text-xs font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+                        >
+                          View Chat
+                        </button>
+                      ) : (alert.orderId || alert.factoryId) ? (
                         <button
                           onClick={(e) => handleViewOrder(e, alert)}
                           className="inline-block rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1 text-xs font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
                         >
                           {alert.orderId ? "View Order" : "View Factory"}
                         </button>
-                      )}
+                      ) : null}
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-400 dark:text-zinc-500">
                           {formatTimestamp(alert.createdAt)}

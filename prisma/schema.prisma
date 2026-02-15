@@ -27,6 +27,10 @@ model User {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invitationsSent UserInvitation[] @relation("InvitedByUser")
 
+  // Chat relations
+  conversations  ConversationParticipant[]
+  messagesSent   Message[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -59,11 +63,12 @@ model Organization {
   logo String?
 
   // Relations
-  users       User[]
-  factories   Factory[]
-  orders      Order[]
-  invitations UserInvitation[]
-  alerts      Alert[]
+  users         User[]
+  factories     Factory[]
+  orders        Order[]
+  invitations   UserInvitation[]
+  alerts        Alert[]
+  conversations Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,6 +117,7 @@ model Factory {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orders         Order[]
   alerts         Alert[]
+  conversations  Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,6 +157,7 @@ model Order {
   attachments    OrderAttachment[]
   comments       OrderComment[]
   alerts         Alert[]
+  conversations  Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -335,4 +342,129 @@ enum Severity {
   WARNING
   ERROR
   CRITICAL
+}
+
+// ============================================
+// CHAT & MESSAGING
+// ============================================
+
+model Conversation {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Participants
+  participants    ConversationParticipant[]
+  messages        Message[]
+
+  // Optional: Link to specific order or factory
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  factoryId       String?
+  factory         Factory? @relation(fields: [factoryId], references: [id], onDelete: SetNull)
+
+  // Chat type & category
+  type            ConversationType @default(GENERAL)
+  category        String?
+
+  // Metadata
+  subject         String?
+  lastMessageAt   DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Read status
+  lastReadAt      DateTime?
+  unreadCount     Int      @default(0)
+
+  // Notification preferences for this conversation
+  muted           Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId        String?
+  sender          User?    @relation(fields: [senderId], references: [id])
+
+  content         String   @db.Text
+  messageType     MessageType @default(TEXT)
+
+  // For request approvals
+  requestAction   RequestAction?
+
+  // Read tracking
+  readBy          MessageRead[]
+
+  // File attachments
+  attachments     MessageAttachment[]
+
+  createdAt       DateTime @default(now())
+  editedAt        DateTime?
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model MessageAttachment {
+  id           String   @id @default(cuid())
+  messageId    String
+  message      Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileName     String
+  fileType     String
+  fileSize     Int
+  storagePath  String
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  readAt    DateTime @default(now())
+
+  @@unique([messageId, userId])
+}
+
+enum MessageType {
+  TEXT            // Regular text message
+  SYSTEM          // System-generated (e.g., "User joined")
+  REQUEST         // Request notification
+  APPROVAL        // Approval/rejection of request
+  BOT             // Bot-generated message (Sourcy Agent)
+}
+
+enum ConversationType {
+  GENERAL         // Default team chat
+  SUPPORT         // Support chat with Sourcy Agent
+  FACTORY         // Factory communication
+}
+
+enum RequestAction {
+  APPROVED
+  REJECTED
+  PENDING_INFO    // Admin needs more information
 }

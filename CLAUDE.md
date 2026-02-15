@@ -46,15 +46,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 18 — Feb 14, 2026)
+## Current Status (Session 20 — Feb 14, 2026)
 
-**Last completed:** Alert system (Tasks 5.1-5.6) — database model, generation logic, bell icon, dropdown, alerts page, mark read/resolve actions.
+**Last completed:** Tasks 5.19 (Chat UI) + 5.20 (Chat API)
 
-**Session 18 changes:**
-- **Tasks 5.1-5.6** — Full alert system: Alert model + Severity enum, alert generation (overdue/at-risk/blocked/delayed), inline firing on stage updates, bell icon with unread count badge, notification dropdown with full message + View Order CTA, /alerts page with severity/status filters, mark read/resolve actions
-- Stress test updated to 25 endpoints (added /alerts, /api/alerts, /api/alerts/unread-count)
+**Session 20 changes:**
+- **Task 5.20** — Chat API Backend: 6 API routes for conversations (list, create, get detail, send message, mark read, unread count). Full org scoping, VIEWER role checks, Zod validation, transactional unread count tracking.
+- **Task 5.19** — Chat UI Component: Split-panel /messages page (conversation list + chat panel), new conversation dialog with order/factory linking, participant search, polling (5s chat, 10s list, 30s badge).
+- **Sidebar** — Added "Messages" nav item with unread badge between Team and Settings.
+- **Hooks** — lib/use-conversations.ts with useConversations, useConversationDetail, useMessageUnreadCount, sendMessage, createConversation.
+- **NOT pushed to remote yet** — includes Task 5.18 schema + Task 5.19/5.20 code
 
-**Next task:** Task 5.7 (Week 5 PR) OR Week 5 Marco tasks OR BL-1 (Project Selector)
+**Previous sessions:**
+- Session 19: Task 5.18 (Chat Database Models)
+- Session 18: Tasks 5.1-5.6 (Full alert system, pushed). Stress test: 25/25 endpoints.
+
+**Next task:** Task 5.21 (Chat List Page — already covered by /messages) OR Task 5.22 (Unread Message Badge — already covered by sidebar) OR Week 5 PR OR BL-1 (Project Selector)
 
 ## Plugins
 

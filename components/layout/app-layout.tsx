@@ -5,6 +5,7 @@ import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { NewsTicker } from "./news-ticker";
 import { PageTransition } from "@/components/page-transition";
+import { ChatWidget } from "@/components/chat/chat-widget";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,6 +39,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+
+      {/* Floating Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

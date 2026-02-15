@@ -12,10 +12,18 @@ if (!supabaseUrl || !supabaseServiceKey) {
 export const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export const ATTACHMENT_BUCKET = "order-attachments";
+export const CHAT_ATTACHMENT_BUCKET = "chat-attachments";
 
 export function getPublicUrl(path: string): string {
   const { data } = supabase.storage
     .from(ATTACHMENT_BUCKET)
+    .getPublicUrl(path);
+  return data.publicUrl;
+}
+
+export function getChatAttachmentUrl(path: string): string {
+  const { data } = supabase.storage
+    .from(CHAT_ATTACHMENT_BUCKET)
     .getPublicUrl(path);
   return data.publicUrl;
 }
