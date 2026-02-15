@@ -135,6 +135,14 @@
     animation: pulse-glow 2s ease-in-out infinite;
   }
 
+  .card-hover-glow {
+    transition: box-shadow 0.2s ease;
+  }
+
+  .card-hover-glow:hover {
+    box-shadow: 0 0 0 1px rgba(235, 93, 46, 0.3), 0 4px 16px rgba(235, 93, 46, 0.1);
+  }
+
   .cursor-grab {
     cursor: grab;
   }

@@ -40,7 +40,7 @@ const quickActions = [
 
 export function QuickActions() {
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 card-hover-glow">
       <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

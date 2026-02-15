@@ -331,7 +331,7 @@ export function FactoryGlobe() {
   return (
     <div
       ref={containerRef}
-      className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800"
+      className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 card-hover-glow"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">

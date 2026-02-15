@@ -247,10 +247,10 @@ export function DashboardStatsCards() {
           {statsCards.map((stat, index) => (
             <div
               key={index}
-              className={`group relative rounded-lg border p-6 shadow-sm transition-all ${
+              className={`group relative rounded-lg border p-6 shadow-sm transition-all card-hover-glow ${
                 stat.highlight
                   ? "bg-red-50/50 border-red-100 dark:bg-red-950/20 dark:border-red-900/30"
-                  : "bg-white border-gray-100 hover:shadow-md dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700"
+                  : "bg-white border-gray-100 dark:bg-zinc-900 dark:border-zinc-800"
               }`}
               style={{ minHeight: "120px" }}
             >

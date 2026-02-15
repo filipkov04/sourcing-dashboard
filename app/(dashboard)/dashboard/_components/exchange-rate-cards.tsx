@@ -156,7 +156,7 @@ export function ExchangeRateCards() {
   if (!data) return null;
 
   return (
-    <div className="rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm hover:shadow-md transition-shadow h-fit">
+    <div className="rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-4 py-3 shadow-sm h-fit card-hover-glow">
       <div className="flex items-center justify-between mb-1.5">
         <h3 className="text-xs font-semibold text-gray-800 dark:text-zinc-200">
           Exchange Rates

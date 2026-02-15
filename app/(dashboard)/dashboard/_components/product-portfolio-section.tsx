@@ -28,7 +28,7 @@ export function ProductPortfolioSection() {
   const totalProducts = portfolioData.length;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 card-hover-glow">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Product Portfolio</h3>
         <p className="mt-0.5 text-xs text-gray-400 dark:text-zinc-500">Quantity by product</p>

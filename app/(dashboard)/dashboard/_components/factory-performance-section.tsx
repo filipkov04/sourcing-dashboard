@@ -92,7 +92,7 @@ export function FactoryPerformanceSection() {
       {/* Insights Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Top Performers */}
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -141,7 +141,7 @@ export function FactoryPerformanceSection() {
         </Card>
 
         {/* Needs Attention */}
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
