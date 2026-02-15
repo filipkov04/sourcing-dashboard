@@ -26,6 +26,7 @@ model User {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invitationsSent UserInvitation[] @relation("InvitedByUser")
+  notificationPreference NotificationPreference?
 
   // Chat relations
   conversations  ConversationParticipant[]
@@ -345,6 +346,22 @@ enum Severity {
 }
 
 // ============================================
+// NOTIFICATION PREFERENCES
+// ============================================
+
+model NotificationPreference {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderStatusEnabled      Boolean  @default(true)
+  delayAlertEnabled       Boolean  @default(true)
+  disruptionAlertEnabled  Boolean  @default(true)
+  weeklyDigestEnabled     Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+// ============================================
 // CHAT & MESSAGING
 // ============================================
 
@@ -467,4 +484,19 @@ enum RequestAction {
   APPROVED
   REJECTED
   PENDING_INFO    // Admin needs more information
+}
+
+// ============================================
+// EMAIL LOGGING
+// ============================================
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  toEmail   String
+  fromEmail String
+  subject   String
+  status    String   // SENT, FAILED
+  resendId  String?
+  error     String?
+  sentAt    DateTime @default(now())
 }

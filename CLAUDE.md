@@ -46,16 +46,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 20 — Feb 14, 2026)
+## Current Status (Session 20 — Feb 15, 2026)
 
-**Last completed:** Tasks 5.19 (Chat UI) + 5.20 (Chat API)
+**Last completed:** Tasks 5.8–5.13 (Email notifications, weekly digest, notification settings)
 
-**Session 20 changes:**
+**Session 20 changes (Marco):**
+- **Tasks 5.8–5.11** — Email infrastructure (Resend), order status/delay/disruption notification emails with styled HTML templates. `lib/email.ts` (Resend client + EmailLog), `lib/notifications.ts` (status change emails to OWNER/ADMIN users)
+- **Task 5.12** — Weekly digest email: `lib/digest.ts` aggregates 7-day stats (orders created/completed/delayed/disrupted, active count, recent events), sends styled HTML summary. Cron endpoint at `app/api/cron/weekly-digest/route.ts` protected by `CRON_SECRET`. `vercel.json` configured for Mondays 9am UTC.
+- **Task 5.13** — Notification settings: `NotificationPreference` Prisma model (4 boolean toggles per user), `app/api/settings/notifications/route.ts` (GET/PATCH), Settings page at `/settings` with toggle switches. Notifications respect user preferences before sending.
+- **Middleware update**: Added `/api/cron/` to public routes in `middleware.ts`
+
+**Session 20 changes (Filip):**
 - **Task 5.20** — Chat API Backend: 6 API routes for conversations (list, create, get detail, send message, mark read, unread count). Full org scoping, VIEWER role checks, Zod validation, transactional unread count tracking.
 - **Task 5.19** — Chat UI Component: Split-panel /messages page (conversation list + chat panel), new conversation dialog with order/factory linking, participant search, polling (5s chat, 10s list, 30s badge).
 - **Sidebar** — Added "Messages" nav item with unread badge between Team and Settings.
 - **Hooks** — lib/use-conversations.ts with useConversations, useConversationDetail, useMessageUnreadCount, sendMessage, createConversation.
-- **NOT pushed to remote yet** — includes Task 5.18 schema + Task 5.19/5.20 code
 
 **Previous sessions:**
 - Session 19: Task 5.18 (Chat Database Models)
