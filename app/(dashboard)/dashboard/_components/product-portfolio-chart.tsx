@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "@/components/theme-provider";
 import type { ProductPortfolioData } from "@/lib/types";
 import {
   PieChart,
@@ -11,9 +10,6 @@ import {
 } from "recharts";
 
 export function ProductPortfolioChart({ data }: { data: ProductPortfolioData }) {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-
   const top = data[0];
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
@@ -38,18 +34,19 @@ export function ProductPortfolioChart({ data }: { data: ProductPortfolioData }) 
               ))}
             </Pie>
             <Tooltip
-              contentStyle={{
-                backgroundColor: isDark ? "#27272a" : "#ffffff",
-                border: `1px solid ${isDark ? "#3f3f46" : "#e5e7eb"}`,
-                borderRadius: "8px",
-                boxShadow: "0 2px 4px rgb(0 0 0 / 0.08)",
-                padding: "6px 10px",
-                fontSize: "12px",
+              wrapperStyle={{ zIndex: 10 }}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const item = payload[0].payload;
+                return (
+                  <div className="rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-3 py-2 shadow-lg">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white">{item.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">
+                      {(Number(item.value) || 0).toLocaleString()} ({item.percentage}%)
+                    </p>
+                  </div>
+                );
               }}
-              formatter={((value: any, name: any, props: any) => [
-                `${(Number(value) || 0).toLocaleString()} (${props.payload.percentage}%)`,
-                name,
-              ]) as any}
             />
           </PieChart>
         </ResponsiveContainer>
