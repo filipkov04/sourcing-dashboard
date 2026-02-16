@@ -33,18 +33,28 @@ export default async function FactoriesPage() {
             Manage your manufacturing partners and suppliers
           </p>
         </div>
-        <Link
-          href="/factories/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add Factory</span>
-        </Link>
+        {["ADMIN", "OWNER"].includes(session.user.role) ? (
+          <Link
+            href="/factories/new"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Factory</span>
+          </Link>
+        ) : (
+          <Link
+            href="/factories/request"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Request Factory</span>
+          </Link>
+        )}
       </div>
 
       {/* Factories Table */}
       <Suspense fallback={<FactoriesTableSkeleton />}>
-        <FactoriesTableContent organizationId={session.user.organizationId} />
+        <FactoriesTableContent organizationId={session.user.organizationId} userRole={session.user.role} />
       </Suspense>
     </div>
   );
@@ -52,8 +62,10 @@ export default async function FactoriesPage() {
 
 async function FactoriesTableContent({
   organizationId,
+  userRole,
 }: {
   organizationId: string;
+  userRole: string;
 }) {
   // Fetch factories with order count
   const factories = await prisma.factory.findMany({
@@ -80,5 +92,5 @@ async function FactoriesTableContent({
     },
   });
 
-  return <FactoriesTable factories={factories} />;
+  return <FactoriesTable factories={factories} userRole={userRole} />;
 }

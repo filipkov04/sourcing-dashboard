@@ -466,11 +466,19 @@ export default function FactoryDetailPage() {
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
               <Package className="h-12 w-12 text-gray-400 dark:text-zinc-600" />
               <p className="text-gray-500 dark:text-zinc-500">No orders from this factory yet</p>
-              <Link href="/orders/new">
-                <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
-                  Create First Order
-                </Button>
-              </Link>
+              {isAdminOrOwner ? (
+                <Link href="/orders/new">
+                  <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
+                    Create First Order
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/orders/request">
+                  <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
+                    Request an Order
+                  </Button>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-4">

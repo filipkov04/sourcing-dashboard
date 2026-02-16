@@ -25,12 +25,14 @@ import type { FactoryListItem } from "@/lib/types";
 
 interface FactoriesTableProps {
   factories: FactoryListItem[];
+  userRole: string;
 }
 
 type OrderFilter = "all" | "none" | "has-orders" | "5-plus";
 type SortOption = "name-asc" | "name-desc" | "orders-desc" | "orders-asc" | "newest" | "oldest";
 
-export function FactoriesTable({ factories }: FactoriesTableProps) {
+export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
+  const isAdminOrOwner = userRole === "ADMIN" || userRole === "OWNER";
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [orderFilter, setOrderFilter] = useState<OrderFilter>("all");
@@ -148,13 +150,23 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
         <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
           Get started by adding your first manufacturing partner
         </p>
-        <Link
-          href="/factories/new"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white"
-        >
-          <Package className="h-4 w-4" />
-          Add Your First Factory
-        </Link>
+        {isAdminOrOwner ? (
+          <Link
+            href="/factories/new"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <Package className="h-4 w-4" />
+            Add Your First Factory
+          </Link>
+        ) : (
+          <Link
+            href="/factories/request"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <Package className="h-4 w-4" />
+            Request a Factory
+          </Link>
+        )}
       </div>
     );
   }
@@ -345,9 +357,11 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
                   Orders
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
-                  Actions
-                </th>
+                {isAdminOrOwner && (
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-zinc-400">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-zinc-700 bg-white dark:bg-zinc-900">
@@ -393,28 +407,30 @@ export function FactoriesTable({ factories }: FactoriesTableProps) {
                       {factory._count.orders} {factory._count.orders === 1 ? "order" : "orders"}
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/factories/${factory.id}/edit`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="rounded p-1 text-gray-500 dark:text-zinc-500 hover:bg-gray-50 dark:bg-zinc-700 hover:text-blue-600"
-                        title="Edit factory"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                      <button
-                        className="rounded p-1 text-gray-500 dark:text-zinc-500 hover:bg-gray-50 dark:bg-zinc-700 hover:text-red-600"
-                        title="Delete factory"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(factory);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdminOrOwner && (
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/factories/${factory.id}/edit`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded p-1 text-gray-500 dark:text-zinc-500 hover:bg-gray-50 dark:bg-zinc-700 hover:text-blue-600"
+                          title="Edit factory"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                        <button
+                          className="rounded p-1 text-gray-500 dark:text-zinc-500 hover:bg-gray-50 dark:bg-zinc-700 hover:text-red-600"
+                          title="Delete factory"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(factory);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

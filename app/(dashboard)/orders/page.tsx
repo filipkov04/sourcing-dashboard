@@ -276,12 +276,21 @@ export default function OrdersPage() {
             )}
             Export CSV
           </Button>
-          <Link href="/orders/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Order
-            </Button>
-          </Link>
+          {isAdminOrOwner ? (
+            <Link href="/orders/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Order
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/orders/request">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Request Order
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -428,12 +437,21 @@ export default function OrdersPage() {
                 : "Create your first order to get started"}
             </p>
             {!hasActiveFilters && (
-              <Link href="/orders/new" className="mt-4">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Order
-                </Button>
-              </Link>
+              isAdminOrOwner ? (
+                <Link href="/orders/new" className="mt-4">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Order
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/orders/request" className="mt-4">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Request Order
+                  </Button>
+                </Link>
+              )
             )}
           </div>
         ) : (
