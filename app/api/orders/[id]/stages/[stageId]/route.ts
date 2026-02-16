@@ -4,6 +4,7 @@ import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent } from "@/lib/history";
 import { fireAlert } from "@/lib/alert-generator";
+import { notifyOrderStatusChange } from "@/lib/notifications";
 
 // PATCH /api/orders/[id]/stages/[stageId] - Update a stage's progress
 // NOTE: This is an admin-only feature. Role-based access control will be added in Week 5.
@@ -31,6 +32,7 @@ export async function PATCH(
         id: orderId,
         organizationId: session.user.organizationId,
       },
+      include: { factory: { select: { name: true } } },
     });
 
     if (!order) {
@@ -273,6 +275,20 @@ export async function PATCH(
 
     if (eventPromises.length > 0) {
       Promise.all(eventPromises).catch(console.error);
+    }
+
+    // Send email notification if order status changed (fire-and-forget)
+    if (result.orderStatus !== order.status) {
+      notifyOrderStatusChange({
+        orderId: orderId,
+        organizationId: session.user.organizationId,
+        orderNumber: order.orderNumber,
+        productName: order.productName,
+        oldStatus: order.status,
+        newStatus: result.orderStatus,
+        factoryName: order.factory?.name,
+        stageName: existingStage.name,
+      }).catch(console.error);
     }
 
     return success({

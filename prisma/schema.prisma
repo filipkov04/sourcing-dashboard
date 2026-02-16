@@ -33,6 +33,10 @@ model User {
   messagesSent   Message[]
   presence       UserPresence?
 
+  // Request relations
+  requestsCreated  Request[] @relation("RequestsCreated")
+  requestsReviewed Request[] @relation("RequestsReviewed")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -71,6 +75,7 @@ model Organization {
   invitations   UserInvitation[]
   alerts        Alert[]
   conversations Conversation[]
+  requests      Request[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -120,6 +125,7 @@ model Factory {
   orders         Order[]
   alerts         Alert[]
   conversations  Conversation[]
+  request        Request?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -160,6 +166,7 @@ model Order {
   comments       OrderComment[]
   alerts         Alert[]
   conversations  Conversation[]
+  request        Request?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -393,6 +400,9 @@ model Conversation {
   subject         String?
   lastMessageAt   DateTime?
 
+  // Request relation
+  request         Request?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -518,4 +528,61 @@ model UserPresence {
   lastSeen  DateTime @default(now())
 
   @@index([lastSeen])
+}
+
+// ============================================
+// REQUESTS (Order/Factory approval workflow)
+// ============================================
+
+enum RequestType {
+  ORDER_REQUEST
+  FACTORY_REQUEST
+  ORDER_EDIT_REQUEST
+  FACTORY_EDIT_REQUEST
+  ORDER_DELETE_REQUEST
+  FACTORY_DELETE_REQUEST
+}
+
+enum RequestStatus {
+  PENDING
+  IN_REVIEW
+  NEEDS_INFO
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Request {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  requesterId     String
+  requester       User          @relation("RequestsCreated", fields: [requesterId], references: [id])
+
+  type            RequestType
+  status          RequestStatus @default(PENDING)
+  data            Json          // Stores order/factory form data as flexible JSON
+
+  // Review
+  reviewedById    String?
+  reviewedBy      User?         @relation("RequestsReviewed", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  reviewNote      String?       @db.Text
+
+  // Target entities (created after approval for CREATE, or referenced for EDIT/DELETE)
+  targetOrderId   String?  @unique
+  targetOrder     Order?   @relation(fields: [targetOrderId], references: [id], onDelete: SetNull)
+  targetFactoryId String?  @unique
+  targetFactory   Factory? @relation(fields: [targetFactoryId], references: [id], onDelete: SetNull)
+
+  // Chat thread
+  conversationId  String?  @unique
+  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId, status])
+  @@index([requesterId])
 }

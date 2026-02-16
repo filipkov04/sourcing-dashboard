@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
+import { success, notFound, unauthorized, forbidden, noContent, handleError, error } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent, OrderEventType } from "@/lib/history";
+import { notifyOrderStatusChange } from "@/lib/notifications";
 
 // GET /api/orders/[id] - Get a single order with all details
 export async function GET(
@@ -400,7 +401,49 @@ export async function PATCH(
       await Promise.all(eventPromises);
     }
 
+    // Send email notification for status changes (fire-and-forget)
+    if (status !== undefined && status !== existingOrder.status) {
+      notifyOrderStatusChange({
+        orderId: id,
+        organizationId: session.user.organizationId,
+        orderNumber: updatedOrder.orderNumber,
+        productName: updatedOrder.productName,
+        oldStatus: existingOrder.status,
+        newStatus: status,
+        factoryName: updatedOrder.factory?.name,
+      }).catch(console.error);
+    }
+
     return success(updatedOrder, "Order updated successfully");
+  } catch (err) {
+    return handleError(err);
+  }
+}
+
+// DELETE /api/orders/[id] - Delete an order. ADMIN/OWNER only.
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session) return unauthorized();
+
+    if (!["ADMIN", "OWNER"].includes(session.user.role)) {
+      return forbidden("Only admins can delete orders");
+    }
+
+    const { id } = await params;
+
+    const order = await prisma.order.findFirst({
+      where: { id, organizationId: session.user.organizationId },
+    });
+
+    if (!order) return notFound("Order");
+
+    await prisma.order.delete({ where: { id } });
+
+    return noContent();
   } catch (err) {
     return handleError(err);
   }

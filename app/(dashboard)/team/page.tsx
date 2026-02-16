@@ -47,7 +47,7 @@ import {
   Loader2,
   XCircle,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
 interface TeamMember {
   id: string;
@@ -96,6 +96,30 @@ export default function TeamPage() {
 
   const currentUserRole = session?.user?.role;
   const isAdminOrOwner = currentUserRole === "ADMIN" || currentUserRole === "OWNER";
+
+  // Dev role switcher
+  const [switchingRole, setSwitchingRole] = useState(false);
+
+  async function handleDevRoleSwitch(newRole: string) {
+    if (newRole === currentUserRole) return;
+    setSwitchingRole(true);
+    try {
+      const response = await fetch("/api/dev/set-role", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        // Force full page reload so session picks up new role
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Failed to switch role:", err);
+    } finally {
+      setSwitchingRole(false);
+    }
+  }
 
   useEffect(() => {
     fetchTeamMembers();
@@ -339,6 +363,37 @@ export default function TeamPage() {
           Invite Member
         </Button>
       </div>
+
+      {/* DEV: Role Switcher */}
+      {process.env.NODE_ENV !== "production" && (
+        <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Dev: Switch My Role
+              </span>
+              {(["OWNER", "ADMIN", "MEMBER", "VIEWER"] as const).map((role) => (
+                <Button
+                  key={role}
+                  size="sm"
+                  variant={currentUserRole === role ? "default" : "outline"}
+                  disabled={switchingRole}
+                  onClick={() => handleDevRoleSwitch(role)}
+                  className={`h-7 px-3 text-xs ${
+                    currentUserRole === role
+                      ? "bg-amber-600 hover:bg-amber-700 text-white"
+                      : "border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+                  }`}
+                >
+                  {getRoleIcon(role)}
+                  <span className="ml-1.5">{role}</span>
+                </Button>
+              ))}
+              {switchingRole && <Loader2 className="h-4 w-4 animate-spin text-amber-600" />}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Team Stats */}
       <div className="grid gap-4 sm:grid-cols-4">

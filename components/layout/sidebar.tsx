@@ -9,6 +9,7 @@ import {
   Package,
   CalendarRange,
   Users,
+  ClipboardList,
   Settings,
   ChevronLeft,
 } from "lucide-react";
@@ -39,6 +40,11 @@ const navigation = [
     name: "Team",
     href: "/team",
     icon: Users,
+  },
+  {
+    name: "Requests",
+    href: "/requests",
+    icon: ClipboardList,
   },
   {
     name: "Settings",

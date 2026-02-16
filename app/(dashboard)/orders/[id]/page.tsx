@@ -73,6 +73,17 @@ import { HorizontalTimeline } from "@/components/timeline";
 import { StageAdminPanel } from "@/components/stage-admin-panel";
 import { OrderAttachments } from "@/components/order-attachments";
 import { OrderComments } from "@/components/order-comments";
+import { RequestDeleteDialog } from "@/components/request-delete-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type OrderStage = {
   id: string;
@@ -119,21 +130,21 @@ type Order = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  IN_PROGRESS: "bg-blue-100 text-blue-800",
-  DELAYED: "bg-orange-100 text-orange-800",
-  DISRUPTED: "bg-red-100 text-red-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-200",
-  CANCELLED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
+  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  DELAYED: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+  DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+  COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+  SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  DELIVERED: "bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300",
+  CANCELLED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
-  NORMAL: "bg-blue-100 text-blue-600",
-  HIGH: "bg-orange-100 text-orange-600",
-  URGENT: "bg-red-100 text-red-600",
+  LOW: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
+  NORMAL: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+  HIGH: "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+  URGENT: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
 };
 
 const stageStatusColors: Record<string, string> = {
@@ -146,12 +157,30 @@ const stageStatusColors: Record<string, string> = {
 };
 
 const stageStatusBadgeColors: Record<string, string> = {
-  NOT_STARTED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  COMPLETED: "bg-green-100 text-green-700",
-  SKIPPED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
-  DELAYED: "bg-orange-100 text-orange-700",
-  BLOCKED: "bg-red-100 text-red-700",
+  NOT_STARTED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+  SKIPPED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
+  DELAYED: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+  BLOCKED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+};
+
+const stageBorderColors: Record<string, string> = {
+  NOT_STARTED: "!border-l-zinc-300 dark:!border-l-zinc-600",
+  IN_PROGRESS: "!border-l-blue-500",
+  COMPLETED: "!border-l-green-500",
+  SKIPPED: "!border-l-zinc-300 dark:!border-l-zinc-600",
+  DELAYED: "!border-l-amber-500",
+  BLOCKED: "!border-l-red-500",
+};
+
+const stageBgColors: Record<string, string> = {
+  NOT_STARTED: "",
+  IN_PROGRESS: "bg-blue-50/30 dark:bg-blue-950/10",
+  COMPLETED: "bg-green-50/30 dark:bg-green-950/10",
+  SKIPPED: "",
+  DELAYED: "bg-amber-50/30 dark:bg-amber-950/10",
+  BLOCKED: "bg-red-50/30 dark:bg-red-950/10",
 };
 
 function SortableMetadataDisplayItem({
@@ -225,11 +254,33 @@ export default function OrderDetailPage() {
   // Timeline refresh trigger — increment to refetch timeline events
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
+  // Delete request dialog (non-admin)
+  const [deleteRequestOpen, setDeleteRequestOpen] = useState(false);
+
+  // Direct delete dialog (admin/owner)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Order status quick-update
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Error state for stage saves (replaces alert())
   const [stageSaveError, setStageSaveError] = useState<string | null>(null);
+
+  async function handleDeleteOrder() {
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/orders/${params.id}`, { method: "DELETE" });
+      if (res.ok || res.status === 204) {
+        router.push("/orders");
+      }
+    } catch {
+      console.error("Failed to delete order");
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  }
 
   useEffect(() => {
     async function fetchOrder() {
@@ -306,6 +357,14 @@ export default function OrderDetailPage() {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const formatDateShort = (dateString: string) => {
+    const d = new Date(dateString);
+    return {
+      main: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      year: d.getFullYear().toString(),
+    };
   };
 
   const formatDateTime = (dateString: string) => {
@@ -526,7 +585,7 @@ export default function OrderDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-gray-600 dark:text-zinc-400" />
       </div>
     );
   }
@@ -534,17 +593,25 @@ export default function OrderDetailPage() {
   if (error || !order) {
     return (
       <div className="space-y-6">
-        <Button variant="ghost" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">
-          <Package className="h-12 w-12 mb-4 text-gray-400 dark:text-zinc-600" />
-          <p className="text-lg font-medium">{error || "Order not found"}</p>
-          <Link href="/orders" className="mt-4">
-            <Button>View All Orders</Button>
-          </Link>
-        </div>
+        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+          <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
+            <Package className="h-12 w-12 text-gray-500 dark:text-zinc-500" />
+            <p className="text-gray-600 dark:text-zinc-400">{error || "Order not found"}</p>
+            <Link href="/orders">
+              <Button variant="outline" className="border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300">
+                View All Orders
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -567,117 +634,220 @@ export default function OrderDetailPage() {
     return "bg-blue-600";
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {order.orderNumber}
-            </h1>
-            {isAdminOrOwner ? (
-              <Select
-                value={order.status}
-                onValueChange={updateOrderStatus}
-                disabled={isUpdatingStatus}
-              >
-                <SelectTrigger className={`h-6 w-auto gap-1 border-0 px-2.5 py-0 text-xs font-semibold rounded-full ${statusColors[order.status]}`}>
-                  {isUpdatingStatus ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <SelectValue />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="DELAYED">Delayed</SelectItem>
-                  <SelectItem value="DISRUPTED">Disrupted</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="SHIPPED">Shipped</SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge className={statusColors[order.status]}>
-                {order.status.replace("_", " ")}
-              </Badge>
-            )}
-            <Badge className={priorityColors[order.priority]}>
-              {order.priority}
-            </Badge>
-          </div>
-          <p className="text-gray-600 dark:text-zinc-400 ml-10">{order.productName}</p>
-        </div>
-        <Link href={`/orders/${order.id}/edit`}>
-          <Button>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Order
-          </Button>
-        </Link>
-      </div>
+  const completedStages = order.stages?.filter((s) => s.status === "COMPLETED" || s.status === "SKIPPED").length ?? 0;
+  const totalStages = order.stages?.length ?? 0;
+  const orderDateShort = formatDateShort(order.orderDate);
+  const expectedDateShort = formatDateShort(order.expectedDate);
+  const isDueOverdue = daysUntilDue < 0;
+  const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 7;
 
-      {/* Overall Progress */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Overall Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 dark:text-zinc-400">
-                {order.overallProgress}% Complete
-              </span>
-              <span
-                className={`font-medium ${
-                  daysUntilDue < 0
-                    ? "text-red-600"
-                    : daysUntilDue <= 7
-                    ? "text-yellow-600"
-                    : "text-zinc-400"
-                }`}
-              >
-                {daysUntilDue < 0
-                  ? `${Math.abs(daysUntilDue)} days overdue`
-                  : daysUntilDue === 0
-                  ? "Due today"
-                  : `${daysUntilDue} days remaining`}
-              </span>
+  return (
+    <div className="space-y-8">
+      {/* Back nav */}
+      <Button
+        variant="ghost"
+        onClick={() => router.back()}
+        className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
+
+      {/* Hero Card */}
+      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 space-y-5">
+        {/* Identity row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {order.orderNumber}
+              </h1>
+              {isAdminOrOwner ? (
+                <Select
+                  value={order.status}
+                  onValueChange={updateOrderStatus}
+                  disabled={isUpdatingStatus}
+                >
+                  <SelectTrigger className={`h-6 w-auto gap-1 border-0 px-2.5 py-0 text-xs font-semibold rounded-full ${statusColors[order.status]}`}>
+                    {isUpdatingStatus ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <SelectValue />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="DELAYED">Delayed</SelectItem>
+                    <SelectItem value="DISRUPTED">Disrupted</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="SHIPPED">Shipped</SelectItem>
+                    <SelectItem value="DELIVERED">Delivered</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Badge className={statusColors[order.status]}>
+                  {order.status.replace("_", " ")}
+                </Badge>
+              )}
+              <Badge className={priorityColors[order.priority]}>
+                {order.priority}
+              </Badge>
             </div>
-            <div className="w-full h-3 bg-gray-200 dark:bg-zinc-600 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${getOverallProgressColor()}`}
-                style={{ width: `${order.overallProgress}%` }}
-              />
-            </div>
-            {/* Show warning if any stage is delayed or blocked */}
-            {(hasDelayedStage || hasBlockedStage) && (
-              <div className={`flex items-center gap-2 text-xs mt-2 ${hasBlockedStage ? "text-red-600" : "text-yellow-600"}`}>
-                {hasBlockedStage ? (
-                  <>
-                    <XCircle className="h-3.5 w-3.5" />
-                    <span>One or more stages are blocked</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    <span>One or more stages are delayed</span>
-                  </>
-                )}
-              </div>
+            <p className="text-gray-600 dark:text-zinc-400">{order.productName}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {isAdminOrOwner ? (
+              <>
+                <Link href={`/orders/${order.id}/edit`}>
+                  <Button variant="outline" className="border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Order
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href={`/orders/${order.id}/request-edit`}>
+                  <Button variant="outline" className="border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Request Edit
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteRequestOpen(true)}
+                  className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Request Delete
+                </Button>
+              </>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Progress bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-zinc-400">
+              {order.overallProgress}% Complete
+            </span>
+            <span
+              className={`font-medium ${
+                daysUntilDue < 0
+                  ? "text-red-600"
+                  : daysUntilDue <= 7
+                  ? "text-yellow-600"
+                  : "text-zinc-400"
+              }`}
+            >
+              {daysUntilDue < 0
+                ? `${Math.abs(daysUntilDue)} days overdue`
+                : daysUntilDue === 0
+                ? "Due today"
+                : `${daysUntilDue} days remaining`}
+            </span>
+          </div>
+          <div className="w-full h-2.5 bg-gray-100 dark:bg-zinc-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${getOverallProgressColor()}`}
+              style={{ width: `${order.overallProgress}%` }}
+            />
+          </div>
+          {(hasDelayedStage || hasBlockedStage) && (
+            <div className={`flex items-center gap-2 text-xs ${hasBlockedStage ? "text-red-600" : "text-yellow-600"}`}>
+              {hasBlockedStage ? (
+                <>
+                  <XCircle className="h-3.5 w-3.5" />
+                  <span>One or more stages are blocked</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span>One or more stages are delayed</span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Summary stat mini-cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Stages */}
+          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/50 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Stages</p>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/10">
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              </span>
+            </div>
+            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white">{completedStages}/{totalStages}</p>
+            <p className="text-xs text-gray-400 dark:text-zinc-500">completed</p>
+          </div>
+
+          {/* Quantity */}
+          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/50 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Quantity</p>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500/10">
+                <Package className="h-3.5 w-3.5 text-orange-500" />
+              </span>
+            </div>
+            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white">{order.quantity.toLocaleString()}</p>
+            <p className="text-xs text-gray-400 dark:text-zinc-500">{order.unit}</p>
+          </div>
+
+          {/* Ordered */}
+          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/50 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Ordered</p>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10">
+                <Calendar className="h-3.5 w-3.5 text-blue-500" />
+              </span>
+            </div>
+            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white">{orderDateShort.main}</p>
+            <p className="text-xs text-gray-400 dark:text-zinc-500">{orderDateShort.year}</p>
+          </div>
+
+          {/* Due */}
+          <div className={`rounded-lg p-4 ${
+            isDueOverdue
+              ? "bg-red-50 dark:bg-red-950/20 ring-1 ring-red-200 dark:ring-red-900/40"
+              : isDueSoon
+              ? "bg-amber-50 dark:bg-amber-950/20 ring-1 ring-amber-200 dark:ring-amber-900/40"
+              : "bg-gray-50 dark:bg-zinc-800/50"
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Due</p>
+              <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${
+                isDueOverdue ? "bg-red-500/10" : isDueSoon ? "bg-amber-500/10" : "bg-gray-500/10 dark:bg-zinc-600/20"
+              }`}>
+                <Clock className={`h-3.5 w-3.5 ${
+                  isDueOverdue ? "text-red-500" : isDueSoon ? "text-amber-500" : "text-gray-500 dark:text-zinc-400"
+                }`} />
+              </span>
+            </div>
+            <p className={`mt-1.5 text-xl font-bold ${
+              isDueOverdue ? "text-red-700 dark:text-red-400" : isDueSoon ? "text-amber-700 dark:text-amber-400" : "text-gray-900 dark:text-white"
+            }`}>{expectedDateShort.main}</p>
+            <p className="text-xs text-gray-400 dark:text-zinc-500">{expectedDateShort.year}</p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Details */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -710,7 +880,7 @@ export default function OrderDetailPage() {
               </div>
             </div>
 
-            <hr className="my-4" />
+            <hr className="my-4 border-gray-100 dark:border-zinc-800" />
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -719,7 +889,7 @@ export default function OrderDetailPage() {
               </div>
             </div>
 
-            <hr className="my-4" />
+            <hr className="my-4 border-gray-100 dark:border-zinc-800" />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-start gap-2">
@@ -749,7 +919,7 @@ export default function OrderDetailPage() {
 
             {order.tags && order.tags.length > 0 && (
               <>
-                <hr className="my-4" />
+                <hr className="my-4 border-gray-100 dark:border-zinc-800" />
                 <div className="flex items-start gap-2">
                   <Tag className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                   <div>
@@ -768,7 +938,7 @@ export default function OrderDetailPage() {
 
             {order.notes && (
               <>
-                <hr className="my-4" />
+                <hr className="my-4 border-gray-100 dark:border-zinc-800" />
                 <div className="flex items-start gap-2">
                   <FileText className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                   <div>
@@ -784,7 +954,7 @@ export default function OrderDetailPage() {
         </Card>
 
         {/* Factory Info */}
-        <Card>
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Factory className="h-5 w-5" />
@@ -816,7 +986,7 @@ export default function OrderDetailPage() {
               order.factory.contactEmail ||
               order.factory.contactPhone) && (
               <>
-                <hr />
+                <hr className="border-gray-100 dark:border-zinc-800" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700 dark:text-zinc-300">Contact</p>
                   {order.factory.contactName && (
@@ -864,17 +1034,17 @@ export default function OrderDetailPage() {
         userRole={session?.user?.role}
       />
 
-      {/* Production Stages */}
+      {/* Production Pipeline */}
       {order.stages && order.stages.length > 0 && (
-        <Card>
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
           <CardHeader>
-            <CardTitle>Production Stages</CardTitle>
+            <CardTitle>Production Pipeline</CardTitle>
             <CardDescription>
-              Track and update progress through each stage of production
+              {completedStages} of {totalStages} stages complete
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Stage save error banner */}
               {stageSaveError && (
                 <div className="flex items-center justify-between rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 p-3 text-sm text-red-600 dark:text-red-300">
@@ -920,29 +1090,27 @@ export default function OrderDetailPage() {
               )}
 
               {order.stages.map((stage, index) => (
-                <div
-                  key={stage.id}
-                  className="flex items-start gap-4 p-4 rounded-lg border bg-white dark:bg-zinc-800"
-                >
-                  {/* Stage Icon */}
-                  <div className="flex flex-col items-center">
-                    {getStageIcon(stage.status)}
-                    {index < order.stages.length - 1 && (
-                      <div
-                        className={`w-0.5 h-8 mt-2 ${
-                          stage.status === "COMPLETED"
-                            ? "bg-green-300"
-                            : "bg-zinc-600"
-                        }`}
-                      />
-                    )}
-                  </div>
+                <div key={stage.id} className="relative">
+                  {/* Connector line between stages */}
+                  {index < order.stages.length - 1 && (
+                    <div className={`absolute left-6 top-full w-0.5 h-3 z-0 ${
+                      stage.status === "COMPLETED" ? "bg-green-300 dark:bg-green-700" : "bg-gray-200 dark:bg-zinc-700"
+                    }`} />
+                  )}
+                  <div
+                    className={`flex items-start gap-4 p-4 rounded-lg border border-l-[3px] ${stageBorderColors[stage.status] || "border-l-zinc-300 dark:border-l-zinc-600"} ${stageBgColors[stage.status] || ""} bg-white dark:bg-zinc-800/80 border-gray-100 dark:border-zinc-700/60`}
+                  >
+                    {/* Stage Icon */}
+                    <div className="flex flex-col items-center">
+                      {getStageIcon(stage.status)}
+                    </div>
 
-                  {/* Stage Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{stage.name}</h4>
+                    {/* Stage Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 dark:bg-zinc-700 text-xs font-semibold font-mono text-gray-600 dark:text-zinc-300">{String(index + 1).padStart(2, "0")}</span>
+                          <h4 className="font-medium">{stage.name}</h4>
                         <Badge
                           className={stageStatusBadgeColors[stage.status] || "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400"}
                         >
@@ -965,7 +1133,7 @@ export default function OrderDetailPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">
+                        <span className={`text-sm font-medium ${stageStatusColors[stage.status] || "text-zinc-500"}`}>
                           {stage.progress}%
                         </span>
                         {isAdminOrOwner && editingStageId !== stage.id && (
@@ -1257,7 +1425,7 @@ export default function OrderDetailPage() {
                       <>
                         {/* Progress Bar */}
                         <div
-                          className="w-full h-2 bg-gray-200 dark:bg-zinc-600 rounded-full overflow-hidden mb-2 cursor-pointer hover:bg-gray-300 dark:hover:bg-zinc-500 transition-colors"
+                          className="w-full h-2.5 bg-gray-100 dark:bg-zinc-700 rounded-full overflow-hidden mb-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors"
                           onClick={() => startEditingStage(stage)}
                           title="Click to edit progress"
                         >
@@ -1500,6 +1668,7 @@ export default function OrderDetailPage() {
                         }}
                       />
                     )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1509,7 +1678,7 @@ export default function OrderDetailPage() {
       )}
 
       {/* Activity Timeline */}
-      <Card>
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <History className="h-5 w-5" />
@@ -1535,10 +1704,44 @@ export default function OrderDetailPage() {
       </Card>
 
       {/* Metadata */}
-      <div className="text-xs text-gray-500 dark:text-zinc-500 flex items-center gap-4">
-        <span>Created: {formatDateTime(order.createdAt)}</span>
-        <span>Last updated: {formatDateTime(order.updatedAt)}</span>
+      <div className="border-t border-gray-100 dark:border-zinc-800 pt-4 text-xs text-gray-500 dark:text-zinc-500 flex items-center gap-2">
+        <span>Created {formatDateTime(order.createdAt)}</span>
+        <span className="text-gray-300 dark:text-zinc-700">|</span>
+        <span>Last updated {formatDateTime(order.updatedAt)}</span>
       </div>
+
+      {/* Delete Request Dialog (non-admin users) */}
+      {!isAdminOrOwner && (
+        <RequestDeleteDialog
+          entityType="order"
+          entityId={order.id}
+          entityName={order.orderNumber}
+          open={deleteRequestOpen}
+          onOpenChange={setDeleteRequestOpen}
+        />
+      )}
+
+      {/* Direct Delete Dialog (admin/owner) */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{order.orderNumber}</strong> ({order.productName})? This will permanently remove the order and all associated stages, events, and attachments. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteOrder}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? "Deleting..." : "Delete Order"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

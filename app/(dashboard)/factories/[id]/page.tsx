@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RequestDeleteDialog } from "@/components/request-delete-dialog";
 import {
   Card,
   CardContent,
@@ -32,6 +34,9 @@ import {
   Calendar,
   Loader2,
   Trash2,
+  Activity,
+  CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 
 type OrderStage = {
@@ -84,15 +89,31 @@ const priorityColors: Record<string, string> = {
   URGENT: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
 };
 
+const statusBarFills: Record<string, string> = {
+  PENDING: "#f59e0b",
+  IN_PROGRESS: "#3b82f6",
+  DELAYED: "#f97316",
+  DISRUPTED: "#ef4444",
+  COMPLETED: "#22c55e",
+  SHIPPED: "#a855f7",
+  DELIVERED: "#71717a",
+  CANCELLED: "#a1a1aa",
+};
+
+const ACTIVE_STATUSES = ["IN_PROGRESS", "PENDING", "DELAYED", "DISRUPTED"];
+
 export default function FactoryDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdminOrOwner = session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
   const [factory, setFactory] = useState<Factory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteRequestOpen, setDeleteRequestOpen] = useState(false);
 
   useEffect(() => {
     async function fetchFactory() {
@@ -232,114 +253,201 @@ export default function FactoryDetailPage() {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleDeleteClick}
-            className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-400 justify-center"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-          <Link href={`/factories/${factory.id}/edit`} className="flex-1 sm:flex-initial">
-            <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Factory
-            </Button>
-          </Link>
+          {isAdminOrOwner ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={handleDeleteClick}
+                className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-400 justify-center"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+              <Link href={`/factories/${factory.id}/edit`} className="flex-1 sm:flex-initial">
+                <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Factory
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteRequestOpen(true)}
+                className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-400 justify-center"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Request Delete
+              </Button>
+              <Link href={`/factories/${factory.id}/request-edit`} className="flex-1 sm:flex-initial">
+                <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Request Edit
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Factory Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Factory Information */}
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white">Factory Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                  Factory Name
-                </label>
-                <p className="text-gray-900 dark:text-white mt-1">{factory.name}</p>
+      {/* Stats Row */}
+      {(() => {
+        const totalOrders = factory.orders.length;
+        const activeOrders = factory.orders.filter((o) => ACTIVE_STATUSES.includes(o.status)).length;
+        const completedOrders = factory.orders.filter((o) => ["COMPLETED", "SHIPPED", "DELIVERED"].includes(o.status));
+        const delayedCompleted = completedOrders.filter((o) => o.status === "DELAYED").length;
+        const onTimeRate = completedOrders.length > 0
+          ? Math.round(((completedOrders.length - delayedCompleted) / completedOrders.length) * 100)
+          : null;
+        const activeOrdersList = factory.orders.filter((o) => ACTIVE_STATUSES.includes(o.status));
+        const avgProgress = activeOrdersList.length > 0
+          ? Math.round(activeOrdersList.reduce((sum, o) => sum + o.overallProgress, 0) / activeOrdersList.length)
+          : null;
+
+        return (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Orders */}
+            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Total Orders</p>
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EB5D2E]/10">
+                  <Package className="h-4 w-4 text-[#EB5D2E]" />
+                </span>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                  Location
-                </label>
-                <p className="text-gray-900 dark:text-white mt-1">{factory.location}</p>
-              </div>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{totalOrders}</p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">all time</p>
             </div>
 
-            {factory.address && (
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                  Address
-                </label>
-                <p className="text-gray-900 dark:text-white mt-1">{factory.address}</p>
+            {/* Active Orders */}
+            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Active</p>
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
+                  <Activity className="h-4 w-4 text-blue-500" />
+                </span>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{activeOrders}</p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">in production</p>
+            </div>
 
-        {/* Contact Information */}
-        <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
-          <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white">Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {factory.contactName && (
-              <div className="flex items-start space-x-3">
-                <User className="h-5 w-5 text-gray-600 dark:text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">Contact Name</p>
-                  <p className="text-gray-900 dark:text-white">{factory.contactName}</p>
+            {/* On-Time Rate */}
+            <div className={`rounded-lg border p-5 shadow-sm ${
+              onTimeRate !== null && onTimeRate < 80
+                ? "border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20"
+                : "border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+            }`}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">On-Time Rate</p>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                  onTimeRate !== null && onTimeRate < 80
+                    ? "bg-red-500/10"
+                    : "bg-green-500/10"
+                }`}>
+                  <CheckCircle2 className={`h-4 w-4 ${
+                    onTimeRate !== null && onTimeRate < 80 ? "text-red-500" : "text-green-500"
+                  }`} />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {onTimeRate !== null ? `${onTimeRate}%` : "—"}
+              </p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">
+                {completedOrders.length > 0 ? `${completedOrders.length} completed` : "no completed orders"}
+              </p>
+            </div>
+
+            {/* Avg Progress */}
+            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Avg Progress</p>
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10">
+                  <TrendingUp className="h-4 w-4 text-purple-500" />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {avgProgress !== null ? `${avgProgress}%` : "—"}
+              </p>
+              {avgProgress !== null && (
+                <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 dark:bg-zinc-700">
+                  <div
+                    className="h-1.5 rounded-full bg-purple-500 transition-all"
+                    style={{ width: `${avgProgress}%` }}
+                  />
                 </div>
-              </div>
-            )}
-
-            {factory.contactEmail && (
-              <div className="flex items-start space-x-3">
-                <Mail className="h-5 w-5 text-gray-600 dark:text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">Email</p>
-                  <a
-                    href={`mailto:${factory.contactEmail}`}
-                    className="text-blue-400 hover:text-blue-300"
-                  >
-                    {factory.contactEmail}
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {factory.contactPhone && (
-              <div className="flex items-start space-x-3">
-                <Phone className="h-5 w-5 text-gray-600 dark:text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">Phone</p>
-                  <a
-                    href={`tel:${factory.contactPhone}`}
-                    className="text-blue-400 hover:text-blue-300"
-                  >
-                    {factory.contactPhone}
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {!factory.contactName &&
-              !factory.contactEmail &&
-              !factory.contactPhone && (
-                <p className="text-gray-500 dark:text-zinc-500 text-sm">No contact information available</p>
               )}
-          </CardContent>
-        </Card>
+              {avgProgress === null && (
+                <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">no active orders</p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Factory & Contact Info — single condensed card */}
+      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-zinc-800">
+          {/* Factory Info */}
+          <div className="p-5 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Factory</h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <FactoryIcon className="h-4 w-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+                <span className="text-sm text-gray-900 dark:text-white">{factory.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+                <span className="text-sm text-gray-700 dark:text-zinc-300">{factory.location}</span>
+              </div>
+              {factory.address && (
+                <p className="text-sm text-gray-500 dark:text-zinc-400 pl-6">{factory.address}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Contact Info */}
+          <div className="p-5 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Contact</h3>
+            {factory.contactName || factory.contactEmail || factory.contactPhone ? (
+              <div className="space-y-2">
+                {factory.contactName && (
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+                    <span className="text-sm text-gray-900 dark:text-white">{factory.contactName}</span>
+                  </div>
+                )}
+                {factory.contactEmail && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+                    <a
+                      href={`mailto:${factory.contactEmail}`}
+                      className="text-sm text-blue-500 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      {factory.contactEmail}
+                    </a>
+                  </div>
+                )}
+                {factory.contactPhone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+                    <a
+                      href={`tel:${factory.contactPhone}`}
+                      className="text-sm text-blue-500 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      {factory.contactPhone}
+                    </a>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-zinc-500">No contact information</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Orders from this Factory */}
-      <Card className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -365,94 +473,133 @@ export default function FactoryDetailPage() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-zinc-700">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Order #
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Product
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Quantity
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Status
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Priority
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Progress
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Due Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {factory.orders.map((order) => (
-                    <tr
-                      key={order.id}
-                      onClick={() => router.push(`/orders/${order.id}`)}
-                      className="border-b border-gray-200 dark:border-zinc-700/50 hover:bg-gray-50 dark:hover:bg-zinc-700/30 cursor-pointer transition-colors"
-                    >
-                      <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
-                        {order.orderNumber}
-                      </td>
-                      <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
-                        {order.productName}
-                      </td>
-                      <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
-                        {order.quantity} {order.unit}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          variant="secondary"
-                          className={statusColors[order.status] || ""}
-                        >
-                          {order.status.replace("_", " ")}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          variant="secondary"
-                          className={priorityColors[order.priority] || ""}
-                        >
-                          {order.priority}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex-1 bg-gray-100 dark:bg-zinc-700 rounded-full h-2 max-w-[100px]">
-                            <div
-                              className={`h-2 rounded-full ${
-                                order.overallProgress === 100
-                                  ? "bg-green-500"
-                                  : order.overallProgress > 0
-                                  ? "bg-blue-500"
-                                  : "bg-zinc-600"
-                              }`}
-                              style={{ width: `${order.overallProgress}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-gray-600 dark:text-zinc-400 min-w-[40px]">
-                            {order.overallProgress}%
-                          </span>
+            <div className="space-y-4">
+              {/* Status distribution bar */}
+              {(() => {
+                const counts: Record<string, number> = {};
+                for (const order of factory.orders) {
+                  counts[order.status] = (counts[order.status] || 0) + 1;
+                }
+                const total = factory.orders.length;
+                return (
+                  <div className="space-y-2">
+                    <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-700">
+                      {Object.entries(counts).map(([status, count]) => (
+                        <div
+                          key={status}
+                          style={{
+                            width: `${(count / total) * 100}%`,
+                            backgroundColor: statusBarFills[status] || "#71717a",
+                          }}
+                          title={`${status.replace("_", " ")}: ${count}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {Object.entries(counts).map(([status, count]) => (
+                        <div key={status} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-zinc-400">
+                          <span
+                            className="inline-block h-2 w-2 rounded-full"
+                            style={{ backgroundColor: statusBarFills[status] || "#71717a" }}
+                          />
+                          {status.replace("_", " ")} ({count})
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1 text-gray-500 dark:text-zinc-500" />
-                          {formatDate(order.expectedDate)}
-                        </div>
-                      </td>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Orders table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-zinc-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Order #
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Product
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Quantity
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Priority
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Progress
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        Due Date
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {factory.orders.map((order) => (
+                      <tr
+                        key={order.id}
+                        onClick={() => router.push(`/orders/${order.id}`)}
+                        className="border-b border-gray-200 dark:border-zinc-700/50 hover:bg-gray-50 dark:hover:bg-zinc-700/30 cursor-pointer transition-colors"
+                      >
+                        <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
+                          {order.orderNumber}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
+                          {order.productName}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
+                          {order.quantity} {order.unit}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            variant="secondary"
+                            className={statusColors[order.status] || ""}
+                          >
+                            {order.status.replace("_", " ")}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            variant="secondary"
+                            className={priorityColors[order.priority] || ""}
+                          >
+                            {order.priority}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-100 dark:bg-zinc-700 rounded-full h-2 max-w-[100px]">
+                              <div
+                                className={`h-2 rounded-full ${
+                                  order.overallProgress === 100
+                                    ? "bg-green-500"
+                                    : order.overallProgress > 0
+                                    ? "bg-blue-500"
+                                    : "bg-zinc-600"
+                                }`}
+                                style={{ width: `${order.overallProgress}%` }}
+                              />
+                            </div>
+                            <span className="text-sm text-gray-600 dark:text-zinc-400 min-w-[40px]">
+                              {order.overallProgress}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1 text-gray-500 dark:text-zinc-500" />
+                            {formatDate(order.expectedDate)}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </CardContent>
@@ -464,7 +611,7 @@ export default function FactoryDetailPage() {
         {formatDateTime(factory.updatedAt)}
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog (Admin only) */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
           <DialogHeader>
@@ -518,6 +665,17 @@ export default function FactoryDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Request Dialog (non-admin users) */}
+      {!isAdminOrOwner && (
+        <RequestDeleteDialog
+          entityType="factory"
+          entityId={factory.id}
+          entityName={factory.name}
+          open={deleteRequestOpen}
+          onOpenChange={setDeleteRequestOpen}
+        />
+      )}
     </div>
   );
 }

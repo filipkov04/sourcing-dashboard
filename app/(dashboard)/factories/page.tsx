@@ -14,12 +14,21 @@ export default async function FactoriesPage() {
     redirect("/login");
   }
 
+  const factoryCount = await prisma.factory.count({
+    where: { organizationId: session.user.organizationId },
+  });
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">Factories</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">Factories</h1>
+            <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:text-zinc-400">
+              {factoryCount} {factoryCount === 1 ? "factory" : "factories"}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
             Manage your manufacturing partners and suppliers
           </p>
@@ -56,6 +65,14 @@ async function FactoriesTableContent({
         select: {
           orders: true,
         },
+      },
+      orders: {
+        where: {
+          status: {
+            in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"],
+          },
+        },
+        select: { id: true },
       },
     },
     orderBy: {

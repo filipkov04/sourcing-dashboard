@@ -43,6 +43,16 @@ const statusBadgeColors: Record<string, string> = {
   BLOCKED: "bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300",
 };
 
+// Progress percentage text colors
+const progressTextColors: Record<string, string> = {
+  NOT_STARTED: "text-gray-400 dark:text-zinc-500",
+  IN_PROGRESS: "text-blue-600 dark:text-blue-400",
+  COMPLETED: "text-green-600 dark:text-green-400",
+  SKIPPED: "text-gray-400 dark:text-zinc-500",
+  DELAYED: "text-orange-600 dark:text-orange-400",
+  BLOCKED: "text-red-600 dark:text-red-400",
+};
+
 // Progress bar fill colors
 const progressBarColors: Record<string, string> = {
   NOT_STARTED: "bg-gray-400 dark:bg-zinc-500",
@@ -176,11 +186,7 @@ export function TimelineNode({
           />
         </div>
         <div className="flex items-center justify-between mt-1">
-          <p className={`text-[10px] font-medium ${
-            progress === 100 ? "text-green-600 dark:text-green-400" :
-            progress > 0 ? "text-blue-600 dark:text-blue-400" :
-            "text-gray-400 dark:text-zinc-500"
-          }`}>
+          <p className={`text-[10px] font-medium ${progressTextColors[status] || progressTextColors.NOT_STARTED}`}>
             {progress}% complete
           </p>
           {/* Schedule indicator */}

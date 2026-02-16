@@ -60,6 +60,9 @@ export type FactoryListItem = Prisma.FactoryGetPayload<{
     _count: {
       select: { orders: true };
     };
+    orders: {
+      select: { id: true };
+    };
   };
 }>;
 
