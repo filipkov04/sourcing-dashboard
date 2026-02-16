@@ -46,27 +46,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 20 — Feb 15, 2026)
+## Current Status (Session 21 — Feb 16, 2026)
 
-**Last completed:** Tasks 5.8–5.13 (Email notifications, weekly digest, notification settings)
+**Last completed:** Tasks 5.23–5.26, 5.28 (Request system: models, forms, review UI, role-based buttons)
 
-**Session 20 changes (Marco):**
-- **Tasks 5.8–5.11** — Email infrastructure (Resend), order status/delay/disruption notification emails with styled HTML templates. `lib/email.ts` (Resend client + EmailLog), `lib/notifications.ts` (status change emails to OWNER/ADMIN users)
-- **Task 5.12** — Weekly digest email: `lib/digest.ts` aggregates 7-day stats (orders created/completed/delayed/disrupted, active count, recent events), sends styled HTML summary. Cron endpoint at `app/api/cron/weekly-digest/route.ts` protected by `CRON_SECRET`. `vercel.json` configured for Mondays 9am UTC.
-- **Task 5.13** — Notification settings: `NotificationPreference` Prisma model (4 boolean toggles per user), `app/api/settings/notifications/route.ts` (GET/PATCH), Settings page at `/settings` with toggle switches. Notifications respect user preferences before sending.
-- **Middleware update**: Added `/api/cron/` to public routes in `middleware.ts`
-
-**Session 20 changes (Filip):**
-- **Task 5.20** — Chat API Backend: 6 API routes for conversations (list, create, get detail, send message, mark read, unread count). Full org scoping, VIEWER role checks, Zod validation, transactional unread count tracking.
-- **Task 5.19** — Chat UI Component: Split-panel /messages page (conversation list + chat panel), new conversation dialog with order/factory linking, participant search, polling (5s chat, 10s list, 30s badge).
-- **Sidebar** — Added "Messages" nav item with unread badge between Team and Settings.
-- **Hooks** — lib/use-conversations.ts with useConversations, useConversationDetail, useMessageUnreadCount, sendMessage, createConversation.
+**Session 21 changes (Marco):**
+- **Task 5.23** — Request Database Models: `Request` model with `RequestType` and `RequestStatus` enums, relations to User (requester/reviewer), Order, Factory, Conversation. Prisma schema updated.
+- **Task 5.24** — Order Request Form: `app/(dashboard)/orders/request/page.tsx` for clients to submit new order requests, `app/(dashboard)/orders/[id]/request-edit/page.tsx` for edit requests with change reasons.
+- **Task 5.25** — Factory Request Form: `app/(dashboard)/factories/request/page.tsx` for new factory requests, `app/(dashboard)/factories/[id]/request-edit/page.tsx` for edit requests.
+- **Task 5.26** — Request Review UI: Dual-purpose `/requests` page — admins see all requests with approve/reject/request-info controls, non-admins see their own requests with respond panel. Edit request review shows before→after diff table (changed fields only). Full request-info loop: admin requests info → requester responds → back to PENDING. `app/api/requests/[id]/route.ts` (GET/PATCH) with transactional approval execution and error handling for unique constraints/missing records.
+- **Task 5.28** — Role-Based Create Buttons: Conditional "Add Order"/"Add Factory" vs "Request Order"/"Request Factory" buttons based on user role across factory and order list/detail pages. Delete request dialog component.
+- **Order Deletion** — Added `DELETE /api/orders/[id]` for ADMIN/OWNER with confirmation dialog on order detail page.
+- **Auth Resilience** — JWT callback now refreshes `organizationId` and `organizationName` from DB (not just role), wrapped in try/catch for graceful degradation when DB is unavailable.
+- **Sidebar** — Added "Requests" nav item (ClipboardList icon) between Team and Settings.
 
 **Previous sessions:**
-- Session 19: Task 5.18 (Chat Database Models)
+- Session 20 (Marco): Tasks 5.8–5.13 (Email notifications, weekly digest, notification settings)
+- Session 20 (Filip): Tasks 5.18–5.22 (Chat system: DB models, API backend, UI, messages page, unread badge)
 - Session 18: Tasks 5.1-5.6 (Full alert system, pushed). Stress test: 25/25 endpoints.
 
-**Next task:** Task 5.21 (Chat List Page — already covered by /messages) OR Task 5.22 (Unread Message Badge — already covered by sidebar) OR Week 5 PR OR BL-1 (Project Selector)
+**Next task:** Task 5.27 (Request-to-Chat Integration) OR Week 5 PR OR BL-1 (Project Selector)
 
 ## Plugins
 
