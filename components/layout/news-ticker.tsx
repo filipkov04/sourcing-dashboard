@@ -40,7 +40,9 @@ export function NewsTicker({ onVisibilityChange }: NewsTickerProps) {
       .catch(() => {});
   }, []);
 
-  // Mouse-near-top detection
+  const barRef = useRef<HTMLDivElement>(null);
+
+  // Mouse-near-top detection + auto-hide when mouse moves away
   useEffect(() => {
     if (items.length === 0) return;
 
@@ -52,12 +54,22 @@ export function NewsTicker({ onVisibilityChange }: NewsTickerProps) {
         }
         setVisible(true);
         onVisibilityChange?.(true);
+      } else if (barRef.current && !barRef.current.contains(e.target as Node)) {
+        // Mouse moved away from both the top zone and the bar itself
+        if (!hideTimeoutRef.current) {
+          hideTimeoutRef.current = setTimeout(() => {
+            setVisible(false);
+            setPaused(false);
+            onVisibilityChange?.(false);
+            hideTimeoutRef.current = null;
+          }, 400);
+        }
       }
     }
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [items.length]);
+  }, [items.length, onVisibilityChange]);
 
   function handleBarMouseLeave() {
     setPaused(false);
@@ -104,6 +116,7 @@ export function NewsTicker({ onVisibilityChange }: NewsTickerProps) {
 
   return (
     <div
+      ref={barRef}
       className={`fixed left-0 right-0 top-0 z-50 flex h-9 items-center justify-center gap-3 border-b border-[#d4501f] bg-[#EB5D2E] px-4 text-white transition-transform duration-300 ease-out ${
         visible ? "translate-y-0" : "-translate-y-full"
       }`}

@@ -139,6 +139,11 @@ export async function POST(
         },
       });
 
+      // Mark sender as having read their own message
+      await tx.messageRead.create({
+        data: { messageId: msg.id, userId: session.user.id },
+      });
+
       // Update conversation lastMessageAt
       await tx.conversation.update({
         where: { id },
@@ -162,24 +167,6 @@ export async function POST(
 
       return msg;
     });
-
-    // Create alert for other participants
-    const conversation = await prisma.conversation.findUnique({
-      where: { id },
-      select: { subject: true, organizationId: true, type: true },
-    });
-    if (conversation) {
-      const senderName = session.user.name || session.user.email || "Someone";
-      const preview = content.trim().slice(0, 80) || `Shared ${files.length} file${files.length > 1 ? "s" : ""}`;
-      await prisma.alert.create({
-        data: {
-          organizationId: conversation.organizationId,
-          title: `💬 New message in "${conversation.subject}"`,
-          message: `[chat:${id}] ${senderName}: ${preview}`,
-          severity: "INFO",
-        },
-      });
-    }
 
     // Add public URLs to attachments
     const messageWithUrls = {

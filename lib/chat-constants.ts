@@ -42,16 +42,34 @@ export function getCategoryLabel(type: ChatType, key: string): string {
   return cat ? `${cat.emoji} ${cat.label}` : key;
 }
 
+export const SUPPORT_GREETING = "Hi there! 👋 How can I help you today?";
+
 export function getWelcomeMessage(type: ChatType, category: string): string {
   const catLabel = getCategoryLabel(type, category);
 
   if (type === "SUPPORT") {
-    return `Hi! Our support team has been notified about your **${catLabel}** inquiry. They'll respond shortly. Feel free to describe your issue in detail.`;
+    return SUPPORT_GREETING;
   }
   if (type === "FACTORY") {
     return `Welcome to factory chat! Topic: **${catLabel}**. Share your message or drop files below to get started.`;
   }
   return "Conversation started.";
+}
+
+export function getAutoReply(category: string): string {
+  switch (category) {
+    case "order_issue":
+      return "I've flagged your order issue. Our team will review it and get back to you shortly. Feel free to share details — order number, screenshots, etc.";
+    case "invoice_question":
+      return "Got it! Share your invoice number or details and our finance team will look into it.";
+    case "shipping_delay":
+      return "I understand shipping delays are frustrating. Let me connect you with our logistics team. Please share the order number so we can track it.";
+    case "account_help":
+      return "Happy to help with your account! What do you need — access changes, settings, or something else?";
+    case "other":
+    default:
+      return "Thanks for reaching out! Please describe what you need help with and our team will respond shortly.";
+  }
 }
 
 // File upload constants

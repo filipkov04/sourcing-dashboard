@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Send, Package, Factory, Loader2, Headphones } from "lucide-react";
+import { ArrowLeft, Send, Package, Factory, Loader2, Headphones, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
-import { useConversationDetail, sendMessage, type Message } from "@/lib/use-conversations";
+import { useConversationDetail, sendMessage, sendQuickReply, type Message } from "@/lib/use-conversations";
+import { SUPPORT_CATEGORIES } from "@/lib/chat-constants";
 import { SourcyAvatar } from "./sourcy-avatar";
+import { usePresence } from "@/lib/use-presence";
 import { ChatDropZone } from "./chat-drop-zone";
 import { MessageAttachments } from "./message-attachment";
 
@@ -55,8 +57,16 @@ export function ChatPanel({ conversationId, onBack, onMessageSent }: ChatPanelPr
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
+  const [sendingQuickReply, setSendingQuickReply] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Must call hooks before any early returns to satisfy Rules of Hooks
+  const currentUserId = session?.user?.id;
+  const otherParticipantIds = (conversation?.participants ?? [])
+    .map((p) => p.userId)
+    .filter((uid) => uid !== currentUserId);
+  const { onlineMap } = usePresence(otherParticipantIds);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -93,6 +103,23 @@ export function ChatPanel({ conversationId, onBack, onMessageSent }: ChatPanelPr
     }
   }
 
+  async function handleQuickReply(category: string) {
+    if (sendingQuickReply) return;
+    setSendingQuickReply(category);
+    try {
+      await sendQuickReply(conversationId, category);
+      await refresh();
+      onMessageSent?.();
+    } catch {
+      // Silently fail
+    } finally {
+      setSendingQuickReply(null);
+    }
+  }
+
+  // Show quick-reply buttons for uncategorized support chats
+  const showQuickReplies = conversation?.type === "SUPPORT" && !conversation?.category;
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-[#f8f9fa] dark:bg-zinc-950">
@@ -106,9 +133,18 @@ export function ChatPanel({ conversationId, onBack, onMessageSent }: ChatPanelPr
 
   if (!conversation) return null;
 
-  const currentUserId = session?.user?.id;
   const isSupport = conversation.type === "SUPPORT";
   const isFactory = conversation.type === "FACTORY";
+
+  // Determine if anyone has read a message (for read receipts)
+  const participantCount = conversation.participants.length;
+  function getReadStatus(msg: Message) {
+    if (!msg.readBy || msg.senderId !== currentUserId) return null;
+    const othersWhoRead = msg.readBy.filter((r) => r.userId !== currentUserId);
+    if (othersWhoRead.length === 0) return null;
+    if (participantCount === 2) return "read"; // 1-on-1: simple checkmark
+    return `Read by ${othersWhoRead.length}`; // Group: count
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -145,12 +181,20 @@ export function ChatPanel({ conversationId, onBack, onMessageSent }: ChatPanelPr
                 : `Started ${formatHeaderDate(conversation.createdAt)}`}
           </p>
         </div>
-        {isSupport && (
-          <div className="flex items-center gap-1.5">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[9px] font-medium text-white/70">Online</span>
-          </div>
-        )}
+        {(() => {
+          const anyOnline = isSupport || otherParticipantIds.some((uid) => onlineMap[uid]);
+          return anyOnline ? (
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-[9px] font-medium text-white/70">Online</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+              <span className="text-[9px] font-medium text-white/70">Offline</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Messages */}
@@ -206,7 +250,9 @@ export function ChatPanel({ conversationId, onBack, onMessageSent }: ChatPanelPr
                           {getInitials(msg.sender?.name)}
                         </span>
                       </div>
-                      <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 ring-[1.5px] ring-[#f8f9fa] dark:ring-zinc-950" />
+                      {msg.sender?.id && onlineMap[msg.sender.id] && (
+                        <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 ring-[1.5px] ring-[#f8f9fa] dark:ring-zinc-950" />
+                      )}
                     </div>
                   )}
 
@@ -229,18 +275,64 @@ export function ChatPanel({ conversationId, onBack, onMessageSent }: ChatPanelPr
                         <MessageAttachments attachments={msg.attachments} />
                       )}
                     </div>
-                    <p className={cn(
-                      "mt-1 text-[9px] text-gray-400 dark:text-zinc-500 px-1",
-                      isOwn ? "text-right" : "text-left"
+                    <div className={cn(
+                      "mt-1 flex items-center gap-1 px-1",
+                      isOwn ? "justify-end" : "justify-start"
                     )}>
-                      {formatMessageTime(msg.createdAt)}
-                    </p>
+                      <span className="text-[9px] text-gray-400 dark:text-zinc-500">
+                        {formatMessageTime(msg.createdAt)}
+                      </span>
+                      {isOwn && (() => {
+                        const status = getReadStatus(msg);
+                        if (status === "read") {
+                          return <CheckCheck className="h-3 w-3 text-blue-500" />;
+                        }
+                        if (status) {
+                          return <span className="text-[9px] text-blue-500">{status}</span>;
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           );
         })}
+        {/* Quick-reply buttons for uncategorized support chats */}
+        {showQuickReplies && (
+          <div className="px-2 py-3 space-y-1.5">
+            <p className="text-[10px] font-medium text-gray-400 dark:text-zinc-500 px-1 mb-2">
+              Select a topic:
+            </p>
+            {SUPPORT_CATEGORIES.map((cat) => (
+              <button
+                key={cat.key}
+                onClick={() => handleQuickReply(cat.key)}
+                disabled={sendingQuickReply !== null}
+                className={cn(
+                  "group flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-150",
+                  "border-gray-150 dark:border-zinc-800 bg-white dark:bg-zinc-900",
+                  "hover:border-[#EB5D2E]/40 hover:bg-[#EB5D2E]/[0.03] hover:shadow-sm",
+                  "active:scale-[0.98]",
+                  sendingQuickReply === cat.key && "opacity-70 pointer-events-none",
+                  sendingQuickReply !== null && sendingQuickReply !== cat.key && "opacity-50"
+                )}
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-zinc-800 text-base group-hover:bg-[#EB5D2E]/10 transition-colors">
+                  {sendingQuickReply === cat.key ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[#EB5D2E]" />
+                  ) : (
+                    cat.emoji
+                  )}
+                </span>
+                <span className="flex-1 text-[13px] font-medium text-gray-800 dark:text-zinc-200">
+                  {cat.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

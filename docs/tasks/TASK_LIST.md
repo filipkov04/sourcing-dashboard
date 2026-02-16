@@ -683,8 +683,8 @@
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
 | 12.9 | Auto-Reorder Workflow | Marco | Build automated PO creation when runway hits critical threshold (requires approval) | Background job suggesting/creating draft POs | 4h | ⏳ |
-| 12.10 | Shipment Status Pipeline | Marco | Extend order status with: CONFIRMED, IN_TRANSIT, CUSTOMS, INSPECTED intermediate states | Enhanced shipment tracking workflow | 2h | ⏳ |
-| 12.11 | Tracking Number Integration | Marco | Add tracking number field, carrier API integration for live shipment tracking | Real-time shipment location updates | 3h | ⏳ |
+| 12.10 | Shipment Status Pipeline | Filip | Extend order status with: CONFIRMED, IN_TRANSIT, CUSTOMS, INSPECTED intermediate states | Enhanced shipment tracking workflow | 2h | ⏳ |
+| 12.11 | Tracking Number Integration (17Track) | Filip | Add tracking number field, 17Track API integration for live shipment tracking from all carriers | Real-time shipment location updates via 17Track | 3h | ⏳ |
 | 12.12 | PO Approval Workflow | Marco | Implement approval chain for POs above threshold: draft → pending approval → approved → sent | Multi-level approval system | 3h | ⏳ |
 | 12.13 | Geographic Map View | Marco | Add supplier origin map on dashboard showing order distribution by country | Interactive world map with order pins | 3h | ⏳ |
 | 12.14 | Pie Chart Analytics | Marco | Add pie charts for: orders by category, inventory by supplier, costs by factory | Pie chart components for dashboard | 2h | ⏳ |

@@ -31,6 +31,7 @@ model User {
   // Chat relations
   conversations  ConversationParticipant[]
   messagesSent   Message[]
+  presence       UserPresence?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -323,6 +324,8 @@ model Alert {
   order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
   factoryId       String?
   factory         Factory? @relation(fields: [factoryId], references: [id], onDelete: SetNull)
+  conversationId  String?
+  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
   // Status
   read            Boolean  @default(false)
@@ -336,6 +339,7 @@ model Alert {
   @@index([organizationId, createdAt])
   @@index([orderId])
   @@index([factoryId])
+  @@index([conversationId])
 }
 
 enum Severity {
@@ -373,6 +377,7 @@ model Conversation {
   // Participants
   participants    ConversationParticipant[]
   messages        Message[]
+  alerts          Alert[]
 
   // Optional: Link to specific order or factory
   orderId         String?
@@ -408,6 +413,9 @@ model ConversationParticipant {
 
   // Notification preferences for this conversation
   muted           Boolean  @default(false)
+
+  // Typing indicator — updated on each keystroke, considered "typing" if within last 3s
+  typingAt        DateTime?
 
   createdAt       DateTime @default(now())
 
@@ -486,7 +494,6 @@ enum RequestAction {
   PENDING_INFO    // Admin needs more information
 }
 
-// ============================================
 // EMAIL LOGGING
 // ============================================
 
@@ -499,4 +506,16 @@ model EmailLog {
   resendId  String?
   error     String?
   sentAt    DateTime @default(now())
+}
+
+// ============================================
+// USER PRESENCE
+// ============================================
+
+model UserPresence {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastSeen  DateTime @default(now())
+
+  @@index([lastSeen])
 }

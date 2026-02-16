@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, User, LogOut, Menu, Check, CheckCheck } from "lucide-react";
+import { Bell, Search, User, LogOut, Menu, CheckCheck } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -77,19 +77,6 @@ export function Header({ onMenuClick }: HeaderProps) {
       router.push(`/orders/${alert.orderId}`);
     } else if (alert.factoryId) {
       router.push(`/factories/${alert.factoryId}`);
-    }
-  };
-
-  const handleViewChat = async (e: React.MouseEvent, alert: Alert) => {
-    e.stopPropagation();
-    if (!alert.read) {
-      await markAlertRead(alert.id);
-      refreshCount();
-      refreshAlerts();
-    }
-    const match = alert.message.match(/^\[chat:([^\]]+)\]/);
-    if (match) {
-      window.dispatchEvent(new CustomEvent("open-chat", { detail: { conversationId: match[1] } }));
     }
   };
 
@@ -193,16 +180,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                         {severityEmoji(alert.severity)} {alert.title}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-zinc-400 leading-snug">
-                        {alert.message.replace(/^\[chat:[^\]]+\]\s*/, "")}
+                        {alert.message}
                       </p>
-                      {alert.message.startsWith("[chat:") ? (
-                        <button
-                          onClick={(e) => handleViewChat(e, alert)}
-                          className="inline-block rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1 text-xs font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
-                        >
-                          View Chat
-                        </button>
-                      ) : (alert.orderId || alert.factoryId) ? (
+                      {(alert.orderId || alert.factoryId) ? (
                         <button
                           onClick={(e) => handleViewOrder(e, alert)}
                           className="inline-block rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1 text-xs font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"

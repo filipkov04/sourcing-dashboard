@@ -164,7 +164,17 @@ export async function POST(request: NextRequest) {
       });
 
       // Create initial messages based on type
-      if (type === "SUPPORT" || type === "FACTORY") {
+      if (type === "SUPPORT") {
+        // BOT greeting — category will be set later via quick-reply
+        await tx.message.create({
+          data: {
+            conversationId: conv.id,
+            senderId: null,
+            content: getWelcomeMessage("SUPPORT", ""),
+            messageType: "BOT",
+          },
+        });
+      } else if (type === "FACTORY") {
         // System message with category label
         if (category) {
           await tx.message.create({
@@ -176,7 +186,7 @@ export async function POST(request: NextRequest) {
             },
           });
         }
-        // BOT welcome message (no sender)
+        // BOT welcome message
         await tx.message.create({
           data: {
             conversationId: conv.id,

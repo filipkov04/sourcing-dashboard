@@ -6,10 +6,14 @@ import { Header } from "./header";
 import { NewsTicker } from "./news-ticker";
 import { PageTransition } from "@/components/page-transition";
 import { ChatWidget } from "@/components/chat/chat-widget";
+import { usePresenceHeartbeat } from "@/lib/use-presence";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tickerVisible, setTickerVisible] = useState(false);
+
+  // Keep user presence alive for online indicators
+  usePresenceHeartbeat();
 
   const handleTickerVisibility = useCallback((visible: boolean) => {
     setTickerVisible(visible);

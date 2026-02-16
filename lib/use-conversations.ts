@@ -38,6 +38,7 @@ export type Message = {
   requestAction: "APPROVED" | "REJECTED" | "PENDING_INFO" | null;
   sender: MessageSender | null;
   attachments?: MessageAttachment[];
+  readBy?: Array<{ userId: string; readAt: string }>;
   createdAt: string;
   editedAt: string | null;
 };
@@ -206,6 +207,18 @@ export async function sendMessage(
   if (!res.ok) throw new Error("Failed to send message");
   const json = await res.json();
   return json.data as Message;
+}
+
+/** Send a quick-reply (support category selection) */
+export async function sendQuickReply(conversationId: string, category: string) {
+  const res = await fetch(`/api/conversations/${conversationId}/quick-reply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category }),
+  });
+  if (!res.ok) throw new Error("Failed to send quick reply");
+  const json = await res.json();
+  return json.data;
 }
 
 /** Create a new conversation */

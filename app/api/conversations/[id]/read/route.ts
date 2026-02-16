@@ -29,6 +29,22 @@ export async function PATCH(
       data: { unreadCount: 0, lastReadAt: new Date() },
     });
 
+    // Create MessageRead records for all unread messages
+    const unreadMessages = await prisma.message.findMany({
+      where: {
+        conversationId: id,
+        senderId: { not: session.user.id },
+        readBy: { none: { userId: session.user.id } },
+      },
+      select: { id: true },
+    });
+    if (unreadMessages.length > 0) {
+      await prisma.messageRead.createMany({
+        data: unreadMessages.map((msg) => ({ messageId: msg.id, userId: session.user.id })),
+        skipDuplicates: true,
+      });
+    }
+
     return success(null, "Marked as read");
   } catch (err) {
     return handleError(err);
