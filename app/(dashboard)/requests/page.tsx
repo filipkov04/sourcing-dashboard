@@ -323,7 +323,37 @@ export default function RequestsPage() {
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {getSummary(request)}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {/* Entity identifiers */}
+                      {request.targetOrder && (
+                        <span className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded px-1.5 py-0.5">
+                          #{request.targetOrder.orderNumber}
+                        </span>
+                      )}
+                      {request.targetFactory && (
+                        <span className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 rounded px-1.5 py-0.5">
+                          {request.targetFactory.name} — {request.targetFactory.location}
+                        </span>
+                      )}
+                      {/* For create requests, show key data from the request payload */}
+                      {request.type === "ORDER_REQUEST" ? (
+                        <>
+                          <span className="text-xs text-gray-500 dark:text-zinc-400">
+                            {String(request.data.quantity ?? "")} {String(request.data.unit ?? "pieces")}
+                          </span>
+                          {request.data.priority && request.data.priority !== "NORMAL" ? (
+                            <span className="text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 rounded px-1.5 py-0.5">
+                              {String(request.data.priority)}
+                            </span>
+                          ) : null}
+                        </>
+                      ) : null}
+                      {request.type === "FACTORY_REQUEST" && request.data.location ? (
+                        <span className="text-xs text-gray-500 dark:text-zinc-400">
+                          {String(request.data.location)}
+                        </span>
+                      ) : null}
+                      <span className="text-xs text-gray-300 dark:text-zinc-600">·</span>
                       {isAdmin && (
                         <span className="text-xs text-gray-500 dark:text-zinc-400">
                           by {request.requester.name || request.requester.email}
@@ -364,7 +394,7 @@ export default function RequestsPage() {
                       <h4 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                         Request Details
                       </h4>
-                      <RequestDetails type={request.type} data={request.data} />
+                      <RequestDetails type={request.type} data={request.data} request={request} />
                     </div>
 
                     {/* Previous responses from requester */}
@@ -480,7 +510,7 @@ export default function RequestsPage() {
   );
 }
 
-function RequestDetails({ type, data }: { type: string; data: Record<string, unknown> }) {
+function RequestDetails({ type, data, request }: { type: string; data: Record<string, unknown>; request: RequestItem }) {
   if (type === "ORDER_REQUEST") {
     return (
       <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
@@ -517,12 +547,24 @@ function RequestDetails({ type, data }: { type: string; data: Record<string, unk
   }
 
   if (type.includes("EDIT")) {
-    return <EditRequestDetails type={type} data={data} />;
+    return <EditRequestDetails type={type} data={data} request={request} />;
   }
 
   if (type.includes("DELETE")) {
     return (
       <div className="space-y-2 text-sm">
+        {type === "ORDER_DELETE_REQUEST" && request.targetOrder && (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <Detail label="Order Number" value={request.targetOrder.orderNumber} />
+            <Detail label="Product" value={request.targetOrder.productName} />
+          </div>
+        )}
+        {type === "FACTORY_DELETE_REQUEST" && request.targetFactory && (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <Detail label="Factory" value={request.targetFactory.name} />
+            <Detail label="Location" value={request.targetFactory.location} />
+          </div>
+        )}
         <Detail label="Reason" value={data.reason as string} />
         <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
           <p className="text-red-700 dark:text-red-400 text-xs font-medium">
@@ -541,7 +583,7 @@ function RequestDetails({ type, data }: { type: string; data: Record<string, unk
   );
 }
 
-function EditRequestDetails({ type, data }: { type: string; data: Record<string, unknown> }) {
+function EditRequestDetails({ type, data, request }: { type: string; data: Record<string, unknown>; request?: RequestItem }) {
   const changes = data.changes as Record<string, unknown> | undefined;
   const entityId = type === "ORDER_EDIT_REQUEST" ? data.orderId : data.factoryId;
   const endpoint = type === "ORDER_EDIT_REQUEST" ? `/api/orders/${entityId}` : `/api/factories/${entityId}`;
@@ -569,6 +611,18 @@ function EditRequestDetails({ type, data }: { type: string; data: Record<string,
 
   return (
     <div className="space-y-3 text-sm">
+      {type === "ORDER_EDIT_REQUEST" && request?.targetOrder && (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <Detail label="Order Number" value={request.targetOrder.orderNumber} />
+          <Detail label="Product" value={request.targetOrder.productName} />
+        </div>
+      )}
+      {type === "FACTORY_EDIT_REQUEST" && request?.targetFactory && (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <Detail label="Factory" value={request.targetFactory.name} />
+          <Detail label="Location" value={request.targetFactory.location} />
+        </div>
+      )}
       <Detail label="Reason" value={data.reason as string} />
       {changes && Object.keys(changes).length > 0 && (
         <div>
