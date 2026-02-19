@@ -11,6 +11,7 @@ import { FactoryPerformanceSection } from "./_components/factory-performance-sec
 import { BestSellers } from "./_components/best-sellers";
 import { ExchangeRateCards } from "./_components/exchange-rate-cards";
 import { FactoryGlobe } from "./_components/factory-globe";
+import { ScrollReveal } from "@/components/scroll-reveal";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -25,41 +26,41 @@ export default async function DashboardPage() {
       <DashboardHeader userName={session.user.name || session.user.email} />
 
       {/* Stats Cards with Period Selector */}
-      <div className="animate-in fade-in slide-in-from-top-4 duration-700">
+      <ScrollReveal>
         <DashboardStatsCards />
-      </div>
+      </ScrollReveal>
 
       {/* Status Breakdown + Product Portfolio */}
-      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-top-4 duration-700">
+      <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger>
         <OrdersByStatusSection />
         <ProductPortfolioSection />
-      </div>
+      </ScrollReveal>
 
       {/* Reorder Suggestions & Best Sellers */}
-      <div className="grid gap-5 lg:grid-cols-2 items-start animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
+      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
         <ReorderSuggestions />
         <BestSellers />
-      </div>
+      </ScrollReveal>
 
       {/* Exchange Rates & Factory Globe */}
-      <div className="grid gap-5 lg:grid-cols-2 items-start animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
+      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
         <ExchangeRateCards />
         <FactoryGlobe />
-      </div>
+      </ScrollReveal>
 
       {/* Factory Performance Section */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
+      <ScrollReveal direction="down" delay={0.2}>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-5">
           Factory Performance
         </h2>
         <FactoryPerformanceSection />
-      </div>
+      </ScrollReveal>
 
       {/* Activity & Quick Actions Grid */}
-      <div className="grid gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
+      <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger direction="down" delay={0.3}>
         <RecentActivityFeed />
         <QuickActions />
-      </div>
+      </ScrollReveal>
     </div>
   );
 }
