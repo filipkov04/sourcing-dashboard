@@ -46,9 +46,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 21 — Feb 16, 2026)
+## Current Status (Session 22 — Feb 19, 2026)
 
-**Last completed:** Tasks 5.23–5.26, 5.28 (Request system: models, forms, review UI, role-based buttons)
+**Last completed:** Dashboard scroll-reveal animations
+
+**Session 22 changes (Marco):**
+- **Scroll-Reveal Animations** — Replaced Tailwind `animate-in` classes on dashboard with scroll-triggered framer-motion animations. New reusable `components/scroll-reveal.tsx` client component using `whileInView` + `onViewportEnter`. Adapts animation duration/delay to scroll velocity (fast scroll = near-instant). Staggered child animations for grid sections (cards wave in individually). Viewport trigger at 5% visibility, animates once.
 
 **Session 21 changes (Marco):**
 - **Task 5.23** — Request Database Models: `Request` model with `RequestType` and `RequestStatus` enums, relations to User (requester/reviewer), Order, Factory, Conversation. Prisma schema updated.
