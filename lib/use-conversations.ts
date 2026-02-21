@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { isRealtimeAvailable } from "./supabase-client";
+import { useConversationRealtime } from "./realtime";
 
 export type ConversationParticipant = {
   id: string;
@@ -29,6 +31,14 @@ export type MessageAttachment = {
   createdAt: string;
 };
 
+export type MessageReaction = {
+  id: string;
+  messageId: string;
+  userId: string;
+  emoji: string;
+  createdAt: string;
+};
+
 export type Message = {
   id: string;
   conversationId: string;
@@ -38,7 +48,11 @@ export type Message = {
   requestAction: "APPROVED" | "REJECTED" | "PENDING_INFO" | null;
   sender: MessageSender | null;
   attachments?: MessageAttachment[];
+  reactions?: MessageReaction[];
   readBy?: Array<{ userId: string; readAt: string }>;
+  parentId?: string | null;
+  threadCount?: number;
+  deletedAt?: string | null;
   createdAt: string;
   editedAt: string | null;
 };
@@ -58,6 +72,7 @@ export type Conversation = {
   factory: { id: string; name: string } | null;
   participants: ConversationParticipant[];
   unreadCount: number;
+  pinned: boolean;
   lastMessage: (Message & { sender: { id: string; name: string | null } | null }) | null;
   createdAt: string;
 };
@@ -127,11 +142,12 @@ export function useConversations(search?: string) {
   return { conversations, loading, refresh };
 }
 
-/** Fetches a single conversation with messages, polls every 5s */
+/** Fetches a single conversation with messages. Uses realtime when available, polls every 5s as fallback. */
 export function useConversationDetail(id: string | null) {
   const [conversation, setConversation] = useState<ConversationDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const prevIdRef = useRef<string | null>(null);
+  const hasRealtime = isRealtimeAvailable();
 
   const refresh = useCallback(async () => {
     if (!id) return;
@@ -168,12 +184,17 @@ export function useConversationDetail(id: string | null) {
     load();
   }, [id, refresh]);
 
-  // Poll every 5s when active
+  // Realtime: instant refresh on conversation events
+  useConversationRealtime(id, useCallback(() => {
+    refresh();
+  }, [refresh]));
+
+  // Polling fallback: only poll if realtime isn't available
   useEffect(() => {
-    if (!id) return;
+    if (!id || hasRealtime) return;
     const interval = setInterval(refresh, 5_000);
     return () => clearInterval(interval);
-  }, [id, refresh]);
+  }, [id, refresh, hasRealtime]);
 
   return { conversation, loading, refresh };
 }
@@ -241,4 +262,190 @@ export async function createConversation(data: {
   }
   const json = await res.json();
   return json.data as ConversationDetail;
+}
+
+/** Edit a message */
+export async function editMessage(
+  conversationId: string,
+  messageId: string,
+  content: string
+) {
+  const res = await fetch(
+    `/api/conversations/${conversationId}/messages/${messageId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    }
+  );
+  if (!res.ok) throw new Error("Failed to edit message");
+  const json = await res.json();
+  return json.data as Message;
+}
+
+/** Soft-delete a message */
+export async function deleteMessage(
+  conversationId: string,
+  messageId: string
+) {
+  const res = await fetch(
+    `/api/conversations/${conversationId}/messages/${messageId}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) throw new Error("Failed to delete message");
+  const json = await res.json();
+  return json.data;
+}
+
+/** Toggle emoji reaction on a message */
+export async function toggleReaction(
+  conversationId: string,
+  messageId: string,
+  emoji: string
+) {
+  const res = await fetch(
+    `/api/conversations/${conversationId}/messages/${messageId}/reactions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emoji }),
+    }
+  );
+  if (!res.ok) throw new Error("Failed to toggle reaction");
+  const json = await res.json();
+  return json.data as {
+    messageId: string;
+    reactions: MessageReaction[];
+    action: "added" | "removed";
+  };
+}
+
+/** Search messages within a conversation */
+export async function searchConversationMessages(
+  conversationId: string,
+  query: string
+) {
+  const res = await fetch(
+    `/api/conversations/${conversationId}/messages/search?q=${encodeURIComponent(query)}`
+  );
+  if (!res.ok) throw new Error("Failed to search messages");
+  const json = await res.json();
+  return json.data as Message[];
+}
+
+/** Global search across all conversations */
+export async function searchAllMessages(query: string) {
+  const res = await fetch(
+    `/api/messages/search?q=${encodeURIComponent(query)}`
+  );
+  if (!res.ok) throw new Error("Failed to search messages");
+  const json = await res.json();
+  return json.data as (Message & {
+    conversation: { id: string; subject: string | null; type: string };
+  })[];
+}
+
+/** Fetch thread replies for a message */
+export function useThreadReplies(conversationId: string | null, messageId: string | null) {
+  const [replies, setReplies] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const refresh = useCallback(async () => {
+    if (!conversationId || !messageId) return;
+    try {
+      const res = await fetch(
+        `/api/conversations/${conversationId}/messages/${messageId}/replies`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        setReplies(json.data);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, [conversationId, messageId]);
+
+  useEffect(() => {
+    if (!conversationId || !messageId) {
+      setReplies([]);
+      return;
+    }
+    setLoading(true);
+    refresh().finally(() => setLoading(false));
+  }, [conversationId, messageId, refresh]);
+
+  // Poll every 5s when active
+  useEffect(() => {
+    if (!conversationId || !messageId) return;
+    const interval = setInterval(refresh, 5_000);
+    return () => clearInterval(interval);
+  }, [conversationId, messageId, refresh]);
+
+  return { replies, loading, refresh };
+}
+
+/** Send a reply in a thread */
+export async function sendReply(
+  conversationId: string,
+  parentId: string,
+  content: string,
+  files?: File[]
+) {
+  let res: Response;
+
+  if (files && files.length > 0) {
+    const formData = new FormData();
+    formData.append("content", content);
+    formData.append("parentId", parentId);
+    for (const file of files) {
+      formData.append("files", file);
+    }
+    res = await fetch(`/api/conversations/${conversationId}/messages/${parentId}/replies`, {
+      method: "POST",
+      body: formData,
+    });
+  } else {
+    res = await fetch(`/api/conversations/${conversationId}/messages/${parentId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  if (!res.ok) throw new Error("Failed to send reply");
+  const json = await res.json();
+  return json.data as Message;
+}
+
+/** Get conversation settings for current user */
+export async function getConversationSettings(conversationId: string) {
+  const res = await fetch(`/api/conversations/${conversationId}/settings`);
+  if (!res.ok) throw new Error("Failed to get settings");
+  const json = await res.json();
+  return json.data as {
+    muted: boolean;
+    pinned: boolean;
+    notifyReplies: boolean;
+    notifyMentions: boolean;
+  };
+}
+
+/** Update conversation settings for current user */
+export async function updateConversationSettings(
+  conversationId: string,
+  settings: Partial<{
+    muted: boolean;
+    pinned: boolean;
+    notifyReplies: boolean;
+    notifyMentions: boolean;
+  }>
+) {
+  const res = await fetch(`/api/conversations/${conversationId}/settings`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+  });
+  if (!res.ok) throw new Error("Failed to update settings");
+  const json = await res.json();
+  return json.data;
 }

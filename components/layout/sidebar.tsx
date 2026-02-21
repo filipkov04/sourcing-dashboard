@@ -9,10 +9,12 @@ import {
   Package,
   CalendarRange,
   Users,
+  MessageSquare,
   Settings,
   ChevronLeft,
 } from "lucide-react";
 import { useState } from "react";
+import { useMessageUnreadCount } from "@/lib/use-conversations";
 
 const navigation = [
   {
@@ -41,6 +43,11 @@ const navigation = [
     icon: Users,
   },
   {
+    name: "Messages",
+    href: "/messages",
+    icon: MessageSquare,
+  },
+  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
@@ -55,6 +62,7 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { count: unreadMessageCount } = useMessageUnreadCount();
 
   return (
     <>
@@ -104,7 +112,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               href={item.href}
               onClick={() => onMobileClose?.()}
               className={cn(
-                "flex items-center rounded-lg text-sm font-medium transition-colors",
+                "relative flex items-center rounded-lg text-sm font-medium transition-colors",
                 collapsed ? "justify-center p-2" : "gap-3 px-3 py-2",
                 isActive
                   ? "bg-[#EB5D2E]/10 text-[#EB5D2E] font-semibold dark:bg-[#EB5D2E]/15 dark:text-[#EB5D2E]"
@@ -114,6 +122,14 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
               {!collapsed && <span>{item.name}</span>}
+              {item.name === "Messages" && unreadMessageCount > 0 && (
+                <span className={cn(
+                  "flex items-center justify-center rounded-full bg-[#EB5D2E] text-[10px] font-bold text-white",
+                  collapsed ? "absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1" : "ml-auto h-5 min-w-5 px-1.5"
+                )}>
+                  {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                </span>
+              )}
             </Link>
           );
         })}

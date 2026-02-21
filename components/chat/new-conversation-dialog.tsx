@@ -128,9 +128,13 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
               />
             </div>
-            {memberSearch && filteredMembers.length > 0 && (
-              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
-                {filteredMembers.slice(0, 5).map((m) => (
+            <div className="mt-1.5 max-h-36 overflow-y-auto rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+              {filteredMembers.length === 0 ? (
+                <p className="px-3 py-2.5 text-xs text-gray-400 dark:text-zinc-500 text-center">
+                  {members.length === 0 ? "Loading team members..." : "No members found"}
+                </p>
+              ) : (
+                filteredMembers.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => { setSelectedMembers((prev) => [...prev, m.id]); setMemberSearch(""); }}
@@ -142,9 +146,9 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
                     <span>{m.name || m.email}</span>
                     <span className="ml-auto text-xs text-gray-400 dark:text-zinc-500">{m.role}</span>
                   </button>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
 
           {/* Link to order/factory */}

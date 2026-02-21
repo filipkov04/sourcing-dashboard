@@ -1,16 +1,20 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { NewsTicker } from "./news-ticker";
 import { PageTransition } from "@/components/page-transition";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
+import { RealtimeProvider } from "@/components/providers/realtime-provider";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tickerVisible, setTickerVisible] = useState(false);
+  const isMessagesPage = pathname.startsWith("/messages");
 
   // Keep user presence alive for online indicators
   usePresenceHeartbeat();
@@ -20,6 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
+    <RealtimeProvider>
     <div className="relative h-screen overflow-hidden bg-[#f8f9fa] dark:bg-zinc-950">
       {/* News Ticker — full width overlay at top, reveals on hover */}
       <NewsTicker onVisibilityChange={handleTickerVisibility} />
@@ -44,8 +49,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Floating Chat Widget */}
-      <ChatWidget />
+      {/* Floating Chat Widget — hidden on /messages to avoid duplicate UI */}
+      {!isMessagesPage && <ChatWidget />}
     </div>
+    </RealtimeProvider>
   );
 }

@@ -1,29 +1,25 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { error, notFound, unauthorized, forbidden, handleError, created } from "@/lib/api";
+import { success, error, notFound, unauthorized, forbidden, handleError, created } from "@/lib/api";
 import { auth } from "@/lib/auth";
-import { supabase, CHAT_ATTACHMENT_BUCKET, getChatAttachmentUrl } from "@/lib/supabase";
+import { getChatAttachmentUrl } from "@/lib/supabase";
+import { supabase, CHAT_ATTACHMENT_BUCKET } from "@/lib/supabase";
 import { CHAT_ALLOWED_FILE_TYPES, CHAT_MAX_FILE_SIZE } from "@/lib/chat-constants";
 import crypto from "crypto";
 import { serverBroadcast } from "@/lib/realtime";
 
+type RouteParams = { params: Promise<{ id: string; messageId: string }> };
+
 const MAX_MESSAGE_LENGTH = 5000;
 const MAX_FILES_PER_MESSAGE = 5;
 
-// POST /api/conversations/[id]/messages — Send a message (JSON or FormData with files)
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// GET /api/conversations/[id]/messages/[messageId]/replies — Fetch thread replies
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
     if (!session) return unauthorized();
 
-    if (session.user.role === "VIEWER") {
-      return forbidden("Viewers cannot send messages");
-    }
-
-    const { id } = await params;
+    const { id, messageId } = await params;
 
     // Verify user is a participant
     const participant = await prisma.conversationParticipant.findFirst({
@@ -36,27 +32,85 @@ export async function POST(
 
     if (!participant) return notFound("Conversation");
 
-    // Detect content type to handle both JSON and FormData
+    // Verify parent message exists
+    const parentMessage = await prisma.message.findFirst({
+      where: { id: messageId, conversationId: id },
+    });
+
+    if (!parentMessage) return notFound("Message");
+
+    const replies = await prisma.message.findMany({
+      where: { parentId: messageId, conversationId: id },
+      orderBy: { createdAt: "asc" },
+      include: {
+        sender: { select: { id: true, name: true, email: true, image: true } },
+        readBy: { select: { userId: true, readAt: true } },
+        reactions: { orderBy: { createdAt: "asc" } },
+        attachments: true,
+      },
+    });
+
+    const data = replies.map((msg) => ({
+      ...msg,
+      attachments: msg.attachments.map((att) => ({
+        ...att,
+        url: getChatAttachmentUrl(att.storagePath),
+      })),
+    }));
+
+    return success(data);
+  } catch (err) {
+    return handleError(err);
+  }
+}
+
+// POST /api/conversations/[id]/messages/[messageId]/replies — Reply in thread
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await auth();
+    if (!session) return unauthorized();
+
+    if (session.user.role === "VIEWER") {
+      return forbidden("Viewers cannot send messages");
+    }
+
+    const { id, messageId } = await params;
+
+    // Verify user is a participant
+    const participant = await prisma.conversationParticipant.findFirst({
+      where: {
+        conversationId: id,
+        userId: session.user.id,
+        conversation: { organizationId: session.user.organizationId },
+      },
+    });
+
+    if (!participant) return notFound("Conversation");
+
+    // Verify parent message exists and is a top-level message
+    const parentMessage = await prisma.message.findFirst({
+      where: { id: messageId, conversationId: id, parentId: null },
+    });
+
+    if (!parentMessage) return notFound("Parent message");
+
+    // Parse content (JSON or FormData)
     const contentType = request.headers.get("content-type") || "";
     let content = "";
-    let messageType = "TEXT";
     let files: File[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       content = (formData.get("content") as string) || "";
-      messageType = (formData.get("messageType") as string) || "TEXT";
       const formFiles = formData.getAll("files");
       files = formFiles.filter((f): f is File => f instanceof File);
     } else {
       const body = await request.json();
       content = body.content || "";
-      messageType = body.messageType || "TEXT";
     }
 
-    // Content is optional when files are present
     if ((!content || content.trim().length === 0) && files.length === 0) {
-      return error("Message content or files are required");
+      return error("Reply content or files are required");
     }
 
     if (content.length > MAX_MESSAGE_LENGTH) {
@@ -67,17 +121,7 @@ export async function POST(
       return error(`Maximum ${MAX_FILES_PER_MESSAGE} files per message`);
     }
 
-    // Validate files
-    for (const file of files) {
-      if (file.size > CHAT_MAX_FILE_SIZE) {
-        return error(`File "${file.name}" exceeds 10MB limit`);
-      }
-      if (!CHAT_ALLOWED_FILE_TYPES.includes(file.type)) {
-        return error(`File type "${file.type}" is not allowed`);
-      }
-    }
-
-    // Upload files to Supabase if any
+    // Validate and upload files
     const uploadedFiles: Array<{
       fileName: string;
       fileType: string;
@@ -86,6 +130,13 @@ export async function POST(
     }> = [];
 
     for (const file of files) {
+      if (file.size > CHAT_MAX_FILE_SIZE) {
+        return error(`File "${file.name}" exceeds 10MB limit`);
+      }
+      if (!CHAT_ALLOWED_FILE_TYPES.includes(file.type)) {
+        return error(`File type "${file.type}" is not allowed`);
+      }
+
       const sanitizedName = file.name
         .replace(/[/\\]/g, "_")
         .replace(/\.\./g, "_")
@@ -98,10 +149,7 @@ export async function POST(
 
       const { error: uploadError } = await supabase.storage
         .from(CHAT_ATTACHMENT_BUCKET)
-        .upload(storagePath, buffer, {
-          contentType: file.type,
-          upsert: false,
-        });
+        .upload(storagePath, buffer, { contentType: file.type, upsert: false });
 
       if (uploadError) {
         return error(`Upload failed for "${file.name}": ${uploadError.message}`, 500);
@@ -115,14 +163,15 @@ export async function POST(
       });
     }
 
-    // Create message and update conversation + unread counts in a transaction
-    const message = await prisma.$transaction(async (tx) => {
+    // Create reply and increment thread count in a transaction
+    const reply = await prisma.$transaction(async (tx) => {
       const msg = await tx.message.create({
         data: {
           conversationId: id,
           senderId: session.user.id,
-          content: content.trim() || (files.length > 0 ? `Shared ${files.length} file${files.length > 1 ? "s" : ""}` : ""),
-          messageType: messageType === "REQUEST" ? "REQUEST" : "TEXT",
+          content: content.trim() || `Shared ${files.length} file${files.length > 1 ? "s" : ""}`,
+          messageType: "TEXT",
+          parentId: messageId,
           ...(uploadedFiles.length > 0
             ? {
                 attachments: {
@@ -136,11 +185,18 @@ export async function POST(
         },
         include: {
           sender: { select: { id: true, name: true, email: true, image: true } },
+          reactions: true,
           attachments: true,
         },
       });
 
-      // Mark sender as having read their own message
+      // Increment thread count on parent
+      await tx.message.update({
+        where: { id: messageId },
+        data: { threadCount: { increment: 1 } },
+      });
+
+      // Mark sender as having read their reply
       await tx.messageRead.create({
         data: { messageId: msg.id, userId: session.user.id },
       });
@@ -151,7 +207,7 @@ export async function POST(
         data: { lastMessageAt: new Date() },
       });
 
-      // Increment unread count for all other participants
+      // Increment unread count for other participants
       await tx.conversationParticipant.updateMany({
         where: {
           conversationId: id,
@@ -160,32 +216,25 @@ export async function POST(
         data: { unreadCount: { increment: 1 } },
       });
 
-      // Reset sender's unread count
-      await tx.conversationParticipant.update({
-        where: { conversationId_userId: { conversationId: id, userId: session.user.id } },
-        data: { unreadCount: 0, lastReadAt: new Date() },
-      });
-
       return msg;
     });
 
-    // Add public URLs to attachments
-    const messageWithUrls = {
-      ...message,
-      attachments: (message.attachments || []).map((att: { storagePath: string }) => ({
+    const replyWithUrls = {
+      ...reply,
+      attachments: (reply.attachments || []).map((att: { storagePath: string }) => ({
         ...att,
         url: getChatAttachmentUrl(att.storagePath),
       })),
     };
 
-    // Broadcast realtime event
     serverBroadcast(id, {
       type: "new_message",
-      messageId: message.id,
+      messageId: reply.id,
       userId: session.user.id,
+      payload: { parentId: messageId },
     }).catch(() => {});
 
-    return created(messageWithUrls, "Message sent");
+    return created(replyWithUrls, "Reply sent");
   } catch (err) {
     return handleError(err);
   }
