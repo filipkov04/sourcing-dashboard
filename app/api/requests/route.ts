@@ -64,6 +64,18 @@ const createRequestSchema = z.object({
   data: z.record(z.string(), z.unknown()),
 });
 
+function getRequestSummary(type: string, data: Record<string, unknown>): string {
+  switch (type) {
+    case "ORDER_REQUEST": return `New order request: ${String(data.productName || "Untitled")}`;
+    case "FACTORY_REQUEST": return `New factory request: ${String(data.name || "Untitled")}`;
+    case "ORDER_EDIT_REQUEST": return `Edit order request`;
+    case "FACTORY_EDIT_REQUEST": return `Edit factory request`;
+    case "ORDER_DELETE_REQUEST": return `Delete order request`;
+    case "FACTORY_DELETE_REQUEST": return `Delete factory request`;
+    default: return "Request submitted";
+  }
+}
+
 // GET /api/requests — List requests for the organization
 export async function GET(req: NextRequest) {
   try {
@@ -183,7 +195,58 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return created(request, "Request submitted successfully");
+    // Auto-create a conversation thread for this request
+    let conversationId: string | null = null;
+    try {
+      const summary = getRequestSummary(type, data);
+
+      const adminUsers = await prisma.user.findMany({
+        where: {
+          organizationId: session.user.organizationId,
+          role: { in: ["OWNER", "ADMIN"] },
+        },
+        select: { id: true },
+      });
+
+      const participantIds = [...new Set([session.user.id, ...adminUsers.map((u) => u.id)])];
+
+      const conv = await prisma.conversation.create({
+        data: {
+          organizationId: session.user.organizationId,
+          subject: `Request: ${summary}`,
+          type: "SUPPORT",
+          participants: {
+            create: participantIds.map((userId) => ({ userId })),
+          },
+          lastMessageAt: new Date(),
+        },
+      });
+
+      await prisma.message.create({
+        data: {
+          conversationId: conv.id,
+          senderId: session.user.id,
+          content: summary,
+          messageType: "REQUEST",
+        },
+      });
+
+      await prisma.conversationParticipant.updateMany({
+        where: { conversationId: conv.id, userId: { not: session.user.id } },
+        data: { unreadCount: { increment: 1 } },
+      });
+
+      await prisma.request.update({
+        where: { id: request.id },
+        data: { conversationId: conv.id },
+      });
+
+      conversationId = conv.id;
+    } catch (convErr) {
+      console.error("[POST /api/requests] Failed to create conversation:", convErr);
+    }
+
+    return created({ ...request, conversationId }, "Request submitted successfully");
   } catch (err) {
     return handleError(err);
   }

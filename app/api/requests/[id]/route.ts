@@ -4,6 +4,39 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { success, error, unauthorized, forbidden, notFound, validationError, handleError } from "@/lib/api";
 
+async function sendConversationMessage(
+  conversationId: string,
+  senderId: string | null,
+  content: string,
+  messageType: "TEXT" | "APPROVAL" | "REQUEST" | "SYSTEM" | "BOT",
+  requestAction?: "APPROVED" | "REJECTED" | "PENDING_INFO"
+) {
+  try {
+    await prisma.message.create({
+      data: {
+        conversationId,
+        senderId,
+        content,
+        messageType,
+        ...(requestAction ? { requestAction } : {}),
+      },
+    });
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: new Date() },
+    });
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        conversationId,
+        ...(senderId ? { userId: { not: senderId } } : {}),
+      },
+      data: { unreadCount: { increment: 1 } },
+    });
+  } catch (err) {
+    console.error("[sendConversationMessage] Failed:", err);
+  }
+}
+
 // GET /api/requests/[id] — Fetch single request by ID (org-scoped)
 export async function GET(
   req: NextRequest,
@@ -98,6 +131,17 @@ export async function PATCH(
           reviewedBy: { select: { id: true, name: true, email: true } },
         },
       });
+
+      // Send response text to conversation
+      if (request.conversationId) {
+        await sendConversationMessage(
+          request.conversationId,
+          session.user.id,
+          validation.data.response,
+          "TEXT"
+        );
+      }
+
       return success(updated, "Response submitted, request is back under review");
     }
 
@@ -130,6 +174,23 @@ export async function PATCH(
           reviewedBy: { select: { id: true, name: true, email: true } },
         },
       });
+
+      // Send decision message to conversation
+      if (request.conversationId) {
+        const content =
+          status === "REJECTED"
+            ? `Request rejected${reviewNote ? ` — ${reviewNote}` : ""}`
+            : `Additional information requested${reviewNote ? ` — ${reviewNote}` : ""}`;
+        const requestAction = status === "REJECTED" ? "REJECTED" : "PENDING_INFO";
+        await sendConversationMessage(
+          request.conversationId,
+          session.user.id,
+          content,
+          "APPROVAL",
+          requestAction
+        );
+      }
+
       return success(updated);
     }
 
@@ -260,7 +321,7 @@ export async function PATCH(
           }
         }
 
-        return tx.request.update({
+        const result = await tx.request.update({
           where: { id },
           data: {
             status: "APPROVED",
@@ -275,6 +336,30 @@ export async function PATCH(
             reviewedBy: { select: { id: true, name: true, email: true } },
           },
         });
+
+        // Send APPROVAL message to conversation
+        if (request.conversationId) {
+          const content = `Request approved${reviewNote ? ` — ${reviewNote}` : ""}`;
+          await tx.message.create({
+            data: {
+              conversationId: request.conversationId,
+              senderId: session.user.id,
+              content,
+              messageType: "APPROVAL",
+              requestAction: "APPROVED",
+            },
+          });
+          await tx.conversation.update({
+            where: { id: request.conversationId },
+            data: { lastMessageAt: new Date() },
+          });
+          await tx.conversationParticipant.updateMany({
+            where: { conversationId: request.conversationId, userId: { not: session.user.id } },
+            data: { unreadCount: { increment: 1 } },
+          });
+        }
+
+        return result;
       });
     } catch (txErr) {
       // Surface specific DB constraint errors clearly

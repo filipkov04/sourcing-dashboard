@@ -46,9 +46,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 23 — Feb 21, 2026)
+## Current Status (Session 24 — Feb 21, 2026)
 
-**Last completed:** Tasks 6.8–6.13 + 7.7–7.11 (Full integration backend)
+**Last completed:** Task 5.27 (Request-to-Chat Integration)
+
+**Session 24 changes (Marco):**
+- **Task 5.27** — Request-to-Chat Integration:
+  - `app/api/requests/route.ts`: POST now auto-creates a SUPPORT conversation after request creation. Participants = requester + all ADMIN/OWNER users. Sends a REQUEST-type message summarising the request. Links `conversationId` back to the request. Non-fatal try/catch so request creation never fails due to chat errors.
+  - `app/api/requests/[id]/route.ts`: Added `sendConversationMessage()` helper. Sends messages on three events: (1) requester responds to NEEDS_INFO → TEXT message with response text; (2) admin REJECTS or needs info → APPROVAL message with REJECTED/PENDING_INFO action; (3) admin APPROVES → APPROVAL+APPROVED message inside the same DB transaction.
+  - `app/(dashboard)/requests/page.tsx`: Added `conversationId` to `RequestItem` interface. Added "Chat" link button (MessageSquare icon) that appears on any request with a conversationId, linking to `/messages?cid=<id>`.
+  - `app/(dashboard)/messages/page.tsx`: Added `useSearchParams` — reads `?cid=` query param and auto-selects that conversation on page load.
 
 **Session 23 changes (Marco):**
 - **Task 6.8** — Redis Setup: Upstash Redis connected via ioredis (`lib/redis.ts`, `REDIS_URL` in `.env`)
@@ -83,7 +90,7 @@ Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order D
 - Session 20 (Filip): Tasks 5.18–5.22 (Chat system: DB models, API backend, UI, messages page, unread badge)
 - Session 18: Tasks 5.1-5.6 (Full alert system, pushed). Stress test: 25/25 endpoints.
 
-**Next task:** Task 5.27 (Request-to-Chat Integration) OR Week 5 PR OR BL-1 (Project Selector)
+**Next task:** Week 5 PR OR BL-1 (Project Selector)
 
 ## Plugins
 

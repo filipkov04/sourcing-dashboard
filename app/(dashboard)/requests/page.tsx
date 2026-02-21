@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
 import {
   ClipboardList,
   ChevronDown,
@@ -43,6 +44,7 @@ interface RequestItem {
   targetFactoryId: string | null;
   targetOrder: { id: string; orderNumber: string; productName: string } | null;
   targetFactory: { id: string; name: string; location: string } | null;
+  conversationId: string | null;
   createdAt: string;
 }
 
@@ -364,26 +366,37 @@ export default function RequestsPage() {
                       </span>
                     </div>
                   </div>
-                  {canExpand && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setExpandedId(isExpanded ? null : request.id);
-                        setReviewNote("");
-                        setResponseText("");
-                      }}
-                      className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 shrink-0"
-                    >
-                      {isExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-                      {needsInfo && !isAdmin ? "Respond" : "Review"}
-                    </Button>
-                  )}
-                  {!canExpand && request.reviewedBy && (
-                    <span className="text-xs text-gray-400 dark:text-zinc-500 shrink-0">
-                      Reviewed by {request.reviewedBy.name || request.reviewedBy.email}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {request.conversationId && (
+                      <Link
+                        href={`/messages?cid=${request.conversationId}`}
+                        className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        Chat
+                      </Link>
+                    )}
+                    {canExpand && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setExpandedId(isExpanded ? null : request.id);
+                          setReviewNote("");
+                          setResponseText("");
+                        }}
+                        className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300"
+                      >
+                        {isExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
+                        {needsInfo && !isAdmin ? "Respond" : "Review"}
+                      </Button>
+                    )}
+                    {!canExpand && request.reviewedBy && (
+                      <span className="text-xs text-gray-400 dark:text-zinc-500">
+                        Reviewed by {request.reviewedBy.name || request.reviewedBy.email}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Expanded Panel */}

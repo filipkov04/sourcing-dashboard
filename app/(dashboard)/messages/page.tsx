@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useConversationDetail } from "@/lib/use-conversations";
 import { MessagesSidebar } from "@/components/messages/messages-sidebar";
 import { MessagesThread } from "@/components/messages/messages-thread";
@@ -11,9 +12,12 @@ import { usePresence } from "@/lib/use-presence";
 
 export default function MessagesPage() {
   const { data: session } = useSession();
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const cidFromUrl = searchParams.get("cid");
+
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(cidFromUrl);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [mobileView, setMobileView] = useState<"list" | "thread">("list");
+  const [mobileView, setMobileView] = useState<"list" | "thread">(cidFromUrl ? "thread" : "list");
 
   const currentUserId = session?.user?.id ?? "";
 

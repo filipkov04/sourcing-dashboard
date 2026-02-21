@@ -298,7 +298,7 @@
 | 5.24 | Order Request Form | Marco | Build form for clients to request new orders | Page at /orders/request for clients to submit order requests | 3h | ✅ |
 | 5.25 | Factory Request Form | Marco | Build form for clients to request new factories | Page at /factories/request for clients to submit factory requests | 2h | ✅ |
 | 5.26 | Request Review UI | Marco | Build interface for admins to review and approve/reject requests | Requests page showing pending requests with approve/reject buttons | 3h | ✅ |
-| 5.27 | Request-to-Chat Integration | Marco | Link requests to chat so admins can discuss with clients | Request approval creates chat thread, notifications sent | 2h | ⏳ |
+| 5.27 | Request-to-Chat Integration | Marco | Link requests to chat so admins can discuss with clients | Request approval creates chat thread, notifications sent | 2h | ✅ |
 | 5.28 | Role-Based Create Buttons | Marco | Hide "Add Order"/"Add Factory" for non-admin users, show "Request" instead | Conditional UI based on user role | 2h | ✅ |
 
 **What Marco Creates This Week (Additional):** Request workflow where clients request orders/factories, admins approve via chat.
