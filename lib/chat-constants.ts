@@ -90,6 +90,11 @@ export const CHAT_ALLOWED_FILE_TYPES = [
   "video/mp4",
   "video/quicktime",
   "video/webm",
+  "audio/webm",
+  "audio/ogg",
+  "audio/mp4",
+  "audio/mpeg",
+  "audio/wav",
 ];
 
-export const CHAT_ALLOWED_EXTENSIONS = ".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.mp4,.mov,.webm";
+export const CHAT_ALLOWED_EXTENSIONS = ".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.mp4,.mov,.webm,.mp3,.wav,.ogg";
