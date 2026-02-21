@@ -65,6 +65,13 @@ export function ChatWidget() {
   const userName = session?.user?.name?.split(" ")[0] || "there";
   const currentUserId = session?.user?.id;
 
+  // Clear optimistic messages once real conversation data arrives
+  useEffect(() => {
+    if (conversation?.messages?.length && optimisticMessages.length) {
+      setOptimisticMessages([]);
+    }
+  }, [conversation?.messages?.length, optimisticMessages.length]);
+
   // Auto-scroll when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -150,9 +157,8 @@ export function ChatWidget() {
           type: "SUPPORT",
         });
         await sendQuickReply(conv.id, category);
+        await refreshList();
         setActiveConversationId(conv.id);
-        setOptimisticMessages([]);
-        refreshList();
         refreshBadge();
       } catch (err) {
         console.error("Failed to create support chat:", err);
@@ -245,7 +251,21 @@ export function ChatWidget() {
     return (
       <div className="flex h-full flex-col">
         {/* Top bar */}
-        <div className="flex items-center justify-end px-4 pt-3 pb-1 shrink-0">
+        <div className="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
+          {hasActiveChat ? (
+            <button
+              onClick={() => {
+                setActiveConversationId(null);
+                setOptimisticMessages([]);
+                setInput("");
+              }}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+          ) : (
+            <div className="w-7" />
+          )}
           <button
             onClick={handleClose}
             className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"

@@ -13,10 +13,6 @@ export async function POST(
     const session = await auth();
     if (!session) return unauthorized();
 
-    if (session.user.role === "VIEWER") {
-      return forbidden("Viewers cannot send messages");
-    }
-
     const { id } = await params;
     const body = await request.json();
     const { category } = body;

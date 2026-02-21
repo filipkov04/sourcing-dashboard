@@ -1,7 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  distDir: "/tmp/sourcing-dashboard-next",
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

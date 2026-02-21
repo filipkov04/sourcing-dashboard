@@ -79,9 +79,6 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session) return unauthorized();
 
-    if (session.user.role === "VIEWER") {
-      return error("Viewers cannot create conversations", 403);
-    }
 
     const body = await request.json();
     const validation = createSchema.safeParse(body);
