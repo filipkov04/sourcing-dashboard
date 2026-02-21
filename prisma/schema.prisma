@@ -126,11 +126,67 @@ model Factory {
   alerts         Alert[]
   conversations  Conversation[]
   request        Request?
+  integrations   Integration[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
+}
+
+// ============================================
+// INTEGRATIONS
+// ============================================
+
+enum IntegrationType {
+  REST
+  SFTP
+  WEBHOOK
+  MANUAL
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING
+}
+
+enum SyncStatus {
+  SUCCESS
+  FAILED
+  IN_PROGRESS
+  NEVER
+}
+
+model Integration {
+  id             String            @id @default(cuid())
+  name           String            // e.g. "Factory ERP API"
+  type           IntegrationType
+  status         IntegrationStatus @default(PENDING)
+
+  // Encrypted credentials stored as JSON (task 6.11)
+  credentials    Json?
+
+  // Type-specific config (base URL, SFTP path, field mappings, etc.)
+  config         Json?
+
+  // Sync settings
+  syncFrequency  Int               @default(15) // minutes between syncs
+  lastSyncAt     DateTime?
+  lastSyncStatus SyncStatus        @default(NEVER)
+  lastSyncError  String?           @db.Text
+
+  // Relations
+  factoryId      String
+  factory        Factory           @relation(fields: [factoryId], references: [id], onDelete: Cascade)
+  organizationId String
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([factoryId])
+  @@index([organizationId, status])
 }
 
 model Order {
