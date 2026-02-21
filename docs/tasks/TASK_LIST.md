@@ -399,11 +399,11 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 7.7 | SFTP Adapter | Marco | Build adapter to download files from SFTP servers | Adapter that connects to SFTP and downloads CSV/JSON files | 4h | ⏳ |
-| 7.8 | CSV Parser | Marco | Create parser to read CSV files from factories | Parser that converts CSV data to our format | 2h | ⏳ |
-| 7.9 | Webhook Receiver | Marco | Build endpoint to receive data pushed from factories | API endpoint at /api/webhooks/[factoryId] | 2h | ⏳ |
-| 7.10 | Data Transformer | Marco | Create system to map factory data to our data format | Transformer that handles different field names | 3h | ⏳ |
-| 7.11 | Sync Scheduler | Marco | Build scheduler that runs sync jobs every 15 minutes | Scheduler that automatically syncs all integrations | 3h | ⏳ |
+| 7.7 | SFTP Adapter | Marco | Build adapter to download files from SFTP servers | Adapter that connects to SFTP and downloads CSV/JSON files | 4h | ✅ |
+| 7.8 | CSV Parser | Marco | Create parser to read CSV files from factories | Parser that converts CSV data to our format | 2h | ✅ |
+| 7.9 | Webhook Receiver | Marco | Build endpoint to receive data pushed from factories | API endpoint at /api/webhooks/[factoryId] | 2h | ✅ |
+| 7.10 | Data Transformer | Marco | Create system to map factory data to our data format | Transformer that handles different field names | 3h | ✅ |
+| 7.11 | Sync Scheduler | Marco | Build scheduler that runs sync jobs every 15 minutes | Scheduler that automatically syncs all integrations | 3h | ✅ |
 | 7.12 | Week 7 PR | Marco | Package new adapters | Pull request for review | 30min | ⏳ |
 
 **What Marco Creates This Week:** Multiple integration methods - SFTP, webhooks, data transformation, auto-scheduler.

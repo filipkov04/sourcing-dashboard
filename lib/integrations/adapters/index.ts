@@ -1,5 +1,9 @@
 import { integrationManager } from "../manager";
 import { RestAdapter } from "./rest-adapter";
+import { SftpAdapter } from "./sftp-adapter";
+import { WebhookAdapter } from "./webhook-adapter";
 
-// Register all adapters here — more added in tasks 7.7 (SFTP) and 7.9 (Webhook)
+// All three integration types registered
 integrationManager.registerAdapter(new RestAdapter());
+integrationManager.registerAdapter(new SftpAdapter());
+integrationManager.registerAdapter(new WebhookAdapter());

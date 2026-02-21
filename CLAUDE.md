@@ -48,7 +48,7 @@ Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order D
 
 ## Current Status (Session 23 — Feb 21, 2026)
 
-**Last completed:** Tasks 6.8–6.13 (Integration backend: Redis, BullMQ, Integration Manager, Credential Encryption, REST Adapter, Mock Factory API)
+**Last completed:** Tasks 6.8–6.13 + 7.7–7.11 (Full integration backend)
 
 **Session 23 changes (Marco):**
 - **Task 6.8** — Redis Setup: Upstash Redis connected via ioredis (`lib/redis.ts`, `REDIS_URL` in `.env`)
@@ -57,8 +57,13 @@ Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order D
 - **Task 6.11** — Credential Encryption: AES-256-GCM via Node crypto, `lib/integrations/encryption.ts`, `ENCRYPTION_KEY` in `.env`
 - **Task 6.12** — REST Adapter: `lib/integrations/adapters/rest-adapter.ts` with auth (bearer/basic/api_key), field mapping, status mapping, stage sync
 - **Task 6.13** — Mock Factory API: `app/api/mock-factory/orders/route.ts` with 5 realistic orders, auth validation, dev-only
+- **Task 7.7** — SFTP Adapter: `lib/integrations/adapters/sftp-adapter.ts` with password/private-key auth, CSV/JSON file download
+- **Task 7.8** — CSV Parser: `lib/integrations/csv-parser.ts` — RFC 4180 compliant, auto-detects delimiter, handles quoted fields/BOM/Windows line endings, includes `toCsv()` for exports
+- **Task 7.9** — Webhook Receiver: `app/api/webhooks/[factoryId]/route.ts` with HMAC-SHA256 signature verification, `lib/integrations/adapters/webhook-adapter.ts`
+- **Task 7.10** — Data Transformer: `lib/integrations/transformer.ts` — centralised field mapping, status mapping lookup tables, `transformRecords()` + `applyToDb()`. Removed all duplicated mapping code from adapters.
+- **Task 7.11** — Sync Scheduler: `app/api/cron/sync-integrations/route.ts` — Vercel Cron every 15 min, per-integration frequency check, enqueues BullMQ jobs
 
-**Next task:** 6.14 (Week 6 PR) or 7.1 (SFTP Adapter)
+**Next task:** 7.12 (Week 7 PR) or Week 8
 
 **Session 22 changes (Marco):**
 - **Scroll-Reveal Animations** — Replaced Tailwind `animate-in` classes on dashboard with scroll-triggered framer-motion animations. New reusable `components/scroll-reveal.tsx` client component using `whileInView` + `onViewportEnter`. Adapts animation duration/delay to scroll velocity (fast scroll = near-instant). Staggered child animations for grid sections (cards wave in individually). Viewport trigger at 5% visibility, animates once.
