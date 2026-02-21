@@ -1,7 +1,7 @@
 // Gantt chart layout constants
 export const DEFAULT_PIXELS_PER_DAY = 32;
 export const PIXELS_PER_DAY = DEFAULT_PIXELS_PER_DAY; // kept for backward compat
-export const ROW_HEIGHT = 44;
+export const ROW_HEIGHT = 54;
 export const HEADER_HEIGHT = 48;
 export const LEFT_LABEL_WIDTH = 280;
 export const BAR_HEIGHT = 24;

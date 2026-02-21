@@ -114,6 +114,13 @@ export default function TimelinePage() {
     });
   }, [orders, dateFrom, dateTo]);
 
+  const stats = useMemo(() => ({
+    total: filteredOrders.length,
+    inProgress: filteredOrders.filter(o => o.status === "IN_PROGRESS").length,
+    critical: filteredOrders.filter(o => ["DELAYED", "DISRUPTED"].includes(o.status)).length,
+    done: filteredOrders.filter(o => ["COMPLETED", "SHIPPED", "DELIVERED"].includes(o.status)).length,
+  }), [filteredOrders]);
+
   const clearFilters = () => {
     setStatusFilter("all");
     setFactoryFilter("all");
@@ -147,6 +154,31 @@ export default function TimelinePage() {
           Gantt chart overview of all production orders
         </p>
       </div>
+
+      {/* Stats Strip */}
+      {!isLoading && orders.length > 0 && (
+        <div className="flex gap-3 flex-wrap">
+          {[
+            { label: "Total",       value: stats.total,      color: "#71717a" },
+            { label: "In Progress", value: stats.inProgress, color: "#3b82f6" },
+            { label: "Critical",    value: stats.critical,   color: "#ef4444" },
+            { label: "Done",        value: stats.done,       color: "#22c55e" },
+          ].map(({ label, value, color }) => (
+            <div
+              key={label}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm"
+              style={{ borderLeft: `3px solid ${color}` }}
+            >
+              <span className="text-base font-bold tabular-nums text-gray-900 dark:text-white">
+                {value}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-zinc-400">
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">

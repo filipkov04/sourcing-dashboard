@@ -14,27 +14,19 @@ export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent SSR mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="h-9 w-9 rounded-lg border border-gray-100 bg-white dark:border-zinc-800 dark:bg-zinc-900" />
-    );
-  }
-
-  const getIcon = () => {
-    if (theme === "system") {
-      return <Monitor className="h-4 w-4" />;
-    }
-    return resolvedTheme === "dark" ? (
-      <Moon className="h-4 w-4" />
-    ) : (
-      <Sun className="h-4 w-4" />
-    );
-  };
+  // Always render the DropdownMenu so the Radix useId counter stays consistent
+  // between server and client. The icon defaults to Monitor before mount, then
+  // updates after hydration — no hydration mismatch because Monitor is also the
+  // server fallback.
+  const icon = !mounted || theme === "system"
+    ? <Monitor className="h-4 w-4" />
+    : resolvedTheme === "dark"
+      ? <Moon className="h-4 w-4" />
+      : <Sun className="h-4 w-4" />;
 
   return (
     <DropdownMenu>
@@ -42,8 +34,9 @@ export function ThemeToggle() {
         <button
           className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700"
           aria-label="Toggle theme"
+          suppressHydrationWarning
         >
-          {getIcon()}
+          {icon}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
