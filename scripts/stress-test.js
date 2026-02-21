@@ -56,6 +56,16 @@ const tests = [
   { name: 'Invitations API (list)', path: '/api/invitations', expectedStatus: [200, 307, 401] },
   { name: 'Invite Token Validate', path: '/api/invitations/invalid-token-test', expectedStatus: [400, 404] },
   { name: 'Invite Accept Page', path: '/invite/test-token', expectedStatus: [200] },
+
+  // Messaging System
+  { name: 'Messages Page', path: '/messages', expectedStatus: [200, 302, 307] },
+  { name: 'Conversations API', path: '/api/conversations', expectedStatus: [200, 307, 401] },
+  { name: 'Unread Count API', path: '/api/conversations/unread-count', expectedStatus: [200, 307, 401] },
+  { name: 'Global Message Search', path: '/api/messages/search?q=test', expectedStatus: [200, 307, 400, 401] },
+
+  // Notification Settings
+  { name: 'Settings Page', path: '/settings', expectedStatus: [200, 302, 307] },
+  { name: 'Notification Prefs API', path: '/api/settings/notifications', expectedStatus: [200, 307, 401] },
 ];
 
 /**

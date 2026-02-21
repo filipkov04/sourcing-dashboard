@@ -3,6 +3,7 @@
 import { FileText, Download, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MessageAttachment as AttachmentType } from "@/lib/use-conversations";
+import { AudioWaveformPlayer } from "@/components/messages/audio-waveform-player";
 
 interface MessageAttachmentProps {
   attachment: AttachmentType;
@@ -18,6 +19,7 @@ function formatFileSize(bytes: number): string {
 export function MessageAttachmentItem({ attachment, publicUrl }: MessageAttachmentProps) {
   const isImage = attachment.fileType.startsWith("image/");
   const isVideo = attachment.fileType.startsWith("video/");
+  const isAudio = attachment.fileType.startsWith("audio/");
 
   if (isImage) {
     return (
@@ -59,6 +61,15 @@ export function MessageAttachmentItem({ attachment, publicUrl }: MessageAttachme
           <Download className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" />
         </a>
       </div>
+    );
+  }
+
+  if (isAudio) {
+    return (
+      <AudioWaveformPlayer
+        src={publicUrl}
+        fileName={attachment.fileName}
+      />
     );
   }
 

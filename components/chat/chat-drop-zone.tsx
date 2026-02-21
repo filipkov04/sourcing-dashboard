@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Paperclip, X, FileText, Image as ImageIcon, Film } from "lucide-react";
+import { Paperclip, X, FileText, Image as ImageIcon, Film, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CHAT_ALLOWED_EXTENSIONS, CHAT_MAX_FILE_SIZE, CHAT_ALLOWED_FILE_TYPES } from "@/lib/chat-constants";
 
@@ -20,6 +20,7 @@ function formatFileSize(bytes: number): string {
 function getFileIcon(type: string) {
   if (type.startsWith("image/")) return ImageIcon;
   if (type.startsWith("video/")) return Film;
+  if (type.startsWith("audio/")) return Music;
   return FileText;
 }
 

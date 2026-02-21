@@ -479,6 +479,9 @@ model ConversationParticipant {
 
   // Notification preferences for this conversation
   muted           Boolean  @default(false)
+  pinned          Boolean  @default(false)
+  notifyReplies   Boolean  @default(true)
+  notifyMentions  Boolean  @default(true)
 
   // Typing indicator — updated on each keystroke, considered "typing" if within last 3s
   typingAt        DateTime?
@@ -503,8 +506,20 @@ model Message {
   // For request approvals
   requestAction   RequestAction?
 
+  // Threading
+  parentId        String?
+  parent          Message?  @relation("MessageThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies         Message[] @relation("MessageThread")
+  threadCount     Int       @default(0)
+
+  // Soft delete
+  deletedAt       DateTime?
+
   // Read tracking
   readBy          MessageRead[]
+
+  // Reactions
+  reactions       MessageReaction[]
 
   // File attachments
   attachments     MessageAttachment[]
@@ -514,6 +529,20 @@ model Message {
 
   @@index([conversationId])
   @@index([createdAt])
+  @@index([parentId])
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  emoji     String
+
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
 }
 
 model MessageAttachment {

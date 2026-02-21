@@ -47,15 +47,23 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Attach unread count per conversation for the current user
+    // Attach unread count + pinned status per conversation for the current user
     const data = conversations.map((conv) => {
       const participant = conv.participants.find((p) => p.userId === session.user.id);
       return {
         ...conv,
         unreadCount: participant?.unreadCount ?? 0,
+        pinned: participant?.pinned ?? false,
         lastMessage: conv.messages[0] ?? null,
         messages: undefined, // Remove full messages array from list
       };
+    });
+
+    // Sort: pinned first, then by lastMessageAt
+    data.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return 0; // Preserve existing lastMessageAt ordering within groups
     });
 
     return success(data);

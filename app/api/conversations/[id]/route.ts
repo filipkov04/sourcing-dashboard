@@ -28,10 +28,12 @@ export async function GET(
         order: { select: { id: true, orderNumber: true, productName: true } },
         factory: { select: { id: true, name: true } },
         messages: {
+          where: { parentId: null },
           orderBy: { createdAt: "asc" },
           include: {
             sender: { select: { id: true, name: true, email: true, image: true } },
             readBy: { select: { userId: true, readAt: true } },
+            reactions: { orderBy: { createdAt: "asc" } },
             attachments: true,
           },
         },
