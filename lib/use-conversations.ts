@@ -225,7 +225,10 @@ export async function sendMessage(
     });
   }
 
-  if (!res.ok) throw new Error("Failed to send message");
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error || `Failed to send message (${res.status})`);
+  }
   const json = await res.json();
   return json.data as Message;
 }

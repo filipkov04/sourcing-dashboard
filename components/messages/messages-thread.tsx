@@ -108,7 +108,7 @@ export function MessagesThread({
     return () => { cancelled = true; clearInterval(interval); };
   }, [conversationId]);
 
-  // Report typing — debounced
+  // Report typing -- debounced
   const reportTyping = useCallback(() => {
     if (!conversationId || typingTimeoutRef.current) return;
     fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {});
@@ -134,7 +134,7 @@ export function MessagesThread({
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex h-full items-center justify-center bg-white dark:bg-zinc-900">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-6 w-6 animate-spin text-[#EB5D2E]" />
           <p className="text-xs text-gray-400 dark:text-zinc-500">Loading messages...</p>
@@ -148,15 +148,15 @@ export function MessagesThread({
   const participantCount = conversation.participants.length;
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
+    <div className="flex h-full flex-col bg-white dark:bg-zinc-900 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-3 dark:border-zinc-800">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="relative shrink-0">
             {isSupport ? (
-              <SourcyAvatar size="lg" className="h-9 w-9" />
+              <SourcyAvatar size="lg" className="h-10 w-10" />
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 dark:from-zinc-600 dark:to-zinc-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-700 to-gray-900 dark:from-zinc-600 dark:to-zinc-800">
                 {conversation.factory ? (
                   <Factory className="h-4 w-4 text-white" />
                 ) : conversation.order ? (
@@ -169,7 +169,7 @@ export function MessagesThread({
               </div>
             )}
             {anyOnline && (
-              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-zinc-900" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-zinc-900" />
             )}
           </div>
           <div className="min-w-0">
@@ -177,7 +177,7 @@ export function MessagesThread({
               {displayName}
             </p>
             <p className="truncate text-[11px] text-gray-400 dark:text-zinc-500">
-              {participantCount} members{anyOnline && " · Online"}
+              {participantCount} members{anyOnline && " \u00B7 Online"}
             </p>
           </div>
         </div>

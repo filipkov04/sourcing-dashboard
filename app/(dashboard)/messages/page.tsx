@@ -65,10 +65,10 @@ export default function MessagesPage() {
   }, []);
 
   return (
-    <div className="h-[calc(100vh-180px)] flex gap-5">
-      {/* Sidebar — conversation index (280px) */}
+    <div className="h-full flex">
+      {/* Sidebar -- conversation index */}
       <div
-        className={`w-[280px] shrink-0 ${
+        className={`w-[340px] shrink-0 ${
           mobileView === "list" ? "flex" : "hidden"
         } lg:flex`}
       >
@@ -79,7 +79,7 @@ export default function MessagesPage() {
         />
       </div>
 
-      {/* Main thread (flex-1) */}
+      {/* Thread -- active conversation or empty state */}
       <div
         className={`flex-1 min-w-0 ${
           mobileView === "thread" ? "flex" : "hidden"

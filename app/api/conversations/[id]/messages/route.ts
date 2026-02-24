@@ -68,7 +68,9 @@ export async function POST(
       if (file.size > CHAT_MAX_FILE_SIZE) {
         return error(`File "${file.name}" exceeds 10MB limit`);
       }
-      if (!CHAT_ALLOWED_FILE_TYPES.includes(file.type)) {
+      // Strip codec params (e.g. "audio/webm;codecs=opus" → "audio/webm")
+      const baseType = file.type.split(";")[0].trim();
+      if (!CHAT_ALLOWED_FILE_TYPES.includes(baseType)) {
         return error(`File type "${file.type}" is not allowed`);
       }
     }

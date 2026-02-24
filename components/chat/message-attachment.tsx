@@ -8,6 +8,7 @@ import { AudioWaveformPlayer } from "@/components/messages/audio-waveform-player
 interface MessageAttachmentProps {
   attachment: AttachmentType;
   publicUrl: string;
+  isOwn?: boolean;
 }
 
 function formatFileSize(bytes: number): string {
@@ -16,10 +17,14 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function MessageAttachmentItem({ attachment, publicUrl }: MessageAttachmentProps) {
+export function MessageAttachmentItem({ attachment, publicUrl, isOwn }: MessageAttachmentProps) {
   const isImage = attachment.fileType.startsWith("image/");
   const isVideo = attachment.fileType.startsWith("video/");
   const isAudio = attachment.fileType.startsWith("audio/");
+
+  if (isAudio && publicUrl) {
+    return <AudioWaveformPlayer src={publicUrl} fileName={attachment.fileName} isOwn={isOwn} />;
+  }
 
   if (isImage) {
     return (
@@ -64,15 +69,6 @@ export function MessageAttachmentItem({ attachment, publicUrl }: MessageAttachme
     );
   }
 
-  if (isAudio) {
-    return (
-      <AudioWaveformPlayer
-        src={publicUrl}
-        fileName={attachment.fileName}
-      />
-    );
-  }
-
   // PDF / doc / other files
   return (
     <div className="mt-1 flex items-center gap-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 px-3 py-2">
@@ -100,9 +96,10 @@ export function MessageAttachmentItem({ attachment, publicUrl }: MessageAttachme
 
 interface MessageAttachmentsProps {
   attachments: AttachmentType[];
+  isOwn?: boolean;
 }
 
-export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
+export function MessageAttachments({ attachments, isOwn }: MessageAttachmentsProps) {
   if (!attachments || attachments.length === 0) return null;
 
   return (
@@ -112,6 +109,7 @@ export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
           key={att.id}
           attachment={att}
           publicUrl={att.url || ""}
+          isOwn={isOwn}
         />
       ))}
     </div>

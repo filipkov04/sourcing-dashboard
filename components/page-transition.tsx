@@ -64,6 +64,7 @@ export function PageTransition({ children }: PageTransitionProps) {
       <AnimatePresence mode="wait">
         <motion.div
           key={pathname}
+          className="h-full"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}

@@ -53,13 +53,12 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
   }, []);
 
   const startRecording = useCallback(async () => {
-    if (mediaRecorderRef.current) return; // already recording
+    if (mediaRecorderRef.current) return;
     chunksRef.current = [];
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
 
-    // Set up AudioContext + AnalyserNode for live waveform
     const ctx = new AudioContext();
     audioContextRef.current = ctx;
     const source = ctx.createMediaStreamSource(stream);
@@ -68,7 +67,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     source.connect(analyser);
     setAnalyserNode(analyser);
 
-    // Determine preferred MIME type
     const mimeType = ["audio/webm", "audio/ogg", "audio/mp4"].find((t) =>
       MediaRecorder.isTypeSupported(t)
     );
@@ -84,23 +82,25 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     };
 
     recorder.onstop = () => {
-      const actualMime = recorder.mimeType || "audio/webm";
-      const ext = actualMime.includes("ogg")
+      // Strip codec params (e.g. "audio/webm;codecs=opus" -> "audio/webm")
+      const rawMime = recorder.mimeType || "audio/webm";
+      const baseMime = rawMime.split(";")[0].trim();
+      const ext = baseMime.includes("ogg")
         ? "ogg"
-        : actualMime.includes("mp4")
+        : baseMime.includes("mp4")
           ? "m4a"
           : "webm";
-      const blob = new Blob(chunksRef.current, { type: actualMime });
+      const blob = new Blob(chunksRef.current, { type: baseMime });
       const file = new File(
         [blob],
         `voice-message-${Date.now()}.${ext}`,
-        { type: actualMime }
+        { type: baseMime }
       );
       resolveStopRef.current?.(file);
       resolveStopRef.current = null;
     };
 
-    recorder.start(100); // collect in 100ms chunks
+    recorder.start(100);
     startTimeRef.current = Date.now();
     setIsRecording(true);
 
@@ -115,7 +115,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         !mediaRecorderRef.current ||
         mediaRecorderRef.current.state === "inactive"
       ) {
-        // Nothing to stop — return empty file
         resolve(
           new File([], `voice-message-${Date.now()}.webm`, {
             type: "audio/webm",

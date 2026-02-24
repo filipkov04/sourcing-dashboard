@@ -43,7 +43,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Header onMenuClick={() => setMobileMenuOpen(true)} />
 
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <main className={`flex-1 ${isMessagesPage ? "overflow-hidden p-0" : "overflow-y-auto p-4 sm:p-6 lg:p-8"}`}>
             <PageTransition>{children}</PageTransition>
           </main>
         </div>

@@ -183,7 +183,7 @@ export function MessagesSidebar({ selectedId, onSelect, onConversationCreated }:
 
   return (
     <>
-      <div className="flex h-full w-full flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex h-full w-full flex-col border-r border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <div className="flex items-center gap-2.5">
@@ -204,7 +204,7 @@ export function MessagesSidebar({ selectedId, onSelect, onConversationCreated }:
         </div>
 
         {/* Search */}
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-300 dark:text-zinc-500" />
             <input

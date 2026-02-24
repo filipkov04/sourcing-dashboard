@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Bell, Search, User, LogOut, Menu, CheckCheck } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -54,10 +55,13 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
+  const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
   const { count: unreadCount, refresh: refreshCount } = useUnreadCount();
   const { alerts, refresh: refreshAlerts } = useRecentAlerts(5);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const user = {
     name: session?.user?.name || "User",
@@ -119,18 +123,20 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Alerts Dropdown */}
-        <DropdownMenu onOpenChange={(open) => { if (open) refreshAlerts(); }}>
-          <DropdownMenuTrigger
-            aria-label="Alerts"
-            className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
+        {/* Alerts Dropdown -- render only after mount to avoid Radix ID hydration mismatch */}
+        {mounted && <DropdownMenu onOpenChange={(open) => { if (open) refreshAlerts(); }}>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Alerts"
+              className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-96 p-0">
             {/* Header */}
@@ -212,12 +218,12 @@ export function Header({ onMenuClick }: HeaderProps) {
               <span className="text-sm font-medium text-[#EB5D2E]">View all alerts</span>
             </div>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
 
         {/* User Menu */}
-        <DropdownMenu>
+        {mounted && <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button suppressHydrationWarning className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
+            <button className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EB5D2E] text-sm font-semibold text-white">
                 {user.initials}
               </div>
@@ -244,7 +250,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
     </header>
   );
