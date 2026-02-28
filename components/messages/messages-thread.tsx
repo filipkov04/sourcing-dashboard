@@ -10,10 +10,12 @@ import {
 } from "@/lib/use-conversations";
 import { usePresence } from "@/lib/use-presence";
 import { SourcyAvatar } from "@/components/chat/sourcy-avatar";
+import { StatusDot, getBestStatus } from "./status-dot";
 import { MessageItem } from "./message-item";
 import { MessageComposer } from "./message-composer";
 import { MessageSearch } from "./message-search";
 import { ConversationSettingsDialog } from "./conversation-settings-dialog";
+import { ConversationProfilePopup } from "./conversation-profile-popup";
 
 function formatDateSeparator(dateStr: string) {
   const date = new Date(dateStr);
@@ -70,6 +72,7 @@ export function MessagesThread({
   const { conversation, loading, refresh } = useConversationDetail(conversationId);
   const [showSearch, setShowSearch] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [typingNames, setTypingNames] = useState<string[]>([]);
@@ -80,7 +83,7 @@ export function MessagesThread({
   const otherParticipantIds = (conversation?.participants ?? [])
     .map((p) => p.userId)
     .filter((uid) => uid !== currentUserId);
-  const { onlineMap } = usePresence(otherParticipantIds);
+  const { statusMap } = usePresence(otherParticipantIds);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -108,20 +111,50 @@ export function MessagesThread({
     return () => { cancelled = true; clearInterval(interval); };
   }, [conversationId]);
 
-  // Report typing -- debounced
+  // Report typing — debounced
   const reportTyping = useCallback(() => {
     if (!conversationId || typingTimeoutRef.current) return;
     fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {});
     typingTimeoutRef.current = setTimeout(() => { typingTimeoutRef.current = null; }, 2000);
   }, [conversationId]);
 
+  // Optimistic messages shown instantly before API responds
+  const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
+
+  // Clear optimistic messages when conversation refreshes (real data arrived)
+  useEffect(() => {
+    if (optimisticMessages.length > 0 && conversation?.messages) {
+      setOptimisticMessages([]);
+    }
+  }, [conversation?.messages]);
+
   const handleSend = useCallback(
     async (content: string, files?: File[]) => {
-      await sendMessage(conversationId, content, files);
-      await refresh();
+      // Show message instantly (optimistic)
+      const tempId = `optimistic-${Date.now()}`;
+      const optimistic: Message = {
+        id: tempId,
+        conversationId,
+        senderId: currentUserId,
+        content: content || (files?.length ? `Shared ${files.length} file${files.length > 1 ? "s" : ""}` : ""),
+        messageType: "TEXT",
+        requestAction: null,
+        sender: { id: currentUserId, name: session?.user?.name ?? null },
+        createdAt: new Date().toISOString(),
+        editedAt: null,
+      };
+      setOptimisticMessages((prev) => [...prev, optimistic]);
+
+      // Send in background, then sync
+      sendMessage(conversationId, content, files)
+        .then(() => refresh())
+        .catch(() => {
+          // Remove failed optimistic message
+          setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
+        });
       onMessageSent?.();
     },
-    [conversationId, refresh, onMessageSent]
+    [conversationId, currentUserId, session?.user?.name, refresh, onMessageSent]
   );
 
   // Determine header info
@@ -130,13 +163,18 @@ export function MessagesThread({
     ? "Sourcy Support"
     : conversation?.subject || conversation?.factory?.name || conversation?.order?.orderNumber || "Untitled";
 
-  const anyOnline = isSupport || otherParticipantIds.some((uid) => onlineMap[uid]);
+  const conversationStatus = getBestStatus(otherParticipantIds, statusMap, isSupport);
+  const statusLabel =
+    conversationStatus === "online" ? "Online"
+    : conversationStatus === "busy" ? "On a call"
+    : conversationStatus === "away" ? "Away"
+    : null;
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-white dark:bg-zinc-900">
         <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin text-[#EB5D2E]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#F97316]" />
           <p className="text-xs text-gray-400 dark:text-zinc-500">Loading messages...</p>
         </div>
       </div>
@@ -151,12 +189,15 @@ export function MessagesThread({
     <div className="flex h-full flex-col bg-white dark:bg-zinc-900 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-3 dark:border-zinc-800">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <button
+          onClick={() => setShowProfile(true)}
+          className="flex items-center gap-3 min-w-0 flex-1 rounded-lg -ml-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors text-left"
+        >
           <div className="relative shrink-0">
             {isSupport ? (
-              <SourcyAvatar size="lg" className="h-10 w-10" />
+              <SourcyAvatar size="lg" className="h-9 w-9" />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-700 to-gray-900 dark:from-zinc-600 dark:to-zinc-800">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 dark:from-zinc-600 dark:to-zinc-800">
                 {conversation.factory ? (
                   <Factory className="h-4 w-4 text-white" />
                 ) : conversation.order ? (
@@ -168,19 +209,17 @@ export function MessagesThread({
                 )}
               </div>
             )}
-            {anyOnline && (
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-zinc-900" />
-            )}
+            <StatusDot status={getBestStatus(otherParticipantIds, statusMap, isSupport)} />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
               {displayName}
             </p>
             <p className="truncate text-[11px] text-gray-400 dark:text-zinc-500">
-              {participantCount} members{anyOnline && " \u00B7 Online"}
+              {participantCount} members{statusLabel && ` · ${statusLabel}`}
             </p>
           </div>
-        </div>
+        </button>
 
         {/* Action buttons */}
         <div className="flex items-center gap-1 shrink-0">
@@ -212,12 +251,13 @@ export function MessagesThread({
         <>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto py-2">
-            {conversation.messages.map((msg, i) => {
-              const showDate = shouldShowDateSeparator(conversation.messages, i);
-              const showHeader = shouldShowHeader(conversation.messages, i);
+            {[...conversation.messages, ...optimisticMessages].map((msg, i, allMsgs) => {
+              const showDate = shouldShowDateSeparator(allMsgs, i);
+              const showHeader = shouldShowHeader(allMsgs, i);
+              const isOptimistic = msg.id.startsWith("optimistic-");
 
               return (
-                <div key={msg.id}>
+                <div key={msg.id} className={isOptimistic ? "opacity-60" : undefined}>
                   {showDate && (
                     <div className="flex items-center gap-3 px-5 py-3">
                       <div className="flex-1 border-t border-gray-200/80 dark:border-zinc-800" />
@@ -233,7 +273,7 @@ export function MessagesThread({
                     currentUserId={currentUserId}
                     conversationId={conversationId}
                     participantCount={participantCount}
-                    onlineMap={onlineMap}
+                    statusMap={statusMap}
                     onOpenThread={onOpenThread}
                     onRefresh={refresh}
                     showAvatar={showHeader}
@@ -275,6 +315,15 @@ export function MessagesThread({
         onSettingsChanged={refresh}
         participants={conversation.participants}
       />
+
+      {/* Profile popup */}
+      {showProfile && conversation && (
+        <ConversationProfilePopup
+          conversation={conversation}
+          onClose={() => setShowProfile(false)}
+          statusMap={statusMap}
+        />
+      )}
     </div>
   );
 }

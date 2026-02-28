@@ -36,22 +36,10 @@ type GanttOrder = {
   overallProgress: number;
   orderDate: string;
   expectedDate: string;
-  priority?: string;
   factory: {
     id: string;
     name: string;
   };
-};
-
-const STATUS_SHORT: Record<string, string> = {
-  PENDING: "Pending",
-  IN_PROGRESS: "In Progress",
-  DELAYED: "Delayed",
-  DISRUPTED: "Disrupted",
-  COMPLETED: "Done",
-  SHIPPED: "Shipped",
-  DELIVERED: "Delivered",
-  CANCELLED: "Cancelled",
 };
 
 type RiskLevel = "critical" | "at-risk" | "none";
@@ -293,13 +281,13 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             onClick={() => handleZoom(preset.ppd)}
             className={`relative px-3 py-1 text-xs font-medium rounded-md transition-all ${
               currentPresetIndex === i
-                ? "bg-white dark:bg-zinc-700 shadow-sm text-[#EB5D2E]"
+                ? "bg-white dark:bg-zinc-700 shadow-sm text-[#F97316]"
                 : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
             }`}
           >
             {preset.label}
             {currentPresetIndex === i && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-[#EB5D2E] rounded-full" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] rounded-full" />
             )}
           </button>
         ))}
@@ -309,7 +297,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
         <button
           onClick={handleExport}
           disabled={isExporting || orders.length === 0}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 hover:border-[#EB5D2E]/30 hover:bg-[#EB5D2E]/5 hover:text-[#EB5D2E] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 hover:border-[#FF8C1A]/30 hover:bg-[#FF8C1A]/5 hover:text-[#F97316] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           title="Download timeline as PNG"
         >
           {isExporting ? (
@@ -360,12 +348,10 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
         {/* Row labels */}
         {orders.map((order) => {
           const risk = riskLevels.get(order.id) || "none";
-          const statusColor = barColors[order.status] || barColors.PENDING;
-          const statusTrack = trackColors[order.status] || trackColors.PENDING;
           return (
             <div
               key={order.id}
-              className={`relative flex flex-col justify-center px-3 border-b border-gray-100 dark:border-zinc-800 cursor-pointer transition-colors ${
+              className={`flex items-center px-3 border-b border-gray-100 dark:border-zinc-800 cursor-pointer transition-colors ${
                 hoveredRow === order.id
                   ? "bg-gray-50 dark:bg-zinc-800"
                   : risk === "critical"
@@ -374,57 +360,29 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
                   ? "bg-amber-50/50 dark:bg-amber-950/20"
                   : ""
               }`}
-              style={{ height: ROW_HEIGHT, borderLeft: `3px solid ${statusColor}` }}
+              style={{ height: ROW_HEIGHT }}
               onClick={() => handleBarClick(order.id)}
               onMouseEnter={() => setHoveredRow(order.id)}
               onMouseLeave={() => setHoveredRow(null)}
             >
-              {/* Line 1: priority/risk dot + order number + status badge */}
-              <div className="flex items-center justify-between gap-1 min-w-0">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  {order.priority === "URGENT" ? (
-                    <div className="w-2 h-2 rounded-full flex-shrink-0 bg-red-500" title="Urgent priority" />
-                  ) : order.priority === "HIGH" ? (
-                    <div className="w-2 h-2 rounded-full flex-shrink-0 bg-orange-500" title="High priority" />
-                  ) : risk !== "none" ? (
-                    <div
-                      className={`w-2 h-2 rounded-full flex-shrink-0 border-2 ${risk === "critical" ? "border-red-500" : "border-amber-400"}`}
-                      title={risk === "critical" ? "Delayed / Overdue" : "At risk"}
-                    />
-                  ) : (
-                    <div className="w-2 flex-shrink-0" />
-                  )}
-                  <span className="text-sm font-medium text-[#EB5D2E] truncate">
+              {/* Risk indicator dot */}
+              {risk !== "none" && (
+                <div
+                  className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${
+                    risk === "critical" ? "bg-red-500" : "bg-amber-500"
+                  }`}
+                  title={risk === "critical" ? "Delayed / Overdue" : "At risk"}
+                />
+              )}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-[#F97316] truncate">
                     {order.orderNumber}
                   </span>
                 </div>
-                <span
-                  className="flex-shrink-0"
-                  style={{
-                    backgroundColor: statusTrack,
-                    color: statusColor,
-                    fontSize: 10,
-                    borderRadius: 4,
-                    padding: "1px 6px",
-                    fontWeight: 500,
-                  }}
-                >
-                  {STATUS_SHORT[order.status] || order.status}
-                </span>
-              </div>
-              {/* Line 2: product — factory */}
-              <div className="text-xs text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                {order.productName} — {order.factory.name}
-              </div>
-              {/* Mini progress bar at bottom */}
-              <div
-                className="absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden rounded-sm"
-                style={{ backgroundColor: statusTrack }}
-              >
-                <div
-                  className="h-[3px]"
-                  style={{ width: `${order.overallProgress}%`, backgroundColor: statusColor }}
-                />
+                <div className="text-xs text-gray-500 dark:text-zinc-400 truncate">
+                  {order.productName} — {order.factory.name}
+                </div>
               </div>
             </div>
           );
@@ -525,17 +483,6 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
               />
             );
           })}
-
-          {/* Today column tint */}
-          {todayInRange && (
-            <rect
-              x={todayX - pixelsPerDay / 2}
-              y={HEADER_HEIGHT}
-              width={pixelsPerDay}
-              height={totalHeight - HEADER_HEIGHT}
-              fill={isDark ? "rgba(239,68,68,0.04)" : "rgba(239,68,68,0.03)"}
-            />
-          )}
 
           {/* Row hover highlight */}
           {hoveredRow && (
@@ -867,9 +814,6 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
                 {tooltip.order.productName}
               </span>
             </div>
-            <div className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-              {tooltip.order.factory.name}
-            </div>
             <div className="flex items-center gap-3 mt-1 text-xs">
               <span className="text-gray-500 dark:text-zinc-400">
                 {formatDate(tooltip.order.orderDate)} → {formatDate(tooltip.order.expectedDate)}
@@ -904,33 +848,6 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
                   </>
                 );
               })()}
-              {(() => {
-                const doneStatuses = ["COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED"];
-                if (doneStatuses.includes(tooltip.order.status)) return null;
-                const daysLeft = Math.ceil(
-                  (new Date(tooltip.order.expectedDate).getTime() - today.getTime()) / 86400000,
-                );
-                return (
-                  <>
-                    <span className="text-gray-300 dark:text-zinc-600">|</span>
-                    <span
-                      className={
-                        daysLeft > 0
-                          ? "text-green-600 dark:text-green-400"
-                          : daysLeft === 0
-                          ? "text-amber-500"
-                          : "text-red-500"
-                      }
-                    >
-                      {daysLeft > 0
-                        ? `Due in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`
-                        : daysLeft === 0
-                        ? "Due today"
-                        : `Overdue by ${-daysLeft} day${-daysLeft !== 1 ? "s" : ""}`}
-                    </span>
-                  </>
-                );
-              })()}
             </div>
           </div>
         )}
@@ -938,45 +855,26 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
     </div>
 
     {/* Legend */}
-    <div className="space-y-2 bg-gray-50/50 dark:bg-zinc-800/30 rounded-lg px-4 py-3 border border-gray-100 dark:border-zinc-800 text-xs text-gray-500 dark:text-zinc-400">
-      {/* Row 1: All 8 status colors */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        {Object.entries(STATUS_SHORT).map(([status, label]) => (
-          <div key={status} className="flex items-center gap-1.5 font-medium">
-            <span
-              className="inline-block w-2.5 h-2.5 rounded-sm"
-              style={{ backgroundColor: barColors[status] || barColors.PENDING }}
-            />
-            {label}
-          </div>
-        ))}
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 bg-gray-50/50 dark:bg-zinc-800/30 rounded-lg px-4 py-3 border border-gray-100 dark:border-zinc-800 text-xs text-gray-500 dark:text-zinc-400">
+      <div className="flex items-center gap-1.5 font-medium">
+        <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
+        Delayed / Overdue{criticalCount > 0 && ` (${criticalCount})`}
       </div>
-      {/* Row 2: Indicators */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-gray-100 dark:border-zinc-800">
-        <div className="flex items-center gap-1.5 font-medium">
-          <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#ef4444" strokeWidth="2" strokeDasharray="4,3" /></svg>
-          Today
-        </div>
-        <div className="flex items-center gap-1.5 font-medium">
-          <svg width="16" height="8"><rect x="0" y="0" width="16" height="8" rx="2" fill={isDark ? "#2a2a2f" : "#f0f1f3"} stroke={isDark ? "#3f3f46" : "#d1d5db"} strokeWidth="1" /></svg>
-          Weekend
-        </div>
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="inline-block w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-          Urgent priority
-        </div>
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="inline-block w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
-          High priority
-        </div>
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="inline-block w-2 h-2 rounded-full border-2 border-red-500 flex-shrink-0" />
-          Delayed / Overdue
-        </div>
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="inline-block w-2 h-2 rounded-full border-2 border-amber-400 flex-shrink-0" />
-          At risk
-        </div>
+      <div className="flex items-center gap-1.5 font-medium">
+        <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+        At risk{atRiskCount > 0 && ` (${atRiskCount})`}
+      </div>
+      <div className="flex items-center gap-1.5 font-medium">
+        <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#ef4444" strokeWidth="2" strokeDasharray="4,3" /></svg>
+        Today
+      </div>
+      <div className="flex items-center gap-1.5 font-medium">
+        <svg width="16" height="8"><rect x="0" y="0" width="16" height="8" rx="2" fill={isDark ? "#172554" : "#dbeafe"} stroke={isDark ? "#2563eb" : "#3b82f6"} strokeWidth="1" /></svg>
+        On track
+      </div>
+      <div className="flex items-center gap-1.5 font-medium">
+        <svg width="16" height="8"><rect x="0" y="0" width="16" height="8" rx="2" fill={isDark ? "#2a2a2f" : "#f0f1f3"} stroke={isDark ? "#3f3f46" : "#d1d5db"} strokeWidth="1" /></svg>
+        Weekend
       </div>
     </div>
     </div>

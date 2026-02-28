@@ -18,7 +18,7 @@ type Activity = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  DELAYED: "bg-orange-50 text-[#EB5D2E] dark:bg-orange-900/20 dark:text-[#EB5D2E]",
+  DELAYED: "bg-orange-50 text-[#F97316] dark:bg-orange-900/20 dark:text-[#F97316]",
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
   SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
@@ -86,7 +86,7 @@ export function RecentActivityFeed() {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         <Link
           href="/orders"
-          className="text-sm text-[#EB5D2E] dark:text-[#EB5D2E] hover:text-[#d4522a] dark:hover:text-[#f07040] font-medium flex items-center gap-1"
+          className="text-sm text-[#F97316] dark:text-[#F97316] hover:text-[#d4522a] dark:hover:text-[#f07040] font-medium flex items-center gap-1"
         >
           View all
           <ArrowRight className="h-4 w-4" />
@@ -115,7 +115,7 @@ export function RecentActivityFeed() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#EB5D2E] dark:group-hover:text-[#EB5D2E] transition-colors">
+              <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#F97316] dark:group-hover:text-[#F97316] transition-colors">
                 {activity.type === "completed" ? "Completed" : "New order"} #{activity.orderNumber}
               </p>
               <p className="text-sm text-gray-600 dark:text-zinc-400 truncate">

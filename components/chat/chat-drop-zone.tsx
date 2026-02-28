@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Paperclip, X, FileText, Image as ImageIcon, Film, Music } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { CHAT_ALLOWED_EXTENSIONS, CHAT_MAX_FILE_SIZE, CHAT_ALLOWED_FILE_TYPES } from "@/lib/chat-constants";
+import { X, FileText, Image as ImageIcon, Film, Music } from "lucide-react";
+import { CHAT_MAX_FILE_SIZE, CHAT_ALLOWED_FILE_TYPES } from "@/lib/chat-constants";
 
 interface ChatDropZoneProps {
   files: File[];
@@ -26,7 +25,6 @@ function getFileIcon(type: string) {
 
 export function ChatDropZone({ files, onFilesChange, children }: ChatDropZoneProps) {
   const [dragging, setDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCountRef = useRef(0);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -91,8 +89,8 @@ export function ChatDropZone({ files, onFilesChange, children }: ChatDropZonePro
     >
       {/* Drag overlay */}
       {dragging && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-[#EB5D2E] bg-[#EB5D2E]/10">
-          <p className="text-sm font-medium text-[#EB5D2E]">Drop files here</p>
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-[#FF8C1A] bg-[#FF8C1A]/10">
+          <p className="text-sm font-medium text-[#F97316]">Drop files here</p>
         </div>
       )}
 
@@ -136,28 +134,7 @@ export function ChatDropZone({ files, onFilesChange, children }: ChatDropZonePro
         </div>
       )}
 
-      {/* Input area with paperclip */}
-      <div className="flex items-end gap-2 px-3 py-2.5">
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-          title="Attach files"
-        >
-          <Paperclip className="h-4 w-4" />
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept={CHAT_ALLOWED_EXTENSIONS}
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files) addFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

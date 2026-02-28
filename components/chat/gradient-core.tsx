@@ -39,7 +39,7 @@ export function GradientCore({ size = "md", className }: GradientCoreProps) {
           width: size === "sm" ? "36px" : size === "md" ? "72px" : "96px",
           height: size === "sm" ? "32px" : size === "md" ? "64px" : "88px",
           background: `
-            radial-gradient(ellipse at 30% 60%, #EB5D2E 0%, transparent 50%),
+            radial-gradient(ellipse at 30% 60%, #F97316 0%, transparent 50%),
             radial-gradient(ellipse at 55% 35%, #f97316 0%, transparent 50%),
             radial-gradient(ellipse at 70% 55%, #d44a1a 0%, transparent 55%),
             radial-gradient(ellipse at 75% 30%, #fbbf24 0%, transparent 45%),

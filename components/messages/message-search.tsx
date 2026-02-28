@@ -18,7 +18,7 @@ function highlightMatch(text: string, query: string) {
   const parts = text.split(regex);
   return parts.map((part, i) =>
     regex.test(part) ? (
-      <mark key={i} className="rounded bg-[#EB5D2E]/20 px-0.5 text-[#EB5D2E]">
+      <mark key={i} className="rounded bg-[#FF8C1A]/20 px-0.5 text-[#F97316]">
         {part}
       </mark>
     ) : (
@@ -87,7 +87,7 @@ export function MessageSearch({ conversationId, onClose, onJumpTo }: MessageSear
           placeholder={conversationId ? "Search in this conversation..." : "Search all messages..."}
           className="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none dark:text-white dark:placeholder-zinc-500"
         />
-        {loading && <Loader2 className="h-4 w-4 animate-spin text-[#EB5D2E]" />}
+        {loading && <Loader2 className="h-4 w-4 animate-spin text-[#F97316]" />}
         <button
           onClick={onClose}
           className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 dark:text-zinc-500 dark:hover:bg-zinc-800"
@@ -127,7 +127,7 @@ export function MessageSearch({ conversationId, onClose, onJumpTo }: MessageSear
               >
                 {/* Conversation context (global search) */}
                 {msg.conversation && (
-                  <p className="mb-1 truncate text-[11px] font-medium text-[#EB5D2E]">
+                  <p className="mb-1 truncate text-[11px] font-medium text-[#F97316]">
                     {msg.conversation.subject || msg.conversation.type}
                   </p>
                 )}

@@ -306,14 +306,14 @@ export function ChatWidget() {
                         "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-medium transition-all duration-150",
                         "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800",
                         "text-gray-700 dark:text-zinc-200",
-                        "hover:border-[#EB5D2E]/50 hover:bg-[#EB5D2E]/[0.04] hover:text-[#EB5D2E]",
+                        "hover:border-[#FF8C1A]/50 hover:bg-[#FF8C1A]/[0.04] hover:text-[#F97316]",
                         "active:scale-[0.97]",
-                        sendingCategory === cat.key && "border-[#EB5D2E]/50 bg-[#EB5D2E]/[0.06]",
+                        sendingCategory === cat.key && "border-[#FF8C1A]/50 bg-[#FF8C1A]/[0.06]",
                         sendingCategory !== null && sendingCategory !== cat.key && "opacity-40"
                       )}
                     >
                       {sendingCategory === cat.key ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-[#EB5D2E]" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-[#F97316]" />
                       ) : (
                         <span className="text-sm">{cat.emoji}</span>
                       )}
@@ -382,7 +382,7 @@ export function ChatWidget() {
                         className={cn(
                           "rounded-2xl px-3 py-2.5 text-[13px] leading-relaxed",
                           isOwn
-                            ? "bg-gradient-to-br from-[#EB5D2E] to-[#d44a1a] text-white rounded-br-md shadow-sm shadow-[#EB5D2E]/15"
+                            ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white rounded-br-md shadow-sm shadow-[#FF8C1A]/15"
                             : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
                         )}
                       >
@@ -432,7 +432,7 @@ export function ChatWidget() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything..."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
                 />
               </form>
             ) : (
@@ -444,7 +444,7 @@ export function ChatWidget() {
                   onChange={(e) => { setInput(e.target.value); reportTyping(); }}
                   onKeyDown={handleKeyDown}
                   placeholder="Type a message..."
-                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
+                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
                 />
                 <button
                   onClick={handleSend}
@@ -452,7 +452,7 @@ export function ChatWidget() {
                   className={cn(
                     "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
                     input.trim() && !sending
-                      ? "bg-gradient-to-br from-[#EB5D2E] to-[#d44a1a] text-white shadow-sm shadow-[#EB5D2E]/20 hover:shadow-md hover:scale-105"
+                      ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
                       : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
                   )}
                 >
@@ -494,7 +494,7 @@ export function ChatWidget() {
           "shadow-[0_8px_30px_-4px_rgba(0,0,0,0.2)]",
           open
             ? "bg-gray-900 dark:bg-zinc-700 rotate-0"
-            : "bg-gradient-to-br from-[#EB5D2E] to-[#d44a1a] hover:shadow-[0_8px_30px_-4px_rgba(235,93,46,0.4)]"
+            : "bg-gradient-to-br from-[#F97316] to-[#d44a1a] hover:shadow-[0_8px_30px_-4px_rgba(235,93,46,0.4)]"
         )}
       >
         {open ? (
@@ -528,7 +528,7 @@ function HistoryView({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 bg-[#EB5D2E] px-3 py-3">
+      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-3 py-3">
         <button
           onClick={onBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"
@@ -555,13 +555,13 @@ function HistoryView({
                   "flex w-full gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150",
                   "hover:bg-gray-50 dark:hover:bg-zinc-800/50",
                   "active:scale-[0.99]",
-                  conv.unreadCount > 0 && "bg-[#EB5D2E]/[0.03]"
+                  conv.unreadCount > 0 && "bg-[#FF8C1A]/[0.03]"
                 )}
               >
                 <div className="relative mt-0.5">
                   <SourcyAvatar size="lg" />
                   {conv.unreadCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#EB5D2E] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
                       {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
                     </span>
                   )}
@@ -588,7 +588,7 @@ function HistoryView({
                         : "text-gray-400 dark:text-zinc-500"
                     )}>
                       {conv.lastMessage.messageType === "BOT" ? (
-                        <span className="font-medium text-[#EB5D2E]/80">Sourcy: </span>
+                        <span className="font-medium text-[#F97316]/80">Sourcy: </span>
                       ) : conv.lastMessage.sender?.name ? (
                         <span className="font-medium">{conv.lastMessage.sender.name}: </span>
                       ) : null}

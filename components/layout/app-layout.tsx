@@ -25,7 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <RealtimeProvider>
-    <div className="relative h-screen overflow-hidden bg-[#f8f9fa] dark:bg-zinc-950">
+    <div className="relative h-screen overflow-hidden bg-white dark:bg-zinc-950">
       {/* News Ticker — full width overlay at top, reveals on hover */}
       <NewsTicker onVisibilityChange={handleTickerVisibility} />
 
@@ -43,8 +43,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Header onMenuClick={() => setMobileMenuOpen(true)} />
 
           {/* Page Content */}
-          <main className={`flex-1 ${isMessagesPage ? "overflow-hidden p-0" : "overflow-y-auto p-4 sm:p-6 lg:p-8"}`}>
-            <PageTransition>{children}</PageTransition>
+          <main className={`flex-1 ${isMessagesPage ? "overflow-hidden p-0 bg-white dark:bg-zinc-900" : "overflow-y-auto p-4 sm:p-6 lg:p-8"}`}>
+            {isMessagesPage ? children : <PageTransition>{children}</PageTransition>}
           </main>
         </div>
       </div>

@@ -277,7 +277,7 @@ export default function TimelinePage() {
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EB5D2E]" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C1A]" />
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">

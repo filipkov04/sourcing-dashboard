@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { useConversationDetail } from "@/lib/use-conversations";
 import { MessagesSidebar } from "@/components/messages/messages-sidebar";
 import { MessagesThread } from "@/components/messages/messages-thread";
@@ -12,12 +11,9 @@ import { usePresence } from "@/lib/use-presence";
 
 export default function MessagesPage() {
   const { data: session } = useSession();
-  const searchParams = useSearchParams();
-  const cidFromUrl = searchParams.get("cid");
-
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(cidFromUrl);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [mobileView, setMobileView] = useState<"list" | "thread">(cidFromUrl ? "thread" : "list");
+  const [mobileView, setMobileView] = useState<"list" | "thread">("list");
 
   const currentUserId = session?.user?.id ?? "";
 
@@ -32,7 +28,7 @@ export default function MessagesPage() {
         .filter((uid) => uid !== currentUserId),
     [conversation?.participants, currentUserId]
   );
-  const { onlineMap } = usePresence(otherParticipantIds);
+  const { statusMap } = usePresence(otherParticipantIds);
 
   // Find the parent message for the thread panel
   const parentMessage = useMemo(
@@ -60,15 +56,21 @@ export default function MessagesPage() {
     setActiveThreadId(null);
   }, []);
 
+  const handleConversationDeleted = useCallback(() => {
+    setSelectedConversationId(null);
+    setActiveThreadId(null);
+    setMobileView("list");
+  }, []);
+
   const handleBackToList = useCallback(() => {
     setMobileView("list");
   }, []);
 
   return (
     <div className="h-full flex">
-      {/* Sidebar -- conversation index */}
+      {/* Sidebar — conversation index (280px) */}
       <div
-        className={`w-[340px] shrink-0 ${
+        className={`w-[280px] shrink-0 ${
           mobileView === "list" ? "flex" : "hidden"
         } lg:flex`}
       >
@@ -76,10 +78,11 @@ export default function MessagesPage() {
           selectedId={selectedConversationId}
           onSelect={handleSelect}
           onConversationCreated={handleConversationCreated}
+          onConversationDeleted={handleConversationDeleted}
         />
       </div>
 
-      {/* Thread -- active conversation or empty state */}
+      {/* Main thread (flex-1) */}
       <div
         className={`flex-1 min-w-0 ${
           mobileView === "thread" ? "flex" : "hidden"
@@ -118,7 +121,7 @@ export default function MessagesPage() {
             parentMessage={parentMessage}
             currentUserId={currentUserId}
             participantCount={conversation.participants.length}
-            onlineMap={onlineMap}
+            statusMap={statusMap}
             onClose={handleCloseThread}
             onRefresh={() => {}}
           />

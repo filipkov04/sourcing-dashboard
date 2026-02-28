@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError } from "@/lib/api";
+import { success, notFound, unauthorized, forbidden, handleError } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { getChatAttachmentUrl } from "@/lib/supabase";
 
@@ -26,7 +26,7 @@ export async function GET(
           include: { user: { select: { id: true, name: true, email: true, image: true } } },
         },
         order: { select: { id: true, orderNumber: true, productName: true } },
-        factory: { select: { id: true, name: true } },
+        factory: { select: { id: true, name: true, location: true, contactName: true, contactEmail: true, contactPhone: true } },
         messages: {
           where: { parentId: null },
           orderBy: { createdAt: "asc" },
@@ -55,6 +55,41 @@ export async function GET(
     };
 
     return success(data);
+  } catch (err) {
+    return handleError(err);
+  }
+}
+
+// DELETE /api/conversations/[id] — Delete a conversation (participant only)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session) return unauthorized();
+
+    if (session.user.role === "VIEWER") {
+      return forbidden("Viewers cannot delete conversations");
+    }
+
+    const { id } = await params;
+
+    // Verify user is a participant in this conversation
+    const participant = await prisma.conversationParticipant.findFirst({
+      where: {
+        conversationId: id,
+        userId: session.user.id,
+        conversation: { organizationId: session.user.organizationId },
+      },
+    });
+
+    if (!participant) return notFound("Conversation");
+
+    // Cascade delete handles participants, messages, attachments, reactions, etc.
+    await prisma.conversation.delete({ where: { id } });
+
+    return success({ id }, "Conversation deleted");
   } catch (err) {
     return handleError(err);
   }

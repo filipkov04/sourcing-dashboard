@@ -5,7 +5,7 @@ import * as api from "@/lib/api";
 
 const COLORS = [
   "#4ade80", // green
-  "#EB5D2E", // brand orange (replaces red)
+  "#F97316", // brand orange (replaces red)
   "#facc15", // yellow
   "#86efac", // light green
   "#fb923c", // light orange

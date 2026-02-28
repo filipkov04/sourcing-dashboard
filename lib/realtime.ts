@@ -160,22 +160,3 @@ export function useRealtimePresence(
   }, [userId, onPresenceUpdate]);
 }
 
-/**
- * Server-side helper: broadcast via Supabase Realtime from API routes.
- * Uses the server-side Supabase client (service role).
- */
-export async function serverBroadcast(
-  conversationId: string,
-  event: Omit<RealtimeEvent, "conversationId">
-) {
-  // Import server-side client lazily to avoid bundling in client
-  const { supabase } = await import("./supabase");
-
-  const channel = supabase.channel(`conversation:${conversationId}`);
-  await channel.send({
-    type: "broadcast",
-    event: "message",
-    payload: { ...event, conversationId },
-  });
-  supabase.removeChannel(channel);
-}

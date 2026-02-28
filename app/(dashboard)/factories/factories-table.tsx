@@ -141,8 +141,8 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
   if (factories.length === 0) {
     return (
       <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-12 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10">
-          <Package className="h-8 w-8 text-[#EB5D2E] dark:text-[#EB5D2E]" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FF8C1A]/10 dark:bg-[#FF8C1A]/10">
+          <Package className="h-8 w-8 text-[#F97316] dark:text-[#F97316]" />
         </div>
         <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
           No factories yet
@@ -237,7 +237,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
             placeholder="Search factories by name, location, or contact..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 py-2 pl-10 pr-10 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20"
+            className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 py-2 pl-10 pr-10 text-sm text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20"
           />
           {searchQuery && (
             <button
@@ -305,19 +305,19 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-400">
           <span>Active filters:</span>
           {searchQuery && (
-            <Badge variant="secondary" className="bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10 text-[#EB5D2E] dark:text-[#EB5D2E]">
+            <Badge variant="secondary" className="bg-[#FF8C1A]/10 dark:bg-[#FF8C1A]/10 text-[#F97316] dark:text-[#F97316]">
               Search: {searchQuery}
             </Badge>
           )}
           {orderFilter !== "all" && (
-            <Badge variant="secondary" className="bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10 text-[#EB5D2E] dark:text-[#EB5D2E]">
+            <Badge variant="secondary" className="bg-[#FF8C1A]/10 dark:bg-[#FF8C1A]/10 text-[#F97316] dark:text-[#F97316]">
               {orderFilter === "none" && "No Orders"}
               {orderFilter === "has-orders" && "Has Orders"}
               {orderFilter === "5-plus" && "5+ Orders"}
             </Badge>
           )}
           {sortBy !== "name-asc" && (
-            <Badge variant="secondary" className="bg-[#EB5D2E]/10 dark:bg-[#EB5D2E]/10 text-[#EB5D2E] dark:text-[#EB5D2E]">
+            <Badge variant="secondary" className="bg-[#FF8C1A]/10 dark:bg-[#FF8C1A]/10 text-[#F97316] dark:text-[#F97316]">
               Sort: {sortBy === "name-desc" && "Name Z-A"}
               {sortBy === "orders-desc" && "Most Orders"}
               {sortBy === "orders-asc" && "Least Orders"}
@@ -373,13 +373,13 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
                 >
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#EB5D2E]/10">
-                        <Package className="h-5 w-5 text-[#EB5D2E]" />
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#FF8C1A]/10">
+                        <Package className="h-5 w-5 text-[#F97316]" />
                       </div>
                       <div className="ml-4">
                         <Link
                           href={`/factories/${factory.id}`}
-                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-[#EB5D2E]"
+                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-[#F97316]"
                         >
                           {factory.name}
                         </Link>

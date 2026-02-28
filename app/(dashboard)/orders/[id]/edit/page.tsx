@@ -456,7 +456,7 @@ export default function EditOrderPage() {
                 </div>
               ) : (
                 <label
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:border-[#EB5D2E] dark:hover:border-[#EB5D2E] transition-colors"
+                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:border-[#FF8C1A] dark:hover:border-[#FF8C1A] transition-colors"
                 >
                   <div className="flex flex-col items-center justify-center py-2">
                     <Upload className="h-6 w-6 text-gray-400 dark:text-zinc-500 mb-1" />

@@ -16,6 +16,7 @@ interface MessageActionsProps {
   onReact: (emoji: string) => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  position?: "left" | "right";
 }
 
 export function MessageActions({
@@ -24,12 +25,13 @@ export function MessageActions({
   onReact,
   onEdit,
   onDelete,
+  position = "right",
 }: MessageActionsProps) {
   const [showEmoji, setShowEmoji] = useState(false);
   const [showMore, setShowMore] = useState(false);
 
   return (
-    <div className="absolute -top-4 right-2 z-10 flex items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-0.5 shadow-md dark:border-zinc-700 dark:bg-zinc-800">
+    <div className={`absolute -top-4 ${position === "left" ? "left-2" : "right-2"} z-10 flex items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-0.5 shadow-md dark:border-zinc-700 dark:bg-zinc-800`}>
       {/* Quick reactions */}
       {["👍", "❤️", "😂"].map((emoji) => (
         <button
