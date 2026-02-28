@@ -57,7 +57,7 @@ export function QuickActions() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-[#EB5D2E] dark:group-hover:text-[#EB5D2E] transition-colors">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-[#F97316] dark:group-hover:text-[#F97316] transition-colors">
                 {action.name}
               </p>
               <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">
@@ -65,7 +65,7 @@ export function QuickActions() {
               </p>
             </div>
 
-            <Plus className="h-4 w-4 text-gray-300 dark:text-zinc-600 group-hover:text-[#EB5D2E] dark:group-hover:text-[#EB5D2E] transition-colors" />
+            <Plus className="h-4 w-4 text-gray-300 dark:text-zinc-600 group-hover:text-[#F97316] dark:group-hover:text-[#F97316] transition-colors" />
           </Link>
         ))}
       </div>

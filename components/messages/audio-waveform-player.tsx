@@ -159,7 +159,7 @@ export function AudioWaveformPlayer({
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors",
           loaded
-            ? "bg-[#EB5D2E] text-white hover:bg-[#d44a1a]"
+            ? "bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] text-white hover:bg-[#d44a1a]"
             : "bg-gray-300 dark:bg-zinc-600 text-gray-500 dark:text-zinc-400"
         )}
       >
@@ -187,7 +187,7 @@ export function AudioWaveformPlayer({
               className={cn(
                 "flex-1 rounded-full transition-colors duration-150",
                 isPlayed
-                  ? "bg-[#EB5D2E]"
+                  ? "bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316]"
                   : "bg-gray-300 dark:bg-zinc-500"
               )}
               style={{ height: `${height}px` }}

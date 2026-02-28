@@ -24,7 +24,7 @@ export function CategoryPicker({ chatType, onSelect, onBack }: CategoryPickerPro
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 bg-[#EB5D2E] px-3 py-3">
+      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-3 py-3">
         <button
           onClick={onBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"
@@ -74,18 +74,18 @@ export function CategoryPicker({ chatType, onSelect, onBack }: CategoryPickerPro
               className={cn(
                 "group flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-all duration-150",
                 "border-gray-150 dark:border-zinc-800 bg-white dark:bg-zinc-900",
-                "hover:border-[#EB5D2E]/40 hover:bg-[#EB5D2E]/[0.03] hover:shadow-sm",
+                "hover:border-[#FF8C1A]/40 hover:bg-[#FF8C1A]/[0.03] hover:shadow-sm",
                 "active:scale-[0.98]"
               )}
               style={{ animationDelay: `${i * 40}ms` }}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-zinc-800 text-lg group-hover:bg-[#EB5D2E]/10 transition-colors">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-zinc-800 text-lg group-hover:bg-[#FF8C1A]/10 transition-colors">
                 {cat.emoji}
               </span>
               <span className="flex-1 text-sm font-medium text-gray-800 dark:text-zinc-200">
                 {cat.label}
               </span>
-              <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-zinc-600 group-hover:text-[#EB5D2E] group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-zinc-600 group-hover:text-[#F97316] group-hover:translate-x-0.5 transition-all" />
             </button>
           ))}
         </div>

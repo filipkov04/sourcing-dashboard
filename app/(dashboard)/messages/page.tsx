@@ -28,7 +28,7 @@ export default function MessagesPage() {
         .filter((uid) => uid !== currentUserId),
     [conversation?.participants, currentUserId]
   );
-  const { onlineMap } = usePresence(otherParticipantIds);
+  const { statusMap } = usePresence(otherParticipantIds);
 
   // Find the parent message for the thread panel
   const parentMessage = useMemo(
@@ -56,12 +56,18 @@ export default function MessagesPage() {
     setActiveThreadId(null);
   }, []);
 
+  const handleConversationDeleted = useCallback(() => {
+    setSelectedConversationId(null);
+    setActiveThreadId(null);
+    setMobileView("list");
+  }, []);
+
   const handleBackToList = useCallback(() => {
     setMobileView("list");
   }, []);
 
   return (
-    <div className="h-[calc(100vh-180px)] flex gap-5">
+    <div className="h-full flex">
       {/* Sidebar — conversation index (280px) */}
       <div
         className={`w-[280px] shrink-0 ${
@@ -72,6 +78,7 @@ export default function MessagesPage() {
           selectedId={selectedConversationId}
           onSelect={handleSelect}
           onConversationCreated={handleConversationCreated}
+          onConversationDeleted={handleConversationDeleted}
         />
       </div>
 
@@ -114,7 +121,7 @@ export default function MessagesPage() {
             parentMessage={parentMessage}
             currentUserId={currentUserId}
             participantCount={conversation.participants.length}
-            onlineMap={onlineMap}
+            statusMap={statusMap}
             onClose={handleCloseThread}
             onRefresh={() => {}}
           />

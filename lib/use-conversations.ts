@@ -69,7 +69,7 @@ export type Conversation = {
   orderId: string | null;
   order: { id: string; orderNumber: string; productName: string } | null;
   factoryId: string | null;
-  factory: { id: string; name: string } | null;
+  factory: { id: string; name: string; location?: string; contactName?: string | null; contactEmail?: string | null; contactPhone?: string | null } | null;
   participants: ConversationParticipant[];
   unreadCount: number;
   pinned: boolean;
@@ -225,7 +225,10 @@ export async function sendMessage(
     });
   }
 
-  if (!res.ok) throw new Error("Failed to send message");
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.error || `Failed to send message (${res.status})`);
+  }
   const json = await res.json();
   return json.data as Message;
 }
@@ -262,6 +265,19 @@ export async function createConversation(data: {
   }
   const json = await res.json();
   return json.data as ConversationDetail;
+}
+
+/** Delete an entire conversation */
+export async function deleteConversation(conversationId: string) {
+  const res = await fetch(`/api/conversations/${conversationId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.error || "Failed to delete conversation");
+  }
+  const json = await res.json();
+  return json.data;
 }
 
 /** Edit a message */

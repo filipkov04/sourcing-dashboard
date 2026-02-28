@@ -109,7 +109,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <input
             type="text"
             placeholder="Search orders, factories..."
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
           />
         </div>
       </div>
@@ -166,7 +166,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                   >
                     {/* Unread dot */}
                     {!alert.read && (
-                      <span className="absolute left-1.5 top-5 h-2 w-2 rounded-full bg-[#EB5D2E]" />
+                      <span className="absolute left-1.5 top-5 h-2 w-2 rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316]" />
                     )}
 
                     {/* Avatar */}
@@ -211,7 +211,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               className="border-t border-gray-100 dark:border-zinc-800 px-4 py-2.5 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
               onClick={() => router.push("/alerts")}
             >
-              <span className="text-sm font-medium text-[#EB5D2E]">View all alerts</span>
+              <span className="text-sm font-medium text-[#F97316]">View all alerts</span>
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -220,7 +220,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button suppressHydrationWarning className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EB5D2E] text-sm font-semibold text-white">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] text-sm font-semibold text-white">
                 {user.initials}
               </div>
               <div className="hidden text-left sm:block">

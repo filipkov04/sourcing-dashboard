@@ -41,7 +41,7 @@ export function OrdersTrendSection() {
       </div>
       {isLoading ? (
         <div className="h-[300px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EB5D2E]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C1A]" />
         </div>
       ) : trendData.length > 0 ? (
         <OrdersTrendChart data={trendData} />

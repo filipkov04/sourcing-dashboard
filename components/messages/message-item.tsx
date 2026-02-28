@@ -8,6 +8,8 @@ import { editMessage, deleteMessage, toggleReaction } from "@/lib/use-conversati
 import { SourcyAvatar } from "@/components/chat/sourcy-avatar";
 import { MessageAttachments } from "@/components/chat/message-attachment";
 import { MessageActions } from "./message-actions";
+import { StatusDot } from "./status-dot";
+import type { PresenceStatus } from "@/lib/use-presence";
 
 function formatMessageTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString("en-US", {
@@ -46,7 +48,7 @@ interface MessageItemProps {
   currentUserId: string;
   conversationId: string;
   participantCount: number;
-  onlineMap: Record<string, boolean>;
+  statusMap: Record<string, PresenceStatus>;
   onOpenThread: (messageId: string) => void;
   onRefresh: () => void;
   showAvatar?: boolean;
@@ -58,7 +60,7 @@ export function MessageItem({
   currentUserId,
   conversationId,
   participantCount,
-  onlineMap,
+  statusMap,
   onOpenThread,
   onRefresh,
   showAvatar = true,
@@ -118,37 +120,40 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        "group relative flex gap-3 px-5 py-1.5 transition-colors",
+        "group relative px-5 py-1.5 transition-colors",
+        isOwn ? "flex justify-end" : "flex gap-3",
         hovered && "bg-gray-50/80 dark:bg-zinc-800/30"
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Avatar column */}
-      <div className="w-9 shrink-0 pt-0.5">
-        {showAvatar && (
-          <div className="relative">
-            {isBot ? (
-              <SourcyAvatar size="sm" className="h-9 w-9" />
-            ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 dark:from-zinc-600 dark:to-zinc-800">
-                <span className="text-xs font-bold text-white">
-                  {getInitials(msg.sender?.name)}
-                </span>
-              </div>
-            )}
-            {msg.sender?.id && onlineMap[msg.sender.id] && (
-              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-zinc-900" />
-            )}
-          </div>
-        )}
-      </div>
+      {/* Avatar — received messages only */}
+      {!isOwn && (
+        <div className="w-9 shrink-0 pt-0.5">
+          {showAvatar && (
+            <div className="relative">
+              {isBot ? (
+                <SourcyAvatar size="sm" className="h-9 w-9" />
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 dark:from-zinc-600 dark:to-zinc-800">
+                  <span className="text-xs font-bold text-white">
+                    {getInitials(msg.sender?.name)}
+                  </span>
+                </div>
+              )}
+              {msg.sender?.id && (
+                <StatusDot status={statusMap[msg.sender.id] ?? "offline"} />
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Content column */}
-      <div className="min-w-0 flex-1">
-        {/* Sender name + timestamp row */}
-        {showSenderName && (
-          <div className="flex items-baseline gap-2">
+      {/* Message bubble area */}
+      <div className={cn("max-w-[75%] min-w-0", isOwn && "flex flex-col items-end")}>
+        {/* Sender name + timestamp — received messages only */}
+        {!isOwn && showSenderName && (
+          <div className="flex items-baseline gap-2 mb-1">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">
               {isBot ? "Sourcy Agent" : msg.sender?.name || msg.sender?.email || "Unknown"}
             </span>
@@ -161,17 +166,24 @@ export function MessageItem({
           </div>
         )}
 
-        {/* Message content */}
+        {/* Bubble */}
         {isDeleted ? (
-          <p className="text-sm italic text-gray-400 dark:text-zinc-500">
-            This message was deleted
-          </p>
+          <div
+            className={cn(
+              "rounded-2xl px-4 py-2",
+              isOwn ? "rounded-tr-sm bg-[#FF8C1A]/60" : "rounded-tl-sm bg-gray-100 dark:bg-zinc-800"
+            )}
+          >
+            <p className={cn("text-sm italic", isOwn ? "text-white/70" : "text-gray-400 dark:text-zinc-500")}>
+              This message was deleted
+            </p>
+          </div>
         ) : editing ? (
-          <div className="mt-1">
+          <div className="w-full">
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="w-full rounded-lg border border-[#EB5D2E] bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#EB5D2E]/20 dark:bg-zinc-800 dark:text-white"
+              className="w-full rounded-lg border border-[#FF8C1A] bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#FF8C1A]/20 dark:bg-zinc-800 dark:text-white"
               rows={2}
               autoFocus
               onKeyDown={(e) => {
@@ -188,7 +200,7 @@ export function MessageItem({
             <div className="mt-1 flex gap-2 text-xs">
               <button
                 onClick={handleEdit}
-                className="text-[#EB5D2E] hover:text-[#d4532a] font-medium"
+                className="text-[#F97316] hover:text-[#EA580C] font-medium"
               >
                 Save
               </button>
@@ -207,8 +219,20 @@ export function MessageItem({
             </div>
           </div>
         ) : (
-          <>
-            <p className="text-sm leading-relaxed text-gray-800 dark:text-zinc-200 whitespace-pre-wrap break-words">
+          <div
+            className={cn(
+              "rounded-2xl px-4 py-2",
+              isOwn
+                ? "rounded-tr-sm bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] text-white"
+                : "rounded-tl-sm bg-gray-100 dark:bg-zinc-800"
+            )}
+          >
+            <p
+              className={cn(
+                "text-sm leading-relaxed whitespace-pre-wrap break-words",
+                isOwn ? "text-white" : "text-gray-800 dark:text-zinc-200"
+              )}
+            >
               {msg.content}
             </p>
             {msg.attachments && msg.attachments.length > 0 && (
@@ -216,12 +240,24 @@ export function MessageItem({
                 <MessageAttachments attachments={msg.attachments} />
               </div>
             )}
-          </>
+          </div>
+        )}
+
+        {/* Timestamp for own messages — below bubble */}
+        {isOwn && showSenderName && !isDeleted && (
+          <div className="mt-0.5 flex items-center gap-1">
+            <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+              {formatMessageTime(msg.createdAt)}
+            </span>
+            {msg.editedAt && (
+              <span className="text-[10px] text-gray-400 dark:text-zinc-500">(edited)</span>
+            )}
+          </div>
         )}
 
         {/* Reactions */}
         {reactions.length > 0 && !isDeleted && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
+          <div className={cn("mt-1.5 flex flex-wrap gap-1", isOwn && "justify-end")}>
             {reactions.map((r) => {
               const hasReacted = r.userIds.includes(currentUserId);
               return (
@@ -231,8 +267,8 @@ export function MessageItem({
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
                     hasReacted
-                      ? "border-[#EB5D2E]/30 bg-[#EB5D2E]/10 text-[#EB5D2E]"
-                      : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600"
+                      ? "border-[#FF8C1A]/30 bg-white text-[#F97316] dark:bg-zinc-900"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-600"
                   )}
                 >
                   <span>{r.emoji}</span>
@@ -244,31 +280,33 @@ export function MessageItem({
         )}
 
         {/* Thread count / reply indicator */}
-        {msg.threadCount && msg.threadCount > 0 && !isDeleted && (
+        {(msg.threadCount ?? 0) > 0 && !isDeleted && (
           <button
             onClick={() => onOpenThread(msg.id)}
-            className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[#EB5D2E] hover:text-[#d4532a] transition-colors"
+            className={cn(
+              "mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[#F97316] hover:text-[#EA580C] transition-colors",
+              isOwn && "self-end"
+            )}
           >
             <MessageSquare className="h-3.5 w-3.5" />
             {msg.threadCount} {msg.threadCount === 1 ? "reply" : "replies"}
           </button>
         )}
 
-        {/* Read receipt */}
-        {!showSenderName && isOwn && (
-          <div className="mt-0.5">
-            {(() => {
-              const status = getReadStatus();
-              if (status === "read") {
-                return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />;
-              }
-              if (status) {
-                return <span className="text-[10px] text-blue-500">{status}</span>;
-              }
-              return null;
-            })()}
-          </div>
-        )}
+        {/* Read receipt — own messages only */}
+        {isOwn && (() => {
+          const status = getReadStatus();
+          if (!status) return null;
+          return (
+            <div className="mt-0.5 flex justify-end">
+              {status === "read" ? (
+                <CheckCheck className="h-3.5 w-3.5 text-blue-500" />
+              ) : (
+                <span className="text-[10px] text-blue-500">{status}</span>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Hover actions */}
@@ -279,6 +317,7 @@ export function MessageItem({
           onReact={handleReact}
           onEdit={isOwn && msg.messageType === "TEXT" ? () => setEditing(true) : undefined}
           onDelete={isOwn ? handleDelete : undefined}
+          position={isOwn ? "left" : "right"}
         />
       )}
     </div>

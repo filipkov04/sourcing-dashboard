@@ -118,7 +118,7 @@ export function DashboardStatsCards() {
     : "On track";
 
   const delaySubtitleColor = stats?.delayDetail.count && stats.delayDetail.count > 0
-    ? "text-[#EB5D2E]"
+    ? "text-[#F97316]"
     : "text-green-600 dark:text-green-400";
 
   const statsCards = [
@@ -160,7 +160,7 @@ export function DashboardStatsCards() {
       icon: AlertCircle,
       highlight: (stats?.disruptedOrders ?? 0) > 0,
       sparkline: stats?.sparklines?.disrupted,
-      sparkColor: "#EB5D2E",
+      sparkColor: "#F97316",
     },
   ];
 
@@ -179,7 +179,7 @@ export function DashboardStatsCards() {
                 onClick={() => handlePeriodChange(p)}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                   period === p
-                    ? "bg-[#EB5D2E] text-white shadow-sm"
+                    ? "bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] text-white shadow-sm"
                     : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
@@ -190,7 +190,7 @@ export function DashboardStatsCards() {
               onClick={() => handlePeriodChange("custom")}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
                 period === "custom"
-                  ? "bg-[#EB5D2E] text-white shadow-sm"
+                  ? "bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] text-white shadow-sm"
                   : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
@@ -221,7 +221,7 @@ export function DashboardStatsCards() {
           <button
             onClick={handleCustomApply}
             disabled={!customFrom || !customTo}
-            className="px-3 py-1 text-xs font-medium rounded-md bg-[#EB5D2E] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-xs font-medium rounded-md bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Apply
           </button>
@@ -255,17 +255,17 @@ export function DashboardStatsCards() {
               style={{ minHeight: "120px" }}
             >
               <div className="flex items-start justify-between">
-                <p className={`text-[13px] font-medium tracking-wide uppercase ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-400 dark:text-zinc-500"}`}>
+                <p className={`text-[13px] font-medium tracking-wide uppercase ${stat.highlight ? "text-[#F97316] dark:text-[#F97316]" : "text-gray-400 dark:text-zinc-500"}`}>
                   {stat.label}
                 </p>
                 <stat.icon
-                  className={`h-5 w-5 ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-300 dark:text-zinc-600"}`}
+                  className={`h-5 w-5 ${stat.highlight ? "text-[#F97316] dark:text-[#F97316]" : "text-gray-300 dark:text-zinc-600"}`}
                   strokeWidth={2}
                 />
               </div>
               <div className="mt-3 flex items-end justify-between">
                 <div>
-                  <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-800 dark:text-white"}`}>
+                  <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#F97316] dark:text-[#F97316]" : "text-gray-800 dark:text-white"}`}>
                     {stat.value}
                   </p>
                   <div className="mt-2 flex items-center gap-1">

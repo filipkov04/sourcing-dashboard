@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { X, Loader2 } from "lucide-react";
 import { useThreadReplies, sendReply, type Message } from "@/lib/use-conversations";
+import type { PresenceStatus } from "@/lib/use-presence";
 import { MessageItem } from "./message-item";
 import { MessageComposer } from "./message-composer";
 
@@ -11,7 +12,7 @@ interface ThreadPanelProps {
   parentMessage: Message;
   currentUserId: string;
   participantCount: number;
-  onlineMap: Record<string, boolean>;
+  statusMap: Record<string, PresenceStatus>;
   onClose: () => void;
   onRefresh: () => void;
 }
@@ -21,7 +22,7 @@ export function ThreadPanel({
   parentMessage,
   currentUserId,
   participantCount,
-  onlineMap,
+  statusMap,
   onClose,
   onRefresh,
 }: ThreadPanelProps) {
@@ -73,7 +74,7 @@ export function ThreadPanel({
           currentUserId={currentUserId}
           conversationId={conversationId}
           participantCount={participantCount}
-          onlineMap={onlineMap}
+          statusMap={statusMap}
           onOpenThread={() => {}}
           onRefresh={handleRefreshAll}
         />
@@ -83,7 +84,7 @@ export function ThreadPanel({
       <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-[#EB5D2E]" />
+            <Loader2 className="h-5 w-5 animate-spin text-[#F97316]" />
           </div>
         ) : replies.length === 0 ? (
           <div className="px-5 py-8 text-center">
@@ -99,7 +100,7 @@ export function ThreadPanel({
               currentUserId={currentUserId}
               conversationId={conversationId}
               participantCount={participantCount}
-              onlineMap={onlineMap}
+              statusMap={statusMap}
               onOpenThread={() => {}}
               onRefresh={handleRefreshAll}
             />

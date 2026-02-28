@@ -78,13 +78,9 @@ export function MessageComposer({
   const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
-  const [overTrash, setOverTrash] = useState(false);
   const [micError, setMicError] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const trashRef = useRef<HTMLDivElement>(null);
-  const overTrashRef = useRef(false);
-  const handledByReactRef = useRef(false);
 
   const {
     isRecording,
@@ -94,10 +90,6 @@ export function MessageComposer({
     stopRecording,
     cancelRecording,
   } = useAudioRecorder();
-
-  // Keep refs in sync for global listener
-  const durationRef = useRef(duration);
-  durationRef.current = duration;
 
   const handleSend = useCallback(async () => {
     if ((!input.trim() && files.length === 0) || sending || disabled) return;
@@ -136,115 +128,69 @@ export function MessageComposer({
     inputRef.current?.focus();
   }
 
-  // Hold-to-record handlers
-  const handleMicDown = useCallback(
-    async (e: React.PointerEvent) => {
-      e.preventDefault();
-      try {
-        setMicError("");
-        await startRecording();
-      } catch {
-        setMicError("Microphone access is required to record audio");
-        setTimeout(() => setMicError(""), 4000);
-      }
-    },
-    [startRecording]
-  );
-
-  const finishRecording = useCallback(async () => {
+  // Tap-to-record: tap mic to start, tap send to stop & send, tap trash to cancel
+  const handleMicTap = useCallback(async () => {
     try {
-      if (overTrashRef.current) {
-        cancelRecording();
-        setOverTrash(false);
-        overTrashRef.current = false;
-        return;
-      }
+      setMicError("");
+      await startRecording();
+    } catch {
+      setMicError("Microphone access is required to record audio");
+      setTimeout(() => setMicError(""), 4000);
+    }
+  }, [startRecording]);
 
-      if (durationRef.current < 0.5) {
-        cancelRecording();
-        return;
-      }
-
-      const audioFile = await stopRecording();
-      if (audioFile.size > 0) {
-        setSending(true);
-        try {
-          await onSend("", [audioFile]);
-        } finally {
-          setSending(false);
-        }
-      }
+  const handleRecordSend = useCallback(async () => {
+    let audioFile: File | null = null;
+    try {
+      audioFile = await stopRecording();
     } catch {
       cancelRecording();
+      setMicError("Failed to stop recording");
+      setTimeout(() => setMicError(""), 4000);
+      return;
+    }
+
+    if (!audioFile || audioFile.size === 0) {
+      setMicError("Recording too short — try holding longer");
+      setTimeout(() => setMicError(""), 4000);
+      return;
+    }
+
+    setSending(true);
+    try {
+      await onSend("", [audioFile]);
+    } catch (err) {
+      console.error("Voice message send failed:", err);
+      setMicError("Failed to send voice message");
+      setTimeout(() => setMicError(""), 4000);
+    } finally {
+      setSending(false);
     }
   }, [stopRecording, cancelRecording, onSend]);
 
-  const handlePointerUp = useCallback(() => {
-    if (!isRecording) return;
-    handledByReactRef.current = true;
-    finishRecording();
-  }, [isRecording, finishRecording]);
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!isRecording || !trashRef.current) return;
-      const rect = trashRef.current.getBoundingClientRect();
-      const isOver =
-        e.clientX >= rect.left - 16 &&
-        e.clientX <= rect.right + 16 &&
-        e.clientY >= rect.top - 16 &&
-        e.clientY <= rect.bottom + 16;
-      setOverTrash(isOver);
-      overTrashRef.current = isOver;
-    },
-    [isRecording]
-  );
-
-  // Global pointer up listener — catches releases outside the component
-  useEffect(() => {
-    if (!isRecording) return;
-    handledByReactRef.current = false;
-
-    const handleGlobalUp = () => {
-      // Small delay to let React's onPointerUp fire first
-      setTimeout(() => {
-        if (!handledByReactRef.current) {
-          finishRecording();
-        }
-      }, 0);
-    };
-
-    window.addEventListener("pointerup", handleGlobalUp);
-    return () => window.removeEventListener("pointerup", handleGlobalUp);
-  }, [isRecording, finishRecording]);
+  const handleRecordCancel = useCallback(() => {
+    cancelRecording();
+  }, [cancelRecording]);
 
   const hasContent = input.trim() || files.length > 0;
 
   return (
-    <div
-      className="border-t border-gray-100 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900"
-      onPointerUp={handlePointerUp}
-      onPointerMove={handlePointerMove}
-    >
+    <div className="border-t border-gray-100 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
       {micError && (
         <p className="mb-2 text-xs text-red-500">{micError}</p>
       )}
       <ChatDropZone files={files} onFilesChange={setFiles}>
         {isRecording ? (
-          /* Recording UI */
+          /* Recording UI — tap Cancel to discard, tap Send to send */
           <div className="flex items-center gap-3 px-2 py-1.5">
-            {/* Trash zone */}
-            <div
-              ref={trashRef}
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all",
-                overTrash
-                  ? "bg-red-500 text-white scale-110"
-                  : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
-              )}
+            {/* Cancel button */}
+            <button
+              onClick={handleRecordCancel}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-500 dark:bg-zinc-800 dark:text-zinc-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+              title="Cancel recording"
             >
               <Trash2 className="h-4 w-4" />
-            </div>
+            </button>
 
             {/* Recording indicator */}
             <div className="flex flex-1 items-center gap-3 rounded-xl bg-gray-50 dark:bg-zinc-800 px-4 py-2.5">
@@ -261,12 +207,21 @@ export function MessageComposer({
 
               {/* Live waveform */}
               <LiveWaveform analyserNode={analyserNode} />
-
-              {/* Hint */}
-              <span className="ml-auto text-xs text-gray-400 dark:text-zinc-500">
-                {overTrash ? "Release to cancel" : "Release to send"}
-              </span>
             </div>
+
+            {/* Send recording button */}
+            <button
+              onClick={handleRecordSend}
+              disabled={sending}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 transition-all hover:shadow-md hover:scale-105"
+              title="Send recording"
+            >
+              {sending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </button>
           </div>
         ) : (
           /* Normal composer UI */
@@ -299,7 +254,7 @@ export function MessageComposer({
               placeholder={placeholder}
               rows={1}
               disabled={disabled}
-              className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-2 focus:ring-[#EB5D2E]/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-all disabled:opacity-50"
+              className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-2 focus:ring-[#FF8C1A]/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-all disabled:opacity-50"
               style={{ maxHeight: "120px" }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
@@ -332,7 +287,7 @@ export function MessageComposer({
                 className={cn(
                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
                   !sending && !disabled
-                    ? "bg-gradient-to-br from-[#EB5D2E] to-[#d44a1a] text-white shadow-sm shadow-[#EB5D2E]/20 hover:shadow-md hover:scale-105"
+                    ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
                     : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
                 )}
               >
@@ -344,15 +299,15 @@ export function MessageComposer({
               </button>
             ) : (
               <button
-                onPointerDown={handleMicDown}
+                onClick={handleMicTap}
                 disabled={disabled || sending}
                 className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 touch-none select-none",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
                   !disabled && !sending
                     ? "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200 active:scale-95"
                     : "bg-gray-100 text-gray-300 dark:bg-zinc-800 dark:text-zinc-600"
                 )}
-                title="Hold to record voice message"
+                title="Record voice message"
               >
                 <Mic className="h-4 w-4" />
               </button>

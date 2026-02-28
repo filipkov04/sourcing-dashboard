@@ -114,7 +114,7 @@ export function ConversationSettingsDialog({
                     <item.icon className={cn(
                       "h-4.5 w-4.5 shrink-0",
                       settings[item.key]
-                        ? "text-[#EB5D2E]"
+                        ? "text-[#F97316]"
                         : "text-gray-400 dark:text-zinc-500"
                     )} />
                     <div className="flex-1 text-left">
@@ -130,7 +130,7 @@ export function ConversationSettingsDialog({
                       className={cn(
                         "relative h-6 w-11 rounded-full transition-colors",
                         settings[item.key]
-                          ? "bg-[#EB5D2E]"
+                          ? "bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316]"
                           : "bg-gray-200 dark:bg-zinc-700"
                       )}
                     >

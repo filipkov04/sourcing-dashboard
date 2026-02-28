@@ -2,7 +2,7 @@
 
 export const SOURCY_AGENT = {
   name: "Sourcy Agent",
-  color: "#EB5D2E",
+  color: "#F97316",
   emoji: "🤖",
 } as const;
 

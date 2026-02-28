@@ -26,14 +26,14 @@ export function SourcyAvatar({ size = "md", className, pulse }: SourcyAvatarProp
     <div className={cn("relative shrink-0", sizeClasses[size])}>
       {pulse && (
         <div className={cn(
-          "absolute inset-0 animate-ping rounded-full bg-[#EB5D2E]/30",
+          "absolute inset-0 animate-ping rounded-full bg-[#FF8C1A]/30",
           sizeClasses[size]
         )} />
       )}
       <div
         className={cn(
           "relative flex items-center justify-center rounded-full",
-          "bg-gradient-to-br from-[#EB5D2E] to-[#d44a1a]",
+          "bg-gradient-to-br from-[#F97316] to-[#d44a1a]",
           "shadow-[0_0_0_2px_rgba(235,93,46,0.15)]",
           sizeClasses[size],
           className

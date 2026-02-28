@@ -281,13 +281,13 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             onClick={() => handleZoom(preset.ppd)}
             className={`relative px-3 py-1 text-xs font-medium rounded-md transition-all ${
               currentPresetIndex === i
-                ? "bg-white dark:bg-zinc-700 shadow-sm text-[#EB5D2E]"
+                ? "bg-white dark:bg-zinc-700 shadow-sm text-[#F97316]"
                 : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
             }`}
           >
             {preset.label}
             {currentPresetIndex === i && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-[#EB5D2E] rounded-full" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] rounded-full" />
             )}
           </button>
         ))}
@@ -297,7 +297,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
         <button
           onClick={handleExport}
           disabled={isExporting || orders.length === 0}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 hover:border-[#EB5D2E]/30 hover:bg-[#EB5D2E]/5 hover:text-[#EB5D2E] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 hover:border-[#FF8C1A]/30 hover:bg-[#FF8C1A]/5 hover:text-[#F97316] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           title="Download timeline as PNG"
         >
           {isExporting ? (
@@ -376,7 +376,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
               )}
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[#EB5D2E] truncate">
+                  <span className="text-sm font-medium text-[#F97316] truncate">
                     {order.orderNumber}
                   </span>
                 </div>

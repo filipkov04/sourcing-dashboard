@@ -53,7 +53,7 @@ export function FactorySelector({ onSelect, onBack }: FactorySelectorProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 bg-[#EB5D2E] px-3 py-3">
+      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-3 py-3">
         <button
           onClick={onBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"
@@ -78,7 +78,7 @@ export function FactorySelector({ onSelect, onBack }: FactorySelectorProps) {
             placeholder="Search factories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
           />
         </div>
       </div>
@@ -120,7 +120,7 @@ export function FactorySelector({ onSelect, onBack }: FactorySelectorProps) {
                 className={cn(
                   "group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all duration-150",
                   "border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900",
-                  "hover:border-[#EB5D2E]/40 hover:shadow-sm",
+                  "hover:border-[#FF8C1A]/40 hover:shadow-sm",
                   "active:scale-[0.98]"
                 )}
               >
@@ -131,7 +131,7 @@ export function FactorySelector({ onSelect, onBack }: FactorySelectorProps) {
                   {factory.name[0]?.toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#EB5D2E] transition-colors">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#F97316] transition-colors">
                     {factory.name}
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">

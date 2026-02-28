@@ -545,6 +545,7 @@ model UserPresence {
   userId    String   @id
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lastSeen  DateTime @default(now())
+  status    String   @default("online") // online | away | busy
 
   @@index([lastSeen])
 }
