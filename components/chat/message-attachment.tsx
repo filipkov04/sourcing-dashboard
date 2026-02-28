@@ -1,9 +1,8 @@
 "use client";
 
-import { FileText, Download, Film } from "lucide-react";
+import { FileText, Download, Film, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MessageAttachment as AttachmentType } from "@/lib/use-conversations";
-import { AudioWaveformPlayer } from "@/components/messages/audio-waveform-player";
 
 interface MessageAttachmentProps {
   attachment: AttachmentType;
@@ -23,7 +22,18 @@ export function MessageAttachmentItem({ attachment, publicUrl, isOwn }: MessageA
   const isAudio = attachment.fileType.startsWith("audio/");
 
   if (isAudio && publicUrl) {
-    return <AudioWaveformPlayer src={publicUrl} fileName={attachment.fileName} isOwn={isOwn} />;
+    return (
+      <div className="mt-1 flex items-center gap-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 px-3 py-2">
+        <Music className="h-5 w-5 shrink-0 text-green-500" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium text-gray-700 dark:text-zinc-300">{attachment.fileName}</p>
+          <p className="text-[10px] text-gray-400 dark:text-zinc-500">{formatFileSize(attachment.fileSize)}</p>
+        </div>
+        <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors" title="Download">
+          <Download className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" />
+        </a>
+      </div>
+    );
   }
 
   if (isImage) {
