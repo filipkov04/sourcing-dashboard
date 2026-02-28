@@ -515,6 +515,15 @@ model Message {
   // Soft delete
   deletedAt       DateTime?
 
+  // Pinning
+  pinnedAt        DateTime?
+  pinnedById      String?
+
+  // Forwarding
+  forwardedFromId String?
+  forwardedFrom   Message?  @relation("MessageForward", fields: [forwardedFromId], references: [id], onDelete: SetNull)
+  forwards        Message[] @relation("MessageForward")
+
   // Read tracking
   readBy          MessageRead[]
 
@@ -581,6 +590,7 @@ enum ConversationType {
   GENERAL         // Default team chat
   SUPPORT         // Support chat with Sourcy Agent
   FACTORY         // Factory communication
+  DIRECT          // 1:1 direct messages
 }
 
 enum RequestAction {
@@ -608,10 +618,11 @@ model EmailLog {
 // ============================================
 
 model UserPresence {
-  userId    String   @id
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastSeen  DateTime @default(now())
-  status    String   @default("online") // online | away | busy
+  userId        String   @id
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastSeen      DateTime @default(now())
+  manualStatus  String?  // null = auto-detect, "online"/"away"/"busy" = manual override
+  customMessage String?  // Slack-style status text (max 100 chars)
 
   @@index([lastSeen])
 }

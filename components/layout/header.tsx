@@ -123,6 +123,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <DropdownMenu onOpenChange={(open) => { if (open) refreshAlerts(); }}>
           <DropdownMenuTrigger asChild>
             <button
+              suppressHydrationWarning
               aria-label="Alerts"
               className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
             >

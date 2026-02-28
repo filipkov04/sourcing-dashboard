@@ -7,13 +7,14 @@ const connectionString = process.env.DATABASE_URL!;
 const pool = new Pool({
   connectionString,
   min: 1,
-  max: 5,
+  max: 10,
   idleTimeoutMillis: 60_000,
   connectionTimeoutMillis: 10_000,
 });
 
 // Warm up the connection pool on startup
 pool.query("SELECT 1").catch(() => {});
+
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as {
