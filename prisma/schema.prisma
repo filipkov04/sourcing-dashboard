@@ -621,7 +621,7 @@ model UserPresence {
   userId        String   @id
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lastSeen      DateTime @default(now())
-  manualStatus  String?  // null = auto-detect, "online"/"away"/"busy" = manual override
+  status        String?  // null = auto-detect, "online"/"away"/"busy" = manual override
   customMessage String?  // Slack-style status text (max 100 chars)
 
   @@index([lastSeen])

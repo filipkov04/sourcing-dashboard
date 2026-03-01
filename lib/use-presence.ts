@@ -97,6 +97,21 @@ export function setOnCall(active: boolean) {
   }
 }
 
+/** Set manual presence status override (or clear it by passing null). */
+export async function setManualPresence(
+  status: "online" | "away" | "busy" | null,
+  customMessage?: string
+) {
+  const res = await fetch("/api/presence/manual", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status, customMessage }),
+  });
+  if (!res.ok) throw new Error("Failed to set presence");
+  const json = await res.json();
+  return json.data;
+}
+
 /** Polls presence status for a list of user IDs every 30s. Returns a map of userId → PresenceStatus. */
 export function usePresence(userIds: string[]) {
   const [statusMap, setStatusMap] = useState<Record<string, PresenceStatus>>({});

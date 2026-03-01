@@ -10,10 +10,12 @@ import {
   CalendarRange,
   Users,
   ClipboardList,
+  MessageSquare,
   Settings,
   ChevronLeft,
 } from "lucide-react";
 import { useState } from "react";
+import { useMessageUnreadCount } from "@/lib/use-conversations";
 
 
 const navigation = [
@@ -48,6 +50,11 @@ const navigation = [
     icon: ClipboardList,
   },
   {
+    name: "Messages",
+    href: "/messages",
+    icon: MessageSquare,
+  },
+  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
@@ -62,6 +69,7 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { count: unreadMessageCount } = useMessageUnreadCount();
 
 
   return (
@@ -122,6 +130,16 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             >
               <item.icon className={cn("flex-shrink-0", collapsed ? "h-7 w-7" : "h-5 w-5")} />
               {!collapsed && <span>{item.name}</span>}
+              {item.name === "Messages" && unreadMessageCount > 0 && (
+                <span className={cn(
+                  "flex items-center justify-center rounded-full bg-[#EB5D2E] text-white font-bold",
+                  collapsed
+                    ? "absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[8px]"
+                    : "ml-auto h-5 min-w-5 px-1.5 text-[10px]"
+                )}>
+                  {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                </span>
+              )}
             </Link>
           );
         })}

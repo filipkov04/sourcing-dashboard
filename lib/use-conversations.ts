@@ -53,11 +53,18 @@ export type Message = {
   parentId?: string | null;
   threadCount?: number;
   deletedAt?: string | null;
+  pinnedAt?: string | null;
+  forwardedFromId?: string | null;
+  forwardedFrom?: {
+    id: string;
+    sender: { id: string; name: string | null } | null;
+    content: string;
+  } | null;
   createdAt: string;
   editedAt: string | null;
 };
 
-export type ConversationType = "SUPPORT" | "FACTORY" | "GENERAL";
+export type ConversationType = "SUPPORT" | "FACTORY" | "GENERAL" | "DIRECT";
 
 export type Conversation = {
   id: string;

@@ -46,9 +46,44 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 24 — Feb 21, 2026)
+## Current Status (Session 25 — Mar 1, 2026)
 
-**Last completed:** Task 5.27 (Request-to-Chat Integration)
+**Last completed:** Full Messages Page implementation (17 new components, 5 API endpoints, 3 hooks)
+
+**Session 25 changes (Filip):**
+- **Full Messages Page** — WhatsApp-grade messaging experience at `/messages`:
+  - **Schema:** Renamed `manualStatus` → `status` in UserPresence model (APIs already used `status`)
+  - **Types:** Added `DIRECT` to ConversationType, `forwardedFromId`/`forwardedFrom`/`pinnedAt` to Message type
+  - **Conversations API:** Added DIRECT type support with duplicate DM prevention
+  - **Packages:** `@emoji-mart/react`, `@emoji-mart/data`, `wavesurfer.js`, `@tanstack/react-virtual`
+  - **5 New API endpoints:**
+    - `app/api/conversations/[id]/messages/[messageId]/replies/route.ts` — Thread replies (GET + POST)
+    - `app/api/messages/search/route.ts` — Global message search (paginated, org-scoped)
+    - `app/api/conversations/[id]/messages/search/route.ts` — In-conversation search
+    - `app/api/messages/forward/route.ts` — Forward to multiple conversations
+    - `app/api/presence/manual/route.ts` — Manual presence override (PATCH)
+  - **3 New hooks:** `lib/use-forward.ts`, `lib/use-voice-recorder.ts`, updated `lib/use-presence.ts`
+  - **17 New components in `components/messages/`:**
+    - `messages-page.tsx` — Client orchestrator (3-column layout, state management)
+    - `conversation-sidebar.tsx` — Filter tabs, presence dots, pinned conversations
+    - `chat-header.tsx` — Conversation info, presence, search/settings
+    - `message-list.tsx` — Virtualized with @tanstack/react-virtual, auto-scroll, date separators
+    - `message-bubble.tsx` — Own/others/system styles, forwarded header, reactions, hover actions
+    - `message-input.tsx` — Auto-grow textarea, attachments, emoji, mic, edit mode
+    - `date-separator.tsx`, `typing-indicator.tsx`
+    - `emoji-picker-popover.tsx` — Lazy-loaded emoji-mart picker
+    - `voice-recorder-ui.tsx` — Live waveform, duration timer, cancel/send
+    - `voice-message-player.tsx` — wavesurfer.js waveform, play/pause, speed cycle
+    - `thread-panel.tsx` — 360px slide-in with replies
+    - `search-panel.tsx` — In-conversation + global search
+    - `message-context-menu.tsx` — Reply/Edit/Delete/Forward/Pin/Copy
+    - `forward-dialog.tsx` — Multi-select target conversations
+    - `new-dm-dialog.tsx` — Search team members, create DM
+    - `media-lightbox.tsx` — Full-screen image viewer
+  - **Navigation:** Added Messages item to sidebar with unread badge
+  - **New UI component:** `components/ui/popover.tsx` (Radix Popover)
+  - **Stress test:** Updated to 38 endpoints, all passing (100% success rate)
+  - Build clean (`npx tsc --noEmit` + `npx next build` pass)
 
 **Session 24 changes (Marco):**
 - **Task 5.27** — Request-to-Chat Integration:
@@ -70,7 +105,7 @@ Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order D
 - **Task 7.10** — Data Transformer: `lib/integrations/transformer.ts` — centralised field mapping, status mapping lookup tables, `transformRecords()` + `applyToDb()`. Removed all duplicated mapping code from adapters.
 - **Task 7.11** — Sync Scheduler: `app/api/cron/sync-integrations/route.ts` — Vercel Cron every 15 min, per-integration frequency check, enqueues BullMQ jobs
 
-**Next task:** 7.12 (Week 7 PR) or Week 8
+**Next task:** Week 7 PR or Week 8
 
 **Session 22 changes (Marco):**
 - **Scroll-Reveal Animations** — Replaced Tailwind `animate-in` classes on dashboard with scroll-triggered framer-motion animations. New reusable `components/scroll-reveal.tsx` client component using `whileInView` + `onViewportEnter`. Adapts animation duration/delay to scroll velocity (fast scroll = near-instant). Staggered child animations for grid sections (cards wave in individually). Viewport trigger at 5% visibility, animates once.
@@ -120,7 +155,7 @@ npx prisma generate          # Regenerate Prisma client
 npx prisma db push           # Push schema to database
 npx prisma studio            # View database in browser
 pkill -f "next dev"          # Kill stuck dev server
-node scripts/stress-test.js  # Run stress tests (17 endpoints)
+node scripts/stress-test.js  # Run stress tests (38 endpoints)
 ```
 
 ## How to Resume

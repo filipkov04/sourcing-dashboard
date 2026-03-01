@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
       where: {
         organizationId: session.user.organizationId,
         participants: { some: { userId: session.user.id } },
-        ...(typeFilter && ["SUPPORT", "FACTORY", "GENERAL"].includes(typeFilter)
-          ? { type: typeFilter as "SUPPORT" | "FACTORY" | "GENERAL" }
+        ...(typeFilter && ["SUPPORT", "FACTORY", "GENERAL", "DIRECT"].includes(typeFilter)
+          ? { type: typeFilter as "SUPPORT" | "FACTORY" | "GENERAL" | "DIRECT" }
           : {}),
         ...(search
           ? {
@@ -77,7 +77,7 @@ const createSchema = z.object({
   participantIds: z.array(z.string()).default([]),
   orderId: z.string().optional(),
   factoryId: z.string().optional(),
-  type: z.enum(["SUPPORT", "FACTORY", "GENERAL"]).default("GENERAL"),
+  type: z.enum(["SUPPORT", "FACTORY", "GENERAL", "DIRECT"]).default("GENERAL"),
   category: z.string().optional(),
 });
 
@@ -95,6 +95,43 @@ export async function POST(request: NextRequest) {
     }
 
     const { subject, participantIds, orderId, factoryId, type, category } = validation.data;
+
+    // For DIRECT chats, require exactly one participant and prevent duplicates
+    if (type === "DIRECT") {
+      if (participantIds.length !== 1) {
+        return error("Direct messages require exactly one other participant");
+      }
+
+      // Check for existing DIRECT conversation between these two users
+      const existingDM = await prisma.conversation.findFirst({
+        where: {
+          organizationId: session.user.organizationId,
+          type: "DIRECT",
+          AND: [
+            { participants: { some: { userId: session.user.id } } },
+            { participants: { some: { userId: participantIds[0] } } },
+          ],
+        },
+        include: {
+          participants: {
+            include: { user: { select: { id: true, name: true, email: true, image: true } } },
+          },
+          order: { select: { id: true, orderNumber: true, productName: true } },
+          factory: { select: { id: true, name: true } },
+          messages: {
+            orderBy: { createdAt: "asc" },
+            include: {
+              sender: { select: { id: true, name: true } },
+              attachments: true,
+            },
+          },
+        },
+      });
+
+      if (existingDM) {
+        return success(existingDM, "Existing conversation returned");
+      }
+    }
 
     // For GENERAL chats, require at least one participant
     if (type === "GENERAL" && participantIds.length === 0) {
@@ -168,8 +205,10 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create initial messages based on type
-      if (type === "SUPPORT") {
+      // Create initial messages based on type (skip for DIRECT)
+      if (type === "DIRECT") {
+        // No initial message for DMs
+      } else if (type === "SUPPORT") {
         // BOT greeting — category will be set later via quick-reply
         await tx.message.create({
           data: {

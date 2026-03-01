@@ -60,8 +60,17 @@ const tests = [
   // Messaging System
   { name: 'Messages Page', path: '/messages', expectedStatus: [200, 302, 307] },
   { name: 'Conversations API', path: '/api/conversations', expectedStatus: [200, 307, 401] },
+  { name: 'Conversations Filter (DIRECT)', path: '/api/conversations?type=DIRECT', expectedStatus: [200, 307, 401] },
+  { name: 'Conversations Filter (FACTORY)', path: '/api/conversations?type=FACTORY', expectedStatus: [200, 307, 401] },
+  { name: 'Conversations Filter (SUPPORT)', path: '/api/conversations?type=SUPPORT', expectedStatus: [200, 307, 401] },
+  { name: 'Conversations Search', path: '/api/conversations?search=test', expectedStatus: [200, 307, 401] },
   { name: 'Unread Count API', path: '/api/conversations/unread-count', expectedStatus: [200, 307, 401] },
   { name: 'Global Message Search', path: '/api/messages/search?q=test', expectedStatus: [200, 307, 400, 401] },
+  { name: 'Global Search (short query)', path: '/api/messages/search?q=a', expectedStatus: [400, 307, 401] },
+
+  // Presence System
+  { name: 'Presence API', path: '/api/presence?userIds=test', expectedStatus: [200, 307, 401] },
+  { name: 'Presence Manual Override', path: '/api/presence/manual', expectedStatus: [307, 401, 405] },
 
   // Notification Settings
   { name: 'Settings Page', path: '/settings', expectedStatus: [200, 302, 307] },
