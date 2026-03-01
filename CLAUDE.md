@@ -46,9 +46,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 25 — Mar 1, 2026)
+## Current Status (Session 26 — Mar 1, 2026)
 
-**Last completed:** Full Messages Page implementation (17 new components, 5 API endpoints, 3 hooks)
+**Last completed:** Animated Count-Up Numbers + Exchange Rate Tooltip Fix
+
+**Session 26 changes (Marco):**
+- **Animated Count-Up Numbers:**
+  - `components/animated-number.tsx` (NEW): Reusable `<AnimatedNumber>` client component using framer-motion `useSpring`. Animates 0 → value on viewport entry via `useInView` (once). Updates DOM directly via ref (not MotionValue-as-children) to avoid SSR hydration mismatch with Radix `useId()`. Supports custom `formatFn` for decimals. Uses `tabular-nums` to prevent layout shift.
+  - `dashboard/_components/dashboard-stats-cards.tsx`: 5 KPI cards (Total, Active, Completed, Delayed, Disrupted) use `<AnimatedNumber>`.
+  - `analytics/page.tsx`: `SummaryCard` gained optional `numericValue` + `suffix` props. "Avg Lead Time" and "At Risk" animate; "On Track" (fraction) and "Bottleneck Stage" (text) stay plain.
+  - `analytics/_components/stage-duration-chart.tsx`: Per-stage avg duration mini-cards animate.
+  - `factories/[id]/page.tsx`: 4 factory detail stat cards (Total Orders, Active, On-Time Rate %, Avg Progress %) animate.
+  - `factories/factories-table.tsx`: 4 factory list summary cards (Total Factories, Total Orders, Avg Orders/Factory with decimal formatFn, Idle Factories) animate.
+  - `team/page.tsx`: 4 team stat cards (Total Members, Owners, Admins, Members) animate.
+  - `orders/[id]/page.tsx`: Order quantity hero card animates.
+  - `timeline/page.tsx`: 4 stats strip cards (Total, In Progress, Critical, Done) animate.
+- **Exchange Rate Tooltip Fix:**
+  - `dashboard/_components/exchange-rate-cards.tsx`: Removed broken `<Tooltip trigger="none" />` from sparkline AreaCharts — was showing raw values on hover despite `trigger="none"` (recharts typing issue). Also removed unused `Tooltip` import.
 
 **Session 25 changes (Filip):**
 - **Full Messages Page** — WhatsApp-grade messaging experience at `/messages`:
@@ -84,6 +98,18 @@ Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order D
   - **New UI component:** `components/ui/popover.tsx` (Radix Popover)
   - **Stress test:** Updated to 38 endpoints, all passing (100% success rate)
   - Build clean (`npx tsc --noEmit` + `npx next build` pass)
+
+**Session 25 changes (Marco):**
+- **Request/Approval Message Cards in Chat:**
+  - `app/api/conversations/[id]/route.ts`: Added `request: { select: { id, type, status } }` to Prisma include so conversation detail returns linked request info.
+  - `lib/use-conversations.ts`: Added `request: { id: string; type: string; status: string } | null` to `Conversation` type.
+  - `components/messages/message-item.tsx`: REQUEST messages render as orange-tinted cards with FileText icon + "View Request" button. APPROVAL messages render as color-coded status cards (green/red/amber for APPROVED/REJECTED/PENDING_INFO) with matching icons + badges. Both link to `/requests?rid=<requestId>` for deep-link.
+  - `components/messages/messages-thread.tsx`: Passes `requestId` prop from `conversation.request?.id` to `<MessageItem>`.
+- **Request Details Expansion (all statuses):**
+  - `app/(dashboard)/requests/page.tsx`: Every request card is now clickable (full header is a `<button>`) to expand/collapse details — not just pending-review requests. Chevron icon always visible. Supports `?rid=` query param to auto-expand + scroll to a specific request on page load.
+- **Edit Request Change Filtering:**
+  - `app/api/requests/route.ts`: ORDER_EDIT_REQUEST and FACTORY_EDIT_REQUEST creation now compares submitted fields against current entity values. Only actually changed fields are stored in `changes`, and original values are snapshotted in `data._previousValues` for reliable before/after diffs even after approval.
+  - `app/(dashboard)/requests/page.tsx` (`EditRequestDetails`): Always fetches live entity to filter unchanged fields from display. Uses `_previousValues` for "Before" column when available. Shows loading placeholder while fetching to prevent layout flash.
 
 **Session 24 changes (Marco):**
 - **Task 5.27** — Request-to-Chat Integration:

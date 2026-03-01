@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Settings,
   ChevronLeft,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 import { useMessageUnreadCount } from "@/lib/use-conversations";
@@ -33,6 +34,11 @@ const navigation = [
     name: "Orders",
     href: "/orders",
     icon: Package,
+  },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: BarChart3,
   },
   {
     name: "Timeline",

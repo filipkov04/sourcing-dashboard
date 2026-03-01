@@ -35,6 +35,7 @@ export function OrderSummaryChart({ data }: { data: OrderSummaryData }) {
           width={80}
         />
         <Tooltip
+          cursor={{ fill: "rgba(255,255,255,0.04)" }}
           contentStyle={{
             backgroundColor: "#27272a",
             border: "1px solid #3f3f46",

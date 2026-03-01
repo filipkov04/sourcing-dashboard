@@ -12,6 +12,7 @@ import { BestSellers } from "./_components/best-sellers";
 import { ExchangeRateCards } from "./_components/exchange-rate-cards";
 import { FactoryGlobe } from "./_components/factory-globe";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { DashboardAlertsWidget } from "./_components/dashboard-alerts-widget";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -28,6 +29,11 @@ export default async function DashboardPage() {
       {/* Stats Cards with Period Selector */}
       <ScrollReveal>
         <DashboardStatsCards />
+      </ScrollReveal>
+
+      {/* Active Alerts */}
+      <ScrollReveal>
+        <DashboardAlertsWidget />
       </ScrollReveal>
 
       {/* Status Breakdown + Product Portfolio */}

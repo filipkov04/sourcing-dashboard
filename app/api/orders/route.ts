@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { success, error, unauthorized, handleError } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { checkAndUpdateDelays } from "@/lib/check-delays";
 
 // GET /api/orders - Get all orders for the organization
 export async function GET(request: NextRequest) {
@@ -91,8 +92,54 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Real-time delay detection: check for overdue stages before returning
+    const orderIds = orders.map((o) => o.id);
+    const updatedIds = await checkAndUpdateDelays(orderIds);
+
+    // Re-read updated orders so the response reflects current status
+    let finalOrders = orders;
+    if (updatedIds.length > 0) {
+      finalOrders = await prisma.order.findMany({
+        where,
+        include: {
+          factory: {
+            select: {
+              id: true,
+              name: true,
+              location: true,
+            },
+          },
+          stages: includeStages
+            ? {
+                select: {
+                  id: true,
+                  name: true,
+                  sequence: true,
+                  status: true,
+                  expectedStartDate: true,
+                  expectedEndDate: true,
+                  startedAt: true,
+                  completedAt: true,
+                },
+                orderBy: { sequence: "asc" },
+              }
+            : {
+                select: {
+                  status: true,
+                },
+              },
+          _count: {
+            select: { stages: true },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    }
+
     // Add computed fields for stage status summary
-    const ordersWithStageStatus = orders.map((order) => ({
+    const ordersWithStageStatus = finalOrders.map((order) => ({
       ...order,
       hasBlockedStage: order.stages.some((s) => s.status === "BLOCKED"),
       hasDelayedStage: order.stages.some((s) => s.status === "DELAYED"),

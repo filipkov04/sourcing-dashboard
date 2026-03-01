@@ -52,6 +52,7 @@ import {
   Trash2,
   GripVertical,
 } from "lucide-react";
+import { AnimatedNumber } from "@/components/animated-number";
 import {
   DndContext,
   closestCenter,
@@ -654,7 +655,7 @@ export default function OrderDetailPage() {
       </Button>
 
       {/* Hero Card */}
-      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 space-y-5">
+      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 space-y-5 card-hover-glow">
         {/* Identity row */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1 min-w-0">
@@ -803,7 +804,7 @@ export default function OrderDetailPage() {
                 <Package className="h-3.5 w-3.5 text-orange-500" />
               </span>
             </div>
-            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white">{order.quantity.toLocaleString()}</p>
+            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={order.quantity} /></p>
             <p className="text-xs text-gray-400 dark:text-zinc-500">{order.unit}</p>
           </div>
 
@@ -847,7 +848,7 @@ export default function OrderDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Details */}
-        <Card className="lg:col-span-2 bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
+        <Card className="lg:col-span-2 bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -954,7 +955,7 @@ export default function OrderDetailPage() {
         </Card>
 
         {/* Factory Info */}
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Factory className="h-5 w-5" />

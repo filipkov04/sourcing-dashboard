@@ -152,6 +152,21 @@ export async function POST(req: NextRequest) {
       });
       if (!order) return error("Order not found", 404);
       targetOrderId = order.id;
+
+      // Only keep fields that actually changed, snapshot their previous values
+      const submitted = dataValidation.data.changes;
+      const orderRecord = order as Record<string, unknown>;
+      const filteredChanges: Record<string, unknown> = {};
+      const previousValues: Record<string, unknown> = {};
+      for (const key of Object.keys(submitted)) {
+        if (!(key in orderRecord)) { filteredChanges[key] = submitted[key]; continue; }
+        if (JSON.stringify(orderRecord[key]) !== JSON.stringify(submitted[key])) {
+          filteredChanges[key] = submitted[key];
+          previousValues[key] = orderRecord[key];
+        }
+      }
+      (data as Record<string, unknown>).changes = filteredChanges;
+      (data as Record<string, unknown>)._previousValues = previousValues;
     } else if (type === "FACTORY_EDIT_REQUEST") {
       const dataValidation = factoryEditRequestDataSchema.safeParse(data);
       if (!dataValidation.success) return validationError(dataValidation.error);
@@ -161,6 +176,21 @@ export async function POST(req: NextRequest) {
       });
       if (!factory) return error("Factory not found", 404);
       targetFactoryId = factory.id;
+
+      // Only keep fields that actually changed, snapshot their previous values
+      const submitted = dataValidation.data.changes;
+      const factoryRecord = factory as Record<string, unknown>;
+      const filteredChanges: Record<string, unknown> = {};
+      const previousValues: Record<string, unknown> = {};
+      for (const key of Object.keys(submitted)) {
+        if (!(key in factoryRecord)) { filteredChanges[key] = submitted[key]; continue; }
+        if (JSON.stringify(factoryRecord[key]) !== JSON.stringify(submitted[key])) {
+          filteredChanges[key] = submitted[key];
+          previousValues[key] = factoryRecord[key];
+        }
+      }
+      (data as Record<string, unknown>).changes = filteredChanges;
+      (data as Record<string, unknown>)._previousValues = previousValues;
     } else if (type === "ORDER_DELETE_REQUEST") {
       const dataValidation = orderDeleteRequestDataSchema.safeParse(data);
       if (!dataValidation.success) return validationError(dataValidation.error);

@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         ...(search
           ? {
               OR: [
+                { name: { contains: search, mode: "insensitive" } },
                 { subject: { contains: search, mode: "insensitive" } },
                 { order: { orderNumber: { contains: search, mode: "insensitive" } } },
                 { factory: { name: { contains: search, mode: "insensitive" } } },
@@ -73,6 +74,7 @@ export async function GET(request: NextRequest) {
 }
 
 const createSchema = z.object({
+  name: z.string().max(200).optional(),
   subject: z.string().min(1, "Subject is required").max(200),
   participantIds: z.array(z.string()).default([]),
   orderId: z.string().optional(),
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
       return error(validation.error.issues.map((i) => i.message).join(", "));
     }
 
-    const { subject, participantIds, orderId, factoryId, type, category } = validation.data;
+    const { name, subject, participantIds, orderId, factoryId, type, category } = validation.data;
 
     // For DIRECT chats, require exactly one participant and prevent duplicates
     if (type === "DIRECT") {
@@ -193,6 +195,7 @@ export async function POST(request: NextRequest) {
       const conv = await tx.conversation.create({
         data: {
           organizationId: session.user.organizationId,
+          name: name ?? null,
           subject,
           type,
           category: category ?? null,

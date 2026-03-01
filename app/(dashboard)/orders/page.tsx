@@ -22,7 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download } from "lucide-react";
+import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download, ChevronDown, FileSpreadsheet, FileText } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Order = {
   id: string;
@@ -231,18 +237,30 @@ export default function OrdersPage() {
     }
   };
 
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (statusFilter && statusFilter !== "all") params.set("status", statusFilter);
-      if (factoryFilter && factoryFilter !== "all") params.set("factoryId", factoryFilter);
-      if (priorityFilter && priorityFilter !== "all") params.set("priority", priorityFilter);
+  const getExportParams = () => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (statusFilter && statusFilter !== "all") params.set("status", statusFilter);
+    if (factoryFilter && factoryFilter !== "all") params.set("factoryId", factoryFilter);
+    if (priorityFilter && priorityFilter !== "all") params.set("priority", priorityFilter);
+    return params.toString();
+  };
 
-      const res = await fetch(`/api/orders/export?${params.toString()}`);
+  const handleExport = async (format: "csv" | "xlsx" | "pdf") => {
+    setIsExporting(true);
+    setActionError(null);
+    try {
+      const queryStr = getExportParams();
+      const endpoints = {
+        csv: `/api/orders/export?${queryStr}`,
+        xlsx: `/api/orders/export-xlsx?${queryStr}`,
+        pdf: `/api/orders/export-pdf?${queryStr}`,
+      };
+      const extensions = { csv: "csv", xlsx: "xlsx", pdf: "pdf" };
+
+      const res = await fetch(endpoints[format]);
       if (!res.ok) {
-        setActionError("Failed to export orders");
+        setActionError(`Failed to export orders as ${format.toUpperCase()}`);
         return;
       }
 
@@ -250,7 +268,7 @@ export default function OrdersPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `orders-export-${new Date().toISOString().split("T")[0]}.csv`;
+      a.download = `orders-export-${new Date().toISOString().split("T")[0]}.${extensions[format]}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -273,14 +291,33 @@ export default function OrdersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport} disabled={isExporting}>
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            Export CSV
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={isExporting}>
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Export
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("xlsx")}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isAdminOrOwner ? (
             <Link href="/orders/new">
               <Button>

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Package, Activity, CheckCircle, AlertTriangle, AlertCircle, Calendar } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Package, Activity, CheckCircle, AlertTriangle, AlertCircle, Calendar, RefreshCw } from "lucide-react";
+import { useAutoRefresh, formatTimeAgo } from "@/lib/use-auto-refresh";
+import { AnimatedNumber } from "@/components/animated-number";
 
 type DelayDetail = {
   count: number;
@@ -36,24 +38,41 @@ type DashboardStats = {
 
 type Period = "7d" | "30d" | "90d" | "custom";
 
+let sparklineIdCounter = 0;
+
 function Sparkline({ data, color = "#3b82f6" }: { data: number[]; color?: string }) {
   if (!data || data.length < 2) return null;
 
+  const gradientId = `sparkline-grad-${sparklineIdCounter++}`;
   const max = Math.max(...data, 1);
   const w = 64;
   const h = 28;
   const padding = 2;
 
-  const points = data.map((v, i) => {
-    const x = padding + (i / (data.length - 1)) * (w - padding * 2);
-    const y = h - padding - (v / max) * (h - padding * 2);
-    return `${x},${y}`;
-  });
+  const coords = data.map((v, i) => ({
+    x: padding + (i / (data.length - 1)) * (w - padding * 2),
+    y: h - padding - (v / max) * (h - padding * 2),
+  }));
+
+  const linePoints = coords.map((c) => `${c.x},${c.y}`).join(" ");
+  // Closed polygon for gradient fill
+  const fillPoints = [
+    ...coords.map((c) => `${c.x},${c.y}`),
+    `${coords[coords.length - 1].x},${h}`,
+    `${coords[0].x},${h}`,
+  ].join(" ");
 
   return (
     <svg width={w} height={h} className="flex-shrink-0">
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+          <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+        </linearGradient>
+      </defs>
+      <polygon points={fillPoints} fill={`url(#${gradientId})`} />
       <polyline
-        points={points.join(" ")}
+        points={linePoints}
         fill="none"
         stroke={color}
         strokeWidth={2}
@@ -97,6 +116,15 @@ export function DashboardStatsCards() {
     }
   }, [fetchStats, period, customFrom, customTo]);
 
+  // Auto-refresh every 30s
+  const { lastUpdated } = useAutoRefresh(fetchStats, { interval: 30_000 });
+  const [timeAgoText, setTimeAgoText] = useState("");
+
+  useEffect(() => {
+    const tick = setInterval(() => setTimeAgoText(formatTimeAgo(lastUpdated)), 5_000);
+    return () => clearInterval(tick);
+  }, [lastUpdated]);
+
   function handlePeriodChange(p: Period) {
     if (p === "custom") {
       setShowCustom(true);
@@ -121,6 +149,16 @@ export function DashboardStatsCards() {
     ? "text-[#F97316]"
     : "text-green-600 dark:text-green-400";
 
+  // Derive trend from sparkline data when no explicit trend is provided
+  function sparklineTrend(data?: number[]): number | undefined {
+    if (!data || data.length < 2) return undefined;
+    const mid = Math.floor(data.length / 2);
+    const firstHalf = data.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+    const secondHalf = data.slice(mid).reduce((a, b) => a + b, 0) / (data.length - mid);
+    if (firstHalf === 0) return secondHalf > 0 ? 100 : 0;
+    return Math.round(((secondHalf - firstHalf) / firstHalf) * 100);
+  }
+
   const statsCards = [
     {
       label: "Total Orders",
@@ -134,6 +172,7 @@ export function DashboardStatsCards() {
       label: "Active Orders",
       value: stats?.activeOrders ?? 0,
       icon: Activity,
+      trend: sparklineTrend(stats?.sparklines?.active),
       sparkline: stats?.sparklines?.active,
       sparkColor: "#8b5cf6",
     },
@@ -151,6 +190,7 @@ export function DashboardStatsCards() {
       icon: AlertTriangle,
       subtitle: delaySubtitle,
       subtitleColor: delaySubtitleColor,
+      trend: sparklineTrend(stats?.sparklines?.delayed),
       sparkline: stats?.sparklines?.delayed,
       sparkColor: "#f59e0b",
     },
@@ -159,6 +199,7 @@ export function DashboardStatsCards() {
       value: stats?.disruptedOrders ?? 0,
       icon: AlertCircle,
       highlight: (stats?.disruptedOrders ?? 0) > 0,
+      trend: sparklineTrend(stats?.sparklines?.disrupted),
       sparkline: stats?.sparklines?.disrupted,
       sparkColor: "#F97316",
     },
@@ -170,7 +211,15 @@ export function DashboardStatsCards() {
     <div className="col-span-full">
       {/* Period Selector */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Overview</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Overview</p>
+          {timeAgoText && (
+            <span className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-zinc-600">
+              <RefreshCw className="h-2.5 w-2.5" />
+              {timeAgoText}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <div className="flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-zinc-800 p-1">
             {periodOptions.map((p) => (
@@ -265,8 +314,8 @@ export function DashboardStatsCards() {
               </div>
               <div className="mt-3 flex items-end justify-between">
                 <div>
-                  <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#F97316] dark:text-[#F97316]" : "text-gray-800 dark:text-white"}`}>
-                    {stat.value}
+                  <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#EB5D2E] dark:text-[#EB5D2E]" : "text-gray-800 dark:text-white"}`}>
+                    <AnimatedNumber value={stat.value} />
                   </p>
                   <div className="mt-2 flex items-center gap-1">
                     {stat.trend !== undefined && stat.trend !== 0 && (

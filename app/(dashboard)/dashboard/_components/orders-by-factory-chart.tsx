@@ -6,6 +6,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell,
   LabelList,
@@ -45,6 +46,7 @@ export function OrdersByFactoryChart({ data }: { data: OrdersByFactoryData }) {
           axisLine={false}
           width={150}
         />
+        <Tooltip cursor={false} trigger="none" />
         <Bar dataKey="count" radius={[0, 4, 4, 0]} fill="#60a5fa">
           <LabelList
             dataKey="count"

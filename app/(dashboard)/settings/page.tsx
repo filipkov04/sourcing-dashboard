@@ -130,7 +130,7 @@ export default function SettingsPage() {
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-4 w-64 mt-2" />
         </div>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardHeader>
             <Skeleton className="h-6 w-48" />
           </CardHeader>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Notification Preferences */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
             <Bell className="h-5 w-5 text-orange-500" />

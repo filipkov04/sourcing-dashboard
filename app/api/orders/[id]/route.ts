@@ -4,6 +4,7 @@ import { success, notFound, unauthorized, forbidden, noContent, handleError, err
 import { auth } from "@/lib/auth";
 import { logOrderEvent, OrderEventType } from "@/lib/history";
 import { notifyOrderStatusChange } from "@/lib/notifications";
+import { checkAndUpdateDelays } from "@/lib/check-delays";
 
 // GET /api/orders/[id] - Get a single order with all details
 export async function GET(
@@ -33,6 +34,29 @@ export async function GET(
 
     if (!order) {
       return notFound("Order");
+    }
+
+    // Real-time delay detection: check for overdue stages before returning
+    const updatedIds = await checkAndUpdateDelays([order.id]);
+
+    // Re-read if status was updated so response reflects current state
+    if (updatedIds.length > 0) {
+      const freshOrder = await prisma.order.findFirst({
+        where: {
+          id,
+          organizationId: session.user.organizationId,
+        },
+        include: {
+          factory: true,
+          stages: {
+            orderBy: { sequence: "asc" },
+          },
+        },
+      });
+
+      if (freshOrder) {
+        return success(freshOrder);
+      }
     }
 
     return success(order);

@@ -38,6 +38,7 @@ import {
   CheckCircle2,
   TrendingUp,
 } from "lucide-react";
+import { AnimatedNumber } from "@/components/animated-number";
 
 type OrderStage = {
   id: string;
@@ -308,31 +309,31 @@ export default function FactoryDetailPage() {
         return (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Orders */}
-            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Total Orders</p>
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EB5D2E]/10">
                   <Package className="h-4 w-4 text-[#EB5D2E]" />
                 </span>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{totalOrders}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={totalOrders} /></p>
               <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">all time</p>
             </div>
 
             {/* Active Orders */}
-            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Active</p>
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
                   <Activity className="h-4 w-4 text-blue-500" />
                 </span>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{activeOrders}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={activeOrders} /></p>
               <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">in production</p>
             </div>
 
             {/* On-Time Rate */}
-            <div className={`rounded-lg border p-5 shadow-sm ${
+            <div className={`rounded-lg border p-5 shadow-sm card-hover-glow ${
               onTimeRate !== null && onTimeRate < 80
                 ? "border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20"
                 : "border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900"
@@ -350,7 +351,7 @@ export default function FactoryDetailPage() {
                 </span>
               </div>
               <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-                {onTimeRate !== null ? `${onTimeRate}%` : "—"}
+                {onTimeRate !== null ? <><AnimatedNumber value={onTimeRate} />%</> : "—"}
               </p>
               <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">
                 {completedOrders.length > 0 ? `${completedOrders.length} completed` : "no completed orders"}
@@ -358,7 +359,7 @@ export default function FactoryDetailPage() {
             </div>
 
             {/* Avg Progress */}
-            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Avg Progress</p>
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10">
@@ -366,7 +367,7 @@ export default function FactoryDetailPage() {
                 </span>
               </div>
               <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-                {avgProgress !== null ? `${avgProgress}%` : "—"}
+                {avgProgress !== null ? <><AnimatedNumber value={avgProgress} />%</> : "—"}
               </p>
               {avgProgress !== null && (
                 <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 dark:bg-zinc-700">
@@ -385,7 +386,7 @@ export default function FactoryDetailPage() {
       })()}
 
       {/* Factory & Contact Info — single condensed card */}
-      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm card-hover-glow">
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-zinc-800">
           {/* Factory Info */}
           <div className="p-5 space-y-3">
@@ -447,7 +448,7 @@ export default function FactoryDetailPage() {
       </div>
 
       {/* Orders from this Factory */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

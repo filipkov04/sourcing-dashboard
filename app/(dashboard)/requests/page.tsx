@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -114,14 +115,30 @@ export default function RequestsPage() {
   const userRole = (session?.user as { role?: string } | undefined)?.role;
   const isAdmin = userRole === "ADMIN" || userRole === "OWNER";
 
+  const searchParams = useSearchParams();
+  const ridParam = searchParams.get("rid");
+
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(ridParam);
   const [reviewNote, setReviewNote] = useState("");
   const [responseText, setResponseText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-scroll to the request specified by ?rid= after data loads
+  const scrolledRef = useRef(false);
+  useEffect(() => {
+    if (ridParam && requests.length > 0 && !scrolledRef.current) {
+      scrolledRef.current = true;
+      // Wait a tick for DOM to render
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-request-id="${ridParam}"]`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [ridParam, requests]);
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -309,10 +326,19 @@ export default function RequestsPage() {
             return (
               <div
                 key={request.id}
+                data-request-id={request.id}
                 className="rounded-xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-800 overflow-hidden"
               >
-                {/* Card Header */}
-                <div className="flex items-center gap-4 px-5 py-4">
+                {/* Card Header — clickable to expand/collapse */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExpandedId(isExpanded ? null : request.id);
+                    setReviewNote("");
+                    setResponseText("");
+                  }}
+                  className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50/50 dark:hover:bg-zinc-700/30"
+                >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <Badge variant="outline" className={typeBadge.color + " text-xs"}>
@@ -370,34 +396,25 @@ export default function RequestsPage() {
                     {request.conversationId && (
                       <Link
                         href={`/messages?cid=${request.conversationId}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
                       >
                         <MessageSquare className="h-3.5 w-3.5" />
                         Chat
                       </Link>
                     )}
-                    {canExpand && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setExpandedId(isExpanded ? null : request.id);
-                          setReviewNote("");
-                          setResponseText("");
-                        }}
-                        className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300"
-                      >
-                        {isExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-                        {needsInfo && !isAdmin ? "Respond" : "Review"}
-                      </Button>
-                    )}
-                    {!canExpand && request.reviewedBy && (
+                    {request.reviewedBy && (
                       <span className="text-xs text-gray-400 dark:text-zinc-500">
                         Reviewed by {request.reviewedBy.name || request.reviewedBy.email}
                       </span>
                     )}
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+                    )}
                   </div>
-                </div>
+                </button>
 
                 {/* Expanded Panel */}
                 {isExpanded && (
@@ -598,19 +615,25 @@ function RequestDetails({ type, data, request }: { type: string; data: Record<st
 
 function EditRequestDetails({ type, data, request }: { type: string; data: Record<string, unknown>; request?: RequestItem }) {
   const changes = data.changes as Record<string, unknown> | undefined;
+  const previousValues = data._previousValues as Record<string, unknown> | undefined;
   const entityId = type === "ORDER_EDIT_REQUEST" ? data.orderId : data.factoryId;
   const endpoint = type === "ORDER_EDIT_REQUEST" ? `/api/orders/${entityId}` : `/api/factories/${entityId}`;
+  const isPending = request?.status === "PENDING" || request?.status === "NEEDS_INFO";
 
-  const [currentValues, setCurrentValues] = useState<Record<string, unknown> | null>(null);
+  const [liveValues, setLiveValues] = useState<Record<string, unknown> | null>(null);
+  const [loadingLive, setLoadingLive] = useState(false);
 
+  // Always fetch the live entity so we can filter out unchanged fields
   useEffect(() => {
     if (!entityId || !changes || Object.keys(changes).length === 0) return;
+    setLoadingLive(true);
     fetch(endpoint)
       .then((res) => res.ok ? res.json() : null)
       .then((json) => {
-        if (json?.data) setCurrentValues(json.data);
+        if (json?.data) setLiveValues(json.data);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingLive(false));
   }, [entityId, endpoint, changes]);
 
   function formatValue(key: string, val: unknown): string {
@@ -620,6 +643,22 @@ function EditRequestDetails({ type, data, request }: { type: string; data: Recor
     }
     if (Array.isArray(val)) return val.join(", ");
     return String(val);
+  }
+
+  // "Before" display column: use stored snapshot if available, otherwise live values for pending
+  const beforeValues = previousValues ?? (isPending ? liveValues : null);
+  const hasBeforeData = beforeValues !== null;
+  // Defer table rendering while fetching
+  const isLoadingLive = loadingLive && !liveValues;
+
+  /** Check if a field was actually changed (differs from live entity) */
+  function isFieldChanged(key: string, newVal: unknown): boolean {
+    if (!liveValues || !(key in liveValues)) return true;
+    // For approved requests the live value equals the proposed value — use _previousValues instead
+    if (previousValues && key in previousValues) {
+      return formatValue(key, previousValues[key]) !== formatValue(key, newVal);
+    }
+    return formatValue(key, liveValues[key]) !== formatValue(key, newVal);
   }
 
   return (
@@ -640,39 +679,48 @@ function EditRequestDetails({ type, data, request }: { type: string; data: Recor
       {changes && Object.keys(changes).length > 0 && (
         <div>
           <span className="text-gray-500 dark:text-zinc-400 font-medium">Proposed Changes:</span>
+          {isLoadingLive ? (
+            <div className="mt-2 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 p-4">
+              <p className="text-xs text-gray-400 dark:text-zinc-500 italic">Loading current values...</p>
+            </div>
+          ) : (
           <div className="mt-2 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900">
                   <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-zinc-400">Field</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-zinc-400">Current</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-400 dark:text-zinc-500 w-8"></th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-zinc-400">Proposed</th>
+                  {hasBeforeData && (
+                    <>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-zinc-400">Before</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-gray-400 dark:text-zinc-500 w-8"></th>
+                    </>
+                  )}
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-zinc-400">
+                    {hasBeforeData ? "After" : "Proposed Value"}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-zinc-700/50">
                 {Object.entries(changes).map(([key, newVal]) => {
-                  const currentVal = currentValues ? currentValues[key] : null;
-                  const hasCurrentData = currentValues !== null;
-                  // Skip fields where the value hasn't actually changed
-                  if (hasCurrentData && formatValue(key, currentVal) === formatValue(key, newVal)) return null;
+                  // Skip fields that weren't actually changed
+                  if (liveValues && !isFieldChanged(key, newVal)) return null;
                   return (
                     <tr key={key}>
                       <td className="px-3 py-2 text-gray-500 dark:text-zinc-400 font-medium">
                         {formatFieldName(key)}
                       </td>
-                      <td className="px-3 py-2">
-                        {hasCurrentData ? (
-                          <span className="text-red-500 dark:text-red-400 line-through">
-                            {formatValue(key, currentVal)}
-                          </span>
-                        ) : (
-                          <span className="text-gray-300 dark:text-zinc-600 text-xs italic">loading...</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-center text-gray-400 dark:text-zinc-500">
-                        →
-                      </td>
+                      {hasBeforeData && (
+                        <>
+                          <td className="px-3 py-2">
+                            <span className="text-red-500 dark:text-red-400 line-through">
+                              {formatValue(key, beforeValues[key])}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-center text-gray-400 dark:text-zinc-500">
+                            →
+                          </td>
+                        </>
+                      )}
                       <td className="px-3 py-2">
                         <span className="text-green-600 dark:text-green-400 font-medium">
                           {formatValue(key, newVal)}
@@ -684,6 +732,7 @@ function EditRequestDetails({ type, data, request }: { type: string; data: Recor
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
     </div>

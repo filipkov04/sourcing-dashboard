@@ -69,6 +69,7 @@ export type ConversationType = "SUPPORT" | "FACTORY" | "GENERAL" | "DIRECT";
 export type Conversation = {
   id: string;
   organizationId: string;
+  name: string | null;
   subject: string | null;
   type: ConversationType;
   category: string | null;
@@ -77,6 +78,7 @@ export type Conversation = {
   order: { id: string; orderNumber: string; productName: string } | null;
   factoryId: string | null;
   factory: { id: string; name: string; location?: string; contactName?: string | null; contactEmail?: string | null; contactPhone?: string | null } | null;
+  request: { id: string; type: string; status: string } | null;
   participants: ConversationParticipant[];
   unreadCount: number;
   pinned: boolean;
@@ -254,6 +256,7 @@ export async function sendQuickReply(conversationId: string, category: string) {
 
 /** Create a new conversation */
 export async function createConversation(data: {
+  name?: string;
   subject: string;
   participantIds?: string[];
   orderId?: string;

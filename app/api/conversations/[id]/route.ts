@@ -27,6 +27,7 @@ export async function GET(
         },
         order: { select: { id: true, orderNumber: true, productName: true } },
         factory: { select: { id: true, name: true, location: true, contactName: true, contactEmail: true, contactPhone: true } },
+        request: { select: { id: true, type: true, status: true } },
         messages: {
           where: { parentId: null },
           orderBy: { createdAt: "asc" },

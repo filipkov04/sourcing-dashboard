@@ -76,6 +76,7 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
 
         {/* Clean tooltip */}
         <Tooltip
+          cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }}
           contentStyle={{
             backgroundColor: isDark ? "#27272a" : "#ffffff",
             border: `1px solid ${isDark ? "#3f3f46" : "#f1f5f9"}`,

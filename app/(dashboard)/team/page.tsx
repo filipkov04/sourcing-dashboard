@@ -48,6 +48,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useSession, signIn } from "next-auth/react";
+import { AnimatedNumber } from "@/components/animated-number";
 
 interface TeamMember {
   id: string;
@@ -332,7 +333,7 @@ export default function TeamPage() {
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-10 w-32" />
         </div>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardHeader>
             <Skeleton className="h-6 w-32" />
           </CardHeader>
@@ -397,54 +398,54 @@ export default function TeamPage() {
 
       {/* Team Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Total Members</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{members.length}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={members.length} /></p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Owners</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {members.filter((m) => m.role === "OWNER").length}
+                  <AnimatedNumber value={members.filter((m) => m.role === "OWNER").length} />
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Admins</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {members.filter((m) => m.role === "ADMIN").length}
+                  <AnimatedNumber value={members.filter((m) => m.role === "ADMIN").length} />
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-green-600 dark:text-green-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Members</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {members.filter((m) => m.role === "MEMBER").length}
+                  <AnimatedNumber value={members.filter((m) => m.role === "MEMBER").length} />
                 </p>
               </div>
             </div>
@@ -453,7 +454,7 @@ export default function TeamPage() {
       </div>
 
       {/* Team Members Table */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-white">All Members</CardTitle>
         </CardHeader>
@@ -592,7 +593,7 @@ export default function TeamPage() {
 
       {/* Pending Invitations */}
       {isAdminOrOwner && invitations.filter((inv) => inv.status === "PENDING").length > 0 && (
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
               <Mail className="h-5 w-5 text-orange-500" />

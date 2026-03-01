@@ -453,6 +453,7 @@ model Conversation {
   category        String?
 
   // Metadata
+  name            String?
   subject         String?
   lastMessageAt   DateTime?
 

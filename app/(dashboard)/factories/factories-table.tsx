@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, MapPin, User, Package, Eye, Pencil, Trash2, Loader2, X, SlidersHorizontal, ArrowUpDown, Factory, TrendingUp, PauseCircle } from "lucide-react";
+import { AnimatedNumber } from "@/components/animated-number";
 import {
   Dialog,
   DialogContent,
@@ -174,51 +175,52 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
   // Compute stats
   const totalFactories = factories.length;
   const totalOrders = factories.reduce((sum, f) => sum + f._count.orders, 0);
-  const avgOrders = totalFactories > 0 ? (totalOrders / totalFactories).toFixed(1) : "0";
+  const avgOrdersNum = totalFactories > 0 ? totalOrders / totalFactories : 0;
+  const avgOrders = avgOrdersNum.toFixed(1);
   const idleCount = factories.filter((f) => f.orders.length === 0).length;
 
   return (
     <div className="space-y-4">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-zinc-400">Total Factories</p>
-              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{totalFactories}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={totalFactories} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10">
               <Factory className="h-5 w-5 text-orange-500" />
             </div>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-zinc-400">Total Orders</p>
-              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{totalOrders}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={totalOrders} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
               <Package className="h-5 w-5 text-blue-500" />
             </div>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-zinc-400">Avg Orders / Factory</p>
-              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{avgOrders}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={avgOrdersNum} formatFn={(n) => n.toFixed(1)} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/10">
               <TrendingUp className="h-5 w-5 text-purple-500" />
             </div>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-zinc-400">Idle Factories</p>
-              <p className={`mt-1 text-2xl font-bold ${idleCount > 0 ? "text-amber-500" : "text-gray-900 dark:text-white"}`}>{idleCount}</p>
+              <p className={`mt-1 text-2xl font-bold ${idleCount > 0 ? "text-amber-500" : "text-gray-900 dark:text-white"}`}><AnimatedNumber value={idleCount} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
               <PauseCircle className="h-5 w-5 text-amber-500" />

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GanttChart } from "@/components/gantt/gantt-chart";
+import { AnimatedNumber } from "@/components/animated-number";
 
 type Order = {
   id: string;
@@ -166,11 +167,11 @@ export default function TimelinePage() {
           ].map(({ label, value, color }) => (
             <div
               key={label}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow"
               style={{ borderLeft: `3px solid ${color}` }}
             >
               <span className="text-base font-bold tabular-nums text-gray-900 dark:text-white">
-                {value}
+                <AnimatedNumber value={value} />
               </span>
               <span className="text-sm text-gray-500 dark:text-zinc-400">
                 {label}
@@ -274,7 +275,7 @@ export default function TimelinePage() {
       </div>
 
       {/* Gantt Chart */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 overflow-hidden card-hover-glow">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C1A]" />
