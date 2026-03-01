@@ -41,8 +41,8 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
           </linearGradient>
           {/* Purple gradient for Completed */}
           <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#F97316" stopOpacity={0.18} />
-            <stop offset="95%" stopColor="#F97316" stopOpacity={0.08} />
+            <stop offset="5%" stopColor="#FF4D15" stopOpacity={0.18} />
+            <stop offset="95%" stopColor="#FF4D15" stopOpacity={0.08} />
           </linearGradient>
         </defs>
 
@@ -136,7 +136,7 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
           type="monotone"
           dataKey="completed"
           stackId="1"
-          stroke="#F97316"
+          stroke="#FF4D15"
           strokeWidth={1.5}
           fill="url(#colorCompleted)"
           name="Completed"

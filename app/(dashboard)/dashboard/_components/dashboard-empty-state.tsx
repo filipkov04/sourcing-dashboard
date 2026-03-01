@@ -8,8 +8,8 @@ export function DashboardEmptyState() {
   return (
     <Card>
       <CardContent className="flex flex-col items-center justify-center py-16">
-        <div className="mb-6 rounded-full bg-[#FF8C1A]/10 dark:bg-[#FF8C1A]/10 p-6">
-          <Package className="h-12 w-12 text-[#F97316]" />
+        <div className="mb-6 rounded-full bg-[#FF4D15]/10 dark:bg-[#FF4D15]/10 p-6">
+          <Package className="h-12 w-12 text-[#FF4D15]" />
         </div>
 
         <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
@@ -40,17 +40,17 @@ export function DashboardEmptyState() {
 
         <div className="mt-12 grid w-full max-w-3xl gap-6 md:grid-cols-3">
           <div className="text-center">
-            <TrendingUp className="mx-auto mb-3 h-8 w-8 text-[#F97316]" />
+            <TrendingUp className="mx-auto mb-3 h-8 w-8 text-[#FF4D15]" />
             <h3 className="mb-1 font-medium text-gray-800 dark:text-zinc-200">Track Progress</h3>
             <p className="text-sm text-gray-500 dark:text-zinc-400">Monitor order status in real-time</p>
           </div>
           <div className="text-center">
-            <Bell className="mx-auto mb-3 h-8 w-8 text-[#F97316]" />
+            <Bell className="mx-auto mb-3 h-8 w-8 text-[#FF4D15]" />
             <h3 className="mb-1 font-medium text-gray-800 dark:text-zinc-200">Get Alerts</h3>
             <p className="text-sm text-gray-500 dark:text-zinc-400">Notifications for delays and updates</p>
           </div>
           <div className="text-center">
-            <FileText className="mx-auto mb-3 h-8 w-8 text-[#F97316]" />
+            <FileText className="mx-auto mb-3 h-8 w-8 text-[#FF4D15]" />
             <h3 className="mb-1 font-medium text-gray-800 dark:text-zinc-200">Generate Reports</h3>
             <p className="text-sm text-gray-500 dark:text-zinc-400">Insights and analytics on demand</p>
           </div>

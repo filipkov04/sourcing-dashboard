@@ -382,7 +382,7 @@ export function ChatWidget() {
                         className={cn(
                           "rounded-2xl px-3 py-2.5 text-[13px] leading-relaxed",
                           isOwn
-                            ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white rounded-br-md shadow-sm shadow-[#FF8C1A]/15"
+                            ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white rounded-br-md shadow-sm shadow-[#FF8C1A]/15"
                             : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
                         )}
                       >
@@ -452,7 +452,7 @@ export function ChatWidget() {
                   className={cn(
                     "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
                     input.trim() && !sending
-                      ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
+                      ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
                       : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
                   )}
                 >
@@ -494,7 +494,7 @@ export function ChatWidget() {
           "shadow-[0_8px_30px_-4px_rgba(0,0,0,0.2)]",
           open
             ? "bg-gray-900 dark:bg-zinc-700 rotate-0"
-            : "bg-gradient-to-br from-[#F97316] to-[#d44a1a] hover:shadow-[0_8px_30px_-4px_rgba(235,93,46,0.4)]"
+            : "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] hover:shadow-[0_8px_30px_-4px_rgba(255,77,21,0.4)]"
         )}
       >
         {open ? (
@@ -528,7 +528,7 @@ function HistoryView({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-3 py-3">
+      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-3 py-3">
         <button
           onClick={onBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"
@@ -561,7 +561,7 @@ function HistoryView({
                 <div className="relative mt-0.5">
                   <SourcyAvatar size="lg" />
                   {conv.unreadCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
                       {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
                     </span>
                   )}

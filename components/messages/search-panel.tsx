@@ -179,7 +179,7 @@ export function GlobalSearchPanel({ onSelectResult, onClose }: GlobalSearchPanel
     return (
       <>
         {text.slice(0, idx)}
-        <mark className="bg-[#F97316]/20 text-[#F97316] rounded-sm px-0.5">
+        <mark className="bg-[#FF4D15]/20 text-[#FF4D15] rounded-sm px-0.5">
           {text.slice(idx, idx + q.length)}
         </mark>
         {text.slice(idx + q.length)}
@@ -210,7 +210,7 @@ export function GlobalSearchPanel({ onSelectResult, onClose }: GlobalSearchPanel
             value={query}
             onChange={(e) => handleChange(e.target.value)}
             placeholder="Search all messages..."
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
             onKeyDown={(e) => {
               if (e.key === "Escape") onClose();
             }}

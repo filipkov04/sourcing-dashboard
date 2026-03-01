@@ -7,6 +7,7 @@ type RecorderState = "idle" | "recording" | "cancelled";
 interface UseVoiceRecorderReturn {
   isRecording: boolean;
   duration: number;
+  /** Rolling waveform bars (0-1 amplitude), newest at end */
   waveformData: number[];
   startRecording: () => Promise<void>;
   stopRecording: () => void;
@@ -16,9 +17,6 @@ interface UseVoiceRecorderReturn {
 
 /**
  * Creates a File object from a recorded audio Blob with a timestamped name.
- *
- * @param blob - The audio Blob from the recorder
- * @returns A File with name like "voice-20260301-143025.webm"
  */
 export function createVoiceFile(blob: Blob): File {
   const now = new Date();
@@ -36,11 +34,13 @@ export function createVoiceFile(blob: Blob): File {
   return new File([blob], name, { type: blob.type || "audio/webm" });
 }
 
+const MAX_BARS = 48;
+
 /**
  * Hook for recording voice messages with live waveform data.
  *
- * Uses the MediaRecorder API with opus codec and AudioContext analyser
- * for real-time waveform visualisation at ~60fps.
+ * Uses MediaRecorder + AudioContext AnalyserNode with frequency data
+ * for a scrolling waveform visualisation.
  */
 export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const [state, setState] = useState<RecorderState>("idle");
@@ -56,11 +56,11 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const stateRef = useRef<RecorderState>("idle");
+  const barsRef = useRef<number[]>([]);
+  const lastBarTimeRef = useRef(0);
 
-  // Keep stateRef in sync so callbacks can read the latest value
   stateRef.current = state;
 
-  /** Stop all media tracks, close AudioContext, cancel animation frame */
   const cleanup = useCallback(() => {
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -87,56 +87,68 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     mediaRecorderRef.current = null;
   }, []);
 
-  /** Continuously read waveform data from the analyser node */
+  /** Read frequency data, push a new bar every ~60ms for a scrolling waveform */
   const updateWaveform = useCallback(() => {
-    if (!analyserRef.current) return;
+    if (!analyserRef.current || stateRef.current !== "recording") return;
 
-    const analyser = analyserRef.current;
-    const bufferLength = analyser.fftSize;
-    const dataArray = new Uint8Array(bufferLength);
-    analyser.getByteTimeDomainData(dataArray);
+    const now = performance.now();
+    // Add a new bar roughly every 60ms
+    if (now - lastBarTimeRef.current > 60) {
+      lastBarTimeRef.current = now;
 
-    // Downsample to ~32 bars for visualisation
-    const bars = 32;
-    const step = Math.floor(bufferLength / bars);
-    const normalized: number[] = [];
+      const analyser = analyserRef.current;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
 
-    for (let i = 0; i < bars; i++) {
-      const index = i * step;
-      // Convert from 0-255 (128 = silence) to 0-1 amplitude
-      const value = Math.abs((dataArray[index] - 128) / 128);
-      normalized.push(value);
+      // Average the low-mid frequencies (voice range ~85-1000Hz)
+      // With fftSize=256 and sampleRate=48000, each bin ≈ 187Hz
+      // Bins 0-5 cover roughly 0-1000Hz
+      const voiceBins = Math.min(8, bufferLength);
+      let sum = 0;
+      for (let i = 0; i < voiceBins; i++) {
+        sum += dataArray[i];
+      }
+      const avg = sum / voiceBins / 255; // 0-1
+
+      // Boost so quiet speech is still visible
+      const boosted = Math.min(1, avg * 2.5);
+
+      barsRef.current.push(boosted);
+      if (barsRef.current.length > MAX_BARS) {
+        barsRef.current = barsRef.current.slice(-MAX_BARS);
+      }
+
+      setWaveformData([...barsRef.current]);
     }
 
-    setWaveformData(normalized);
-
-    if (stateRef.current === "recording") {
-      animationFrameRef.current = requestAnimationFrame(updateWaveform);
-    }
+    animationFrameRef.current = requestAnimationFrame(updateWaveform);
   }, []);
 
   const startRecording = useCallback(async () => {
-    // Reset previous recording state
     setAudioBlob(null);
     setDuration(0);
     setWaveformData([]);
+    barsRef.current = [];
+    lastBarTimeRef.current = 0;
     chunksRef.current = [];
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      // Set up AudioContext + Analyser for waveform
+      // AudioContext + Analyser for live waveform
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
 
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      // Determine supported MIME type
+      // MediaRecorder
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : "audio/webm";
@@ -151,7 +163,6 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       };
 
       mediaRecorder.onstop = () => {
-        // Only create a blob if we weren't cancelled
         if (stateRef.current !== "cancelled") {
           const blob = new Blob(chunksRef.current, { type: mimeType });
           setAudioBlob(blob);
@@ -161,28 +172,27 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
         setState("idle");
       };
 
-      // Start recording
-      mediaRecorder.start(100); // Collect data every 100ms
+      mediaRecorder.start();
       setState("recording");
 
-      // Start duration counter
+      // Duration counter
       const startTime = Date.now();
       durationIntervalRef.current = setInterval(() => {
         setDuration(Math.floor((Date.now() - startTime) / 1000));
       }, 1000);
 
-      // Start waveform animation loop
+      // Start waveform loop
+      lastBarTimeRef.current = performance.now();
       animationFrameRef.current = requestAnimationFrame(updateWaveform);
-    } catch (error) {
+    } catch (err) {
       cleanup();
       setState("idle");
-      throw error;
+      throw err;
     }
   }, [cleanup, updateWaveform]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-      // State stays as "recording" until onstop fires, which sets it to "idle"
       mediaRecorderRef.current.stop();
     }
   }, []);
@@ -191,7 +201,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     setState("cancelled");
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-      mediaRecorderRef.current.stop(); // onstop will see "cancelled" and skip blob creation
+      mediaRecorderRef.current.stop();
     } else {
       cleanup();
       setState("idle");
@@ -200,9 +210,9 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     setAudioBlob(null);
     setDuration(0);
     setWaveformData([]);
+    barsRef.current = [];
   }, [cleanup]);
 
-  // Clean up on unmount
   useEffect(() => {
     return () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {

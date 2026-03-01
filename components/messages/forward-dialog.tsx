@@ -66,7 +66,7 @@ export function ForwardDialog({ message, onClose, onForwarded }: ForwardDialogPr
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <Forward className="h-4 w-4 text-[#F97316]" />
+            <Forward className="h-4 w-4 text-[#FF4D15]" />
             <h3 className="text-base font-semibold text-gray-900 dark:text-white">
               Forward Message
             </h3>
@@ -100,7 +100,7 @@ export function ForwardDialog({ message, onClose, onForwarded }: ForwardDialogPr
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
               autoFocus
             />
           </div>
@@ -126,7 +126,7 @@ export function ForwardDialog({ message, onClose, onForwarded }: ForwardDialogPr
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150",
                     selected
-                      ? "bg-[#F97316]/10 dark:bg-[#F97316]/10"
+                      ? "bg-[#FF4D15]/10 dark:bg-[#FF4D15]/10"
                       : "hover:bg-gray-50 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -135,7 +135,7 @@ export function ForwardDialog({ message, onClose, onForwarded }: ForwardDialogPr
                     className={cn(
                       "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
                       selected
-                        ? "border-[#F97316] bg-[#F97316]"
+                        ? "border-[#FF4D15] bg-[#FF4D15]"
                         : "border-gray-300 dark:border-zinc-600"
                     )}
                   >
@@ -168,7 +168,7 @@ export function ForwardDialog({ message, onClose, onForwarded }: ForwardDialogPr
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all",
               selectedIds.size > 0 && !forwarding
-                ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md"
+                ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white shadow-sm shadow-[#FF4D15]/20 hover:shadow-md"
                 : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed"
             )}
           >

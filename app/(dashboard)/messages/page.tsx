@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { MessagesPage } from "@/components/messages/messages-page";
 
 export const metadata = {
-  title: "Messages - SourceTrack",
+  title: "Messages - Salto",
 };
 
 export default function Page() {

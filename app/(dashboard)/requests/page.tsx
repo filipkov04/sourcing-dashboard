@@ -521,7 +521,7 @@ export default function RequestsPage() {
                         <Button
                           onClick={() => handleRespond(request.id)}
                           disabled={submitting || !responseText.trim()}
-                          className="bg-[#EB5D2E] hover:bg-[#d4522a] text-white"
+                          className="bg-[#FF4D15] hover:bg-[#d4522a] text-white"
                           size="sm"
                         >
                           <Send className="h-4 w-4 mr-1" />

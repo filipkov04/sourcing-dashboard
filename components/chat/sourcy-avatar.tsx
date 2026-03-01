@@ -33,8 +33,8 @@ export function SourcyAvatar({ size = "md", className, pulse }: SourcyAvatarProp
       <div
         className={cn(
           "relative flex items-center justify-center rounded-full",
-          "bg-gradient-to-br from-[#F97316] to-[#d44a1a]",
-          "shadow-[0_0_0_2px_rgba(235,93,46,0.15)]",
+          "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A]",
+          "shadow-[0_0_0_2px_rgba(255,77,21,0.15)]",
           sizeClasses[size],
           className
         )}

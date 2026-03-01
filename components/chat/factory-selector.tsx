@@ -53,7 +53,7 @@ export function FactorySelector({ onSelect, onBack }: FactorySelectorProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-3 py-3">
+      <div className="flex items-center gap-3 bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-3 py-3">
         <button
           onClick={onBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"

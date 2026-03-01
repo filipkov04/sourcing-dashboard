@@ -9,12 +9,12 @@ import {
   Pencil,
   Trash2,
   SmilePlus,
-  Music,
   FileText,
   Download,
   Film,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { VoiceMessagePlayer } from "./voice-message-player";
 import type { Message } from "@/lib/use-conversations";
 
 /* ─── Quick emoji set ─── */
@@ -164,30 +164,9 @@ export function MessageBubble({
           }
 
           if (isAudio && url) {
-            // Voice message / audio card
             return (
-              <div
-                key={att.id}
-                className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 px-3 py-2"
-              >
-                <Music className="h-5 w-5 shrink-0 text-green-500" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-gray-700 dark:text-zinc-300">
-                    {att.fileName}
-                  </p>
-                  <p className="text-[10px] text-gray-400 dark:text-zinc-500">
-                    {formatFileSize(att.fileSize)}
-                  </p>
-                </div>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-                  title="Download"
-                >
-                  <Download className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" />
-                </a>
+              <div key={att.id}>
+                <VoiceMessagePlayer url={url} />
               </div>
             );
           }
@@ -265,11 +244,19 @@ export function MessageBubble({
           className={cn(
             "rounded-2xl px-3 py-2.5 text-[13px] leading-relaxed",
             isOwn
-              ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white rounded-br-md shadow-sm shadow-[#FF8C1A]/15"
+              ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white rounded-br-md shadow-sm shadow-[#FF4D15]/15"
               : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
           )}
         >
-          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          {/* Hide auto-generated "Shared N file" text when all attachments are audio/voice */}
+          {(() => {
+            const hasAttachments = message.attachments && message.attachments.length > 0;
+            const allAudio = hasAttachments && message.attachments!.every((a) => a.fileType.startsWith("audio/"));
+            const isAutoText = /^Shared \d+ files?$/.test(message.content);
+            if (allAudio && isAutoText) return null;
+            if (!message.content.trim()) return null;
+            return <p className="whitespace-pre-wrap break-words">{message.content}</p>;
+          })()}
           {renderAttachments()}
           {message.editedAt && (
             <span
@@ -284,10 +271,10 @@ export function MessageBubble({
         </div>
 
         {/* Thread preview */}
-        {message.threadCount && message.threadCount > 0 && (
+        {(message.threadCount ?? 0) > 0 && (
           <button
             onClick={onThreadOpen}
-            className="mt-1 px-1 text-[11px] font-medium text-[#F97316] hover:underline"
+            className="mt-1 px-1 text-[11px] font-medium text-[#FF4D15] hover:underline"
           >
             {message.threadCount} {message.threadCount === 1 ? "reply" : "replies"}
           </button>
@@ -303,8 +290,8 @@ export function MessageBubble({
                 className={cn(
                   "inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[11px] transition-colors",
                   r.userReacted
-                    ? "border-[#F97316]/30 bg-[#F97316]/10 text-[#F97316]"
-                    : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:border-[#F97316]/30"
+                    ? "border-[#FF4D15]/30 bg-[#FF4D15]/10 text-[#FF4D15]"
+                    : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:border-[#FF4D15]/30"
                 )}
               >
                 <span>{r.emoji}</span>

@@ -77,7 +77,7 @@ export function ThreadPanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-zinc-800">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-[#F97316]" />
+          <MessageSquare className="h-4 w-4 text-[#FF4D15]" />
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Thread</h3>
           <span className="text-xs text-gray-400 dark:text-zinc-500">
             {replies.length} {replies.length === 1 ? "reply" : "replies"}
@@ -151,7 +151,7 @@ export function ThreadPanel({
                     className={cn(
                       "rounded-2xl px-3 py-2 text-[13px] leading-relaxed",
                       isOwn
-                        ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white rounded-br-md shadow-sm shadow-[#FF8C1A]/15"
+                        ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white rounded-br-md shadow-sm shadow-[#FF4D15]/15"
                         : "bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md"
                     )}
                   >
@@ -212,7 +212,7 @@ export function ThreadPanel({
               onKeyDown={handleKeyDown}
               placeholder="Reply in thread..."
               rows={1}
-              className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
+              className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
               style={{ maxHeight: "120px" }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
@@ -226,7 +226,7 @@ export function ThreadPanel({
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-200 mb-0.5",
                 (input.trim() || files.length > 0) && !sending
-                  ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
+                  ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white shadow-sm shadow-[#FF4D15]/20 hover:shadow-md hover:scale-105"
                   : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
               )}
             >

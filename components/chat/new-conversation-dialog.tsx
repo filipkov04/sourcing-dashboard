@@ -100,7 +100,7 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
             <input
               type="text" value={name} onChange={(e) => setName(e.target.value)}
               placeholder="e.g., PO-1234 Discussion"
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
             />
           </div>
 
@@ -110,7 +110,7 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
             <input
               type="text" value={subject} onChange={(e) => setSubject(e.target.value)}
               placeholder="e.g., Shipping delay for PO-1234"
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
             />
           </div>
 
@@ -122,9 +122,9 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
                 {selectedMembers.map((id) => {
                   const member = members.find((m) => m.id === id);
                   return (
-                    <span key={id} className="inline-flex items-center gap-1 rounded-full bg-[#EB5D2E]/10 px-2.5 py-1 text-xs font-medium text-[#EB5D2E]">
+                    <span key={id} className="inline-flex items-center gap-1 rounded-full bg-[#FF4D15]/10 px-2.5 py-1 text-xs font-medium text-[#FF4D15]">
                       {member?.name || member?.email}
-                      <button onClick={() => setSelectedMembers((prev) => prev.filter((p) => p !== id))} className="hover:text-[#d4532a]">
+                      <button onClick={() => setSelectedMembers((prev) => prev.filter((p) => p !== id))} className="hover:text-[#FF0F0F]">
                         <X className="h-3 w-3" />
                       </button>
                     </span>
@@ -137,7 +137,7 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
               <input
                 type="text" value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)}
                 placeholder="Search team members..."
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#EB5D2E] focus:outline-none focus:ring-1 focus:ring-[#EB5D2E]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400"
               />
             </div>
             <div className="mt-1.5 max-h-36 overflow-y-auto rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
@@ -173,7 +173,7 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
                   className={cn(
                     "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
                     linkType === type
-                      ? "border-[#EB5D2E] bg-[#EB5D2E]/10 text-[#EB5D2E]"
+                      ? "border-[#FF4D15] bg-[#FF4D15]/10 text-[#FF4D15]"
                       : "border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800"
                   )}
                 >
@@ -208,7 +208,7 @@ export function NewConversationDialog({ open, onClose, onCreated }: NewConversat
             Cancel
           </button>
           <button onClick={handleCreate} disabled={creating}
-            className="flex items-center gap-2 rounded-lg bg-[#EB5D2E] px-4 py-2 text-sm font-medium text-white hover:bg-[#d4532a] disabled:opacity-50">
+            className="flex items-center gap-2 rounded-lg bg-[#FF4D15] px-4 py-2 text-sm font-medium text-white hover:bg-[#FF0F0F] disabled:opacity-50">
             {creating && <Loader2 className="h-4 w-4 animate-spin" />}
             Create
           </button>

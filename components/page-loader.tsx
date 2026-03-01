@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Factory } from "lucide-react";
+import { SaltoLogo } from "@/components/salto-logo";
 
 export function PageLoader() {
   return (
@@ -24,13 +24,11 @@ export function PageLoader() {
           className="flex flex-col items-center space-y-3"
         >
           {/* Icon */}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] shadow-lg shadow-[#FF8C1A]/30">
-            <Factory className="h-9 w-9 text-white" />
-          </div>
+          <SaltoLogo size={64} />
 
           {/* App Name */}
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            SourceTrack
+            salto
           </h2>
         </motion.div>
 
@@ -38,7 +36,7 @@ export function PageLoader() {
         <div className="w-64 space-y-2">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-zinc-700">
             <motion.div
-              className="h-full bg-gradient-to-r from-[#F97316] to-[#d4522a]"
+              className="h-full bg-gradient-to-r from-[#FF0F0F] to-[#FFB21A]"
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{

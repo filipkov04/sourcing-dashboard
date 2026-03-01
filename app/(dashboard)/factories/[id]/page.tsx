@@ -312,8 +312,8 @@ export default function FactoryDetailPage() {
             <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Total Orders</p>
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EB5D2E]/10">
-                  <Package className="h-4 w-4 text-[#EB5D2E]" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF4D15]/10">
+                  <Package className="h-4 w-4 text-[#FF4D15]" />
                 </span>
               </div>
               <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={totalOrders} /></p>

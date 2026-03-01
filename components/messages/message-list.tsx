@@ -172,7 +172,7 @@ export function MessageList({
   }
 
   return (
-    <div className="relative flex-1 overflow-hidden">
+    <div className="relative h-full overflow-hidden">
       {/* Scrollable virtualised container */}
       <div ref={parentRef} className="h-full overflow-y-auto px-4">
         <div
@@ -239,8 +239,8 @@ export function MessageList({
           className={cn(
             "absolute bottom-4 left-1/2 -translate-x-1/2 z-10",
             "inline-flex items-center gap-1.5 rounded-full",
-            "bg-gradient-to-br from-[#F97316] to-[#d44a1a] px-4 py-1.5",
-            "text-xs font-medium text-white shadow-lg shadow-[#FF8C1A]/20",
+            "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] px-4 py-1.5",
+            "text-xs font-medium text-white shadow-lg shadow-[#FF4D15]/20",
             "hover:shadow-xl hover:scale-105 transition-all duration-200",
             "animate-in slide-in-from-bottom-2 fade-in duration-200"
           )}

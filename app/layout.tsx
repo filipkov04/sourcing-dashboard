@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SourceTrack - Sourcing Dashboard",
+  title: "Salto - Sourcing Dashboard",
   description: "Real-time production tracking for manufacturing and sourcing",
 };
 

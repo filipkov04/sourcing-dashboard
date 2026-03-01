@@ -322,7 +322,7 @@ export function FactoryGlobe() {
           <h3 className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Factory Locations</h3>
         </div>
         <div className="flex items-center justify-center h-[260px]">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF8C1A]" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF4D15]" />
         </div>
       </div>
     );
@@ -444,7 +444,7 @@ export function FactoryGlobe() {
         <span className="text-[9px] text-gray-400 dark:text-zinc-500 w-5">1x</span>
         <div className="flex-1 h-1 bg-gray-100 dark:bg-zinc-800 rounded-full relative">
           <div
-            className="absolute top-0 left-0 h-full bg-[#FF8C1A]/60 rounded-full transition-all duration-150"
+            className="absolute top-0 left-0 h-full bg-[#FF4D15]/60 rounded-full transition-all duration-150"
             style={{ width: `${((zoom - 1) / 3) * 100}%` }}
           />
         </div>
@@ -456,7 +456,7 @@ export function FactoryGlobe() {
         <div className="mt-3 space-y-1.5">
           {markers.slice(0, 5).map((m, i) => (
             <div key={`${m.label}-${i}`} className="flex items-center gap-2">
-              <MapPin className="h-3 w-3 text-[#eb5d2e] flex-shrink-0" />
+              <MapPin className="h-3 w-3 text-[#FF4D15] flex-shrink-0" />
               <span className="text-xs text-gray-700 dark:text-zinc-300 truncate flex-1">
                 {m.label}
               </span>

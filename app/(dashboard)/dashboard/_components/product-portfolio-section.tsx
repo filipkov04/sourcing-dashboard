@@ -60,7 +60,7 @@ export function ProductPortfolioSection() {
       </div>
       {isLoading ? (
         <div className="h-[140px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF8C1A]" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF4D15]" />
         </div>
       ) : portfolioData.length > 0 ? (
         <>

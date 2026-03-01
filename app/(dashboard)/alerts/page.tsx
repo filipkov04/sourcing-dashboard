@@ -244,7 +244,7 @@ export default function AlertsPage() {
             >
               {/* Unread dot */}
               {!alert.read && (
-                <span className="absolute left-1.5 top-6 h-2 w-2 rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316]" />
+                <span className="absolute left-1.5 top-6 h-2 w-2 rounded-full bg-gradient-to-b from-[#FFB21A] via-[#FF4D15] to-[#FF4D15]" />
               )}
 
               {/* Avatar */}

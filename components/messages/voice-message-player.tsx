@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Play, Pause } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 
 interface VoiceMessagePlayerProps {
   url: string;
@@ -16,172 +16,160 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function VoiceMessagePlayer({ url, isOwn }: VoiceMessagePlayerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const wavesurferRef = useRef<unknown>(null);
+const NUM_BARS = 40;
+
+/**
+ * Generate a deterministic waveform pattern from a URL string.
+ * This gives each voice message a unique-looking waveform.
+ */
+function generateWaveformBars(seed: string): number[] {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+
+  const bars: number[] = [];
+  for (let i = 0; i < NUM_BARS; i++) {
+    // Simple pseudo-random from hash + index
+    hash = ((hash << 5) - hash + i * 7 + 13) | 0;
+    const raw = Math.abs(hash % 100) / 100;
+    // Shape: peak in the middle, taper at edges
+    const position = i / NUM_BARS;
+    const envelope = Math.sin(position * Math.PI) * 0.6 + 0.4;
+    bars.push(0.15 + raw * 0.85 * envelope);
+  }
+  return bars;
+}
+
+export function VoiceMessagePlayer({ url }: VoiceMessagePlayerProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
-  const [speed, setSpeed] = useState(1);
-  const [initialized, setInitialized] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [progress, setProgress] = useState(0);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
-  // Lazy init: only create wavesurfer when scrolled into view
+  const bars = useRef(generateWaveformBars(url)).current;
+
+  // Create audio element
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el || initialized) return;
+    const audio = new Audio(url);
+    audioRef.current = audio;
 
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setInitialized(true);
-          observerRef.current?.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
+    audio.addEventListener("loadedmetadata", () => {
+      if (isFinite(audio.duration)) {
+        setTotalDuration(audio.duration);
+        setReady(true);
+      }
+    });
 
-    observerRef.current.observe(el);
+    audio.addEventListener("durationchange", () => {
+      if (isFinite(audio.duration)) {
+        setTotalDuration(audio.duration);
+        setReady(true);
+      }
+    });
+
+    audio.addEventListener("canplaythrough", () => {
+      setReady(true);
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      setCurrentTime(audio.currentTime);
+      if (audio.duration && isFinite(audio.duration)) {
+        setProgress(audio.currentTime / audio.duration);
+      }
+    });
+
+    audio.addEventListener("ended", () => {
+      setPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+    });
 
     return () => {
-      observerRef.current?.disconnect();
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
     };
-  }, [initialized]);
-
-  // Create wavesurfer instance when initialized
-  useEffect(() => {
-    if (!initialized || !containerRef.current) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let ws: any = null;
-
-    async function init() {
-      try {
-        const WaveSurfer = (await import("wavesurfer.js")).default;
-        if (!containerRef.current) return;
-
-        ws = WaveSurfer.create({
-          container: containerRef.current,
-          barWidth: 2,
-          barGap: 2,
-          barRadius: 2,
-          waveColor: isOwn ? "rgba(255,255,255,0.5)" : "#71717a",
-          progressColor: isOwn ? "#ffffff" : "#F97316",
-          cursorWidth: 0,
-          height: 32,
-          normalize: true,
-          interact: true,
-        });
-
-        ws.on("ready", (dur: number) => {
-          setReady(true);
-          setTotalDuration(dur);
-        });
-
-        ws.on("timeupdate", (time: number) => {
-          setCurrentTime(time);
-        });
-
-        ws.on("finish", () => {
-          setPlaying(false);
-        });
-
-        ws.load(url);
-        wavesurferRef.current = ws;
-      } catch (err) {
-        console.error("WaveSurfer init error:", err);
-      }
-    }
-
-    init();
-
-    return () => {
-      if (ws) {
-        ws.destroy();
-        wavesurferRef.current = null;
-      }
-    };
-  }, [initialized, url, isOwn]);
+  }, [url]);
 
   const togglePlay = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ws = wavesurferRef.current as any;
-    if (!ws || !ready) return;
-    ws.playPause();
-    setPlaying((p) => !p);
-  }, [ready]);
+    const audio = audioRef.current;
+    if (!audio || !ready) return;
 
-  const cycleSpeed = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ws = wavesurferRef.current as any;
-    if (!ws) return;
-    const next = speed === 1 ? 1.5 : speed === 1.5 ? 2 : 1;
-    setSpeed(next);
-    ws.setPlaybackRate(next);
-  }, [speed]);
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    }
+  }, [ready, playing]);
+
+  // Click on waveform to seek
+  const handleBarClick = useCallback(
+    (index: number) => {
+      const audio = audioRef.current;
+      if (!audio || !ready || !totalDuration) return;
+      const seekTo = (index / NUM_BARS) * totalDuration;
+      audio.currentTime = seekTo;
+      setCurrentTime(seekTo);
+      setProgress(seekTo / totalDuration);
+    },
+    [ready, totalDuration]
+  );
+
+  const playedBars = Math.floor(progress * NUM_BARS);
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 rounded-lg px-3 py-2 min-w-[200px]",
-        isOwn ? "bg-white/10" : "bg-gray-100 dark:bg-zinc-700/50"
-      )}
-    >
+    <div className="flex items-center gap-3 rounded-2xl bg-gray-100 dark:bg-[#1c1c1e] px-4 py-3 min-w-[240px] max-w-[320px]">
       {/* Play/Pause */}
       <button
         onClick={togglePlay}
         disabled={!ready}
-        className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors",
-          isOwn
-            ? "bg-white/20 text-white hover:bg-white/30"
-            : "bg-[#F97316]/10 text-[#F97316] hover:bg-[#F97316]/20"
-        )}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-900 dark:text-white transition-opacity hover:opacity-80 disabled:opacity-40"
       >
-        {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 ml-0.5" />}
+        {playing ? (
+          <Pause className="h-5 w-5" fill="currentColor" />
+        ) : (
+          <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+        )}
       </button>
 
-      {/* Waveform container */}
-      <div ref={containerRef} className="flex-1 min-w-[100px]">
-        {!initialized && (
-          <div className="flex items-center gap-[3px] h-8">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "w-[2px] rounded-full",
-                  isOwn ? "bg-white/30" : "bg-gray-300 dark:bg-zinc-600"
-                )}
-                style={{ height: `${8 + Math.sin(i * 0.5) * 12}px` }}
-              />
-            ))}
-          </div>
-        )}
+      {/* Waveform bars */}
+      <div className="flex flex-1 items-end gap-[2px] h-9 cursor-pointer">
+        {bars.map((amplitude, i) => {
+          const isPlayed = i < playedBars;
+          const height = Math.max(3, amplitude * 32);
+
+          return (
+            <div
+              key={i}
+              onClick={() => handleBarClick(i)}
+              className="w-[3px] shrink-0 rounded-full transition-colors duration-100"
+              style={{
+                height: `${height}px`,
+                backgroundColor: isPlayed
+                  ? isDark
+                    ? "#ffffff"
+                    : "#18181b"
+                  : isDark
+                    ? "rgba(255,255,255,0.3)"
+                    : "rgba(0,0,0,0.2)",
+              }}
+            />
+          );
+        })}
       </div>
 
-      {/* Duration + Speed */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span
-          className={cn(
-            "text-[10px] tabular-nums",
-            isOwn ? "text-white/70" : "text-gray-500 dark:text-zinc-400"
-          )}
-        >
-          {ready ? formatDuration(playing ? currentTime : totalDuration) : "0:00"}
-        </span>
-        <button
-          onClick={cycleSpeed}
-          className={cn(
-            "rounded px-1 py-0.5 text-[9px] font-bold transition-colors",
-            isOwn
-              ? "bg-white/15 text-white/80 hover:bg-white/25"
-              : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-500"
-          )}
-        >
-          {speed}x
-        </button>
-      </div>
+      {/* Duration */}
+      <span className="shrink-0 text-[13px] font-medium tabular-nums text-zinc-500 dark:text-white/70">
+        {ready
+          ? formatDuration(playing ? currentTime : totalDuration)
+          : "0:00"}
+      </span>
     </div>
   );
 }

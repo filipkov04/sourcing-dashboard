@@ -24,7 +24,6 @@ import { ConversationSearchBar, GlobalSearchPanel } from "./search-panel";
 import { ForwardDialog } from "./forward-dialog";
 import { NewDMDialog } from "./new-dm-dialog";
 import { MediaLightbox } from "./media-lightbox";
-import { EmojiPickerPopover } from "./emoji-picker-popover";
 import { VoiceRecorderUI } from "./voice-recorder-ui";
 
 type RightPanel = "none" | "thread" | "search";
@@ -47,7 +46,6 @@ export function MessagesPage() {
   const [showConversationSearch, setShowConversationSearch] = useState(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [mobileView, setMobileView] = useState<"sidebar" | "chat">("sidebar");
 
   // Typing state
@@ -238,17 +236,13 @@ export function MessagesPage() {
     }
   }, [selectedConversationId, refreshChat, refreshConversations]);
 
-  const handleEmojiFromPicker = useCallback((emoji: string) => {
-    // This is handled by the message input component via ref
-    setShowEmojiPicker(false);
-  }, []);
 
   // ─── Render ───
 
   const messages = conversation?.messages ?? [];
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-hidden">
       {/* LEFT: Conversation Sidebar */}
       <div
         className={cn(
@@ -298,7 +292,7 @@ export function MessagesPage() {
             )}
 
             {/* Messages */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <MessageList
                 messages={messages}
                 currentUserId={currentUserId}
@@ -326,7 +320,6 @@ export function MessagesPage() {
                 <MessageInput
                   onSend={handleSendMessage}
                   onTyping={reportTyping}
-                  onEmojiClick={() => setShowEmojiPicker((p) => !p)}
                   onVoiceRecord={() => setShowVoiceRecorder(true)}
                   editingMessage={editingMessage}
                   onEditCancel={() => setEditingMessage(null)}
@@ -351,7 +344,7 @@ export function MessagesPage() {
             </p>
             <button
               onClick={() => setShowNewDM(true)}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#F97316] to-[#d44a1a] px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md transition-shadow"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-[#FF4D15]/20 hover:shadow-md transition-shadow"
             >
               New message
             </button>

@@ -63,7 +63,7 @@ type Factory = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  DELAYED: "bg-orange-50 text-[#F97316] dark:bg-orange-900/20 dark:text-[#F97316]",
+  DELAYED: "bg-orange-50 text-[#FF4D15] dark:bg-orange-900/20 dark:text-[#FF4D15]",
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
   SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
@@ -479,7 +479,7 @@ export default function OrdersPage() {
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-x-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C1A]" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D15]" />
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">
@@ -554,7 +554,7 @@ export default function OrdersPage() {
                     </TableCell>
                   )}
                   <TableCell>
-                    <span className="font-medium text-[#F97316]">
+                    <span className="font-medium text-[#FF4D15]">
                       {order.orderNumber}
                     </span>
                   </TableCell>

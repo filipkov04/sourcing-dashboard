@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, Factory, MessageSquare, Pin, Users, Headphones } from "lucide-react";
+import { Search, Plus, Factory, MessageSquare, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SourcyAvatar } from "@/components/chat/sourcy-avatar";
-import type { Conversation, ConversationType } from "@/lib/use-conversations";
+import type { Conversation } from "@/lib/use-conversations";
 import type { PresenceStatus } from "@/lib/use-presence";
 
 /* ─── Helpers ─── */
@@ -40,17 +40,6 @@ const presenceDotColor: Record<PresenceStatus, string> = {
   offline: "bg-gray-400 dark:bg-zinc-500",
 };
 
-/* ─── Filter tabs ─── */
-
-type FilterTab = "ALL" | "DIRECT" | "FACTORY" | "SUPPORT";
-
-const FILTER_TABS: { key: FilterTab; label: string }[] = [
-  { key: "ALL", label: "All" },
-  { key: "DIRECT", label: "Direct" },
-  { key: "FACTORY", label: "Factory" },
-  { key: "SUPPORT", label: "Support" },
-];
-
 /* ─── Props ─── */
 
 interface ConversationSidebarProps {
@@ -75,15 +64,9 @@ export function ConversationSidebar({
   currentUserId,
 }: ConversationSidebarProps) {
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<FilterTab>("ALL");
 
-  // Filter conversations by tab and search
+  // Filter conversations by search
   const filtered = conversations.filter((conv) => {
-    // Tab filter
-    if (activeTab !== "ALL" && conv.type !== (activeTab as ConversationType)) {
-      return false;
-    }
-    // Search filter
     if (search.trim()) {
       const q = search.toLowerCase();
       const matchesSubject = conv.subject?.toLowerCase().includes(q);
@@ -139,8 +122,8 @@ export function ConversationSidebar({
           "flex w-full gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150",
           "hover:bg-gray-50 dark:hover:bg-zinc-800/50",
           "active:scale-[0.99]",
-          isSelected && "bg-[#F97316]/10 border-l-2 border-[#F97316] rounded-l-none",
-          !isSelected && conv.unreadCount > 0 && "bg-[#FF8C1A]/[0.03] dark:bg-[#FF8C1A]/[0.03]"
+          isSelected && "bg-[#FF4D15]/10 border-l-2 border-[#FF4D15] rounded-l-none",
+          !isSelected && conv.unreadCount > 0 && "bg-[#FF4D15]/[0.03] dark:bg-[#FF4D15]/[0.03]"
         )}
       >
         {/* Avatar */}
@@ -148,7 +131,7 @@ export function ConversationSidebar({
           <div className="relative mt-0.5 shrink-0">
             <SourcyAvatar size="lg" />
             {conv.unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
                 {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
               </span>
             )}
@@ -157,7 +140,7 @@ export function ConversationSidebar({
           <div className="relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 dark:bg-zinc-700">
             <Factory className="h-3.5 w-3.5 text-white" />
             {conv.unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
                 {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
               </span>
             )}
@@ -178,7 +161,7 @@ export function ConversationSidebar({
               />
             )}
             {conv.unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
                 {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
               </span>
             )}
@@ -199,7 +182,7 @@ export function ConversationSidebar({
               />
             )}
             {conv.unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-zinc-900">
                 {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
               </span>
             )}
@@ -235,7 +218,7 @@ export function ConversationSidebar({
               {conv.lastMessage.sender?.name ? (
                 <span className="font-medium">{conv.lastMessage.sender.name}: </span>
               ) : conv.lastMessage.messageType === "BOT" ? (
-                <span className="font-medium text-[#F97316]/80">Sourcy: </span>
+                <span className="font-medium text-[#FF4D15]/80">Sourcy: </span>
               ) : null}
               {conv.lastMessage.content}
             </p>
@@ -252,7 +235,7 @@ export function ConversationSidebar({
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Messages</h2>
         <button
           onClick={onNewDM}
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105 transition-all duration-200"
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white shadow-sm shadow-[#FF4D15]/20 hover:shadow-md hover:scale-105 transition-all duration-200"
           title="New message"
         >
           <Plus className="h-4 w-4" />
@@ -268,27 +251,9 @@ export function ConversationSidebar({
             placeholder="Search conversations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400 transition-colors"
           />
         </div>
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex gap-1 px-3 pb-2">
-        {FILTER_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-              activeTab === tab.key
-                ? "bg-[#F97316]/10 text-[#F97316]"
-                : "text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {/* Conversation list */}
@@ -325,7 +290,7 @@ export function ConversationSidebar({
             {!search && (
               <button
                 onClick={onNewDM}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-4 py-2 text-xs font-medium text-white hover:brightness-90 transition-colors shadow-sm shadow-[#FF8C1A]/20"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-4 py-2 text-xs font-medium text-white hover:brightness-90 transition-colors shadow-sm shadow-[#FF4D15]/20"
               >
                 <Plus className="h-3 w-3" />
                 New message

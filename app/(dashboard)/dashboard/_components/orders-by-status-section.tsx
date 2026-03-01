@@ -64,7 +64,7 @@ export function OrdersByStatusSection() {
       </div>
       {isLoading ? (
         <div className="h-[180px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF8C1A]" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF4D15]" />
         </div>
       ) : statusData.length > 0 ? (
         <div ref={chartRef}>

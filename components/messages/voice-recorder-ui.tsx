@@ -83,23 +83,15 @@ export function VoiceRecorderUI({ onSend, onCancel }: VoiceRecorderUIProps) {
         <X className="h-4 w-4" />
       </button>
 
-      {/* Waveform visualization */}
-      <div className="flex flex-1 items-center gap-[2px] h-8 overflow-hidden">
+      {/* Waveform visualization — scrolling bars */}
+      <div className="flex flex-1 items-end gap-[2px] h-10 overflow-hidden">
         {waveformData.map((bar, i) => (
           <div
             key={i}
-            className="w-[3px] rounded-full bg-red-400 dark:bg-red-500 transition-all duration-75"
-            style={{ height: `${Math.max(4, bar * 32)}px` }}
+            className="w-[3px] shrink-0 rounded-full bg-red-400 dark:bg-red-400"
+            style={{ height: `${Math.max(3, bar * 36)}px` }}
           />
         ))}
-        {/* Fill remaining space with idle bars */}
-        {waveformData.length < 32 &&
-          Array.from({ length: 32 - waveformData.length }).map((_, i) => (
-            <div
-              key={`idle-${i}`}
-              className="w-[3px] h-1 rounded-full bg-red-200 dark:bg-red-800"
-            />
-          ))}
       </div>
 
       {/* Duration */}
@@ -117,7 +109,7 @@ export function VoiceRecorderUI({ onSend, onCancel }: VoiceRecorderUIProps) {
         className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
           isRecording
-            ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
+            ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white shadow-sm shadow-[#FF4D15]/20 hover:shadow-md hover:scale-105"
             : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
         )}
       >

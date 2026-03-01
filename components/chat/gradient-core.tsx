@@ -26,7 +26,7 @@ export function GradientCore({ size = "md", className }: GradientCoreProps) {
       <div
         className={cn("absolute rounded-full opacity-25", blobSizeMap[size])}
         style={{
-          background: "radial-gradient(ellipse at 40% 45%, rgba(235,93,46,0.5), rgba(249,115,22,0.3) 50%, transparent 70%)",
+          background: "radial-gradient(ellipse at 40% 45%, rgba(255,77,21,0.5), rgba(249,115,22,0.3) 50%, transparent 70%)",
           filter: size === "sm" ? "blur(2px)" : size === "md" ? "blur(3px)" : "blur(4px)",
           animation: "gradient-breathe 8s ease-in-out infinite",
         }}
@@ -59,7 +59,7 @@ export function GradientCore({ size = "md", className }: GradientCoreProps) {
           height: size === "sm" ? "16px" : size === "md" ? "30px" : "42px",
           borderRadius: "55% 45% 52% 48% / 45% 55% 45% 55%",
           background: `
-            radial-gradient(ellipse at 45% 50%, rgba(235,93,46,0.95) 0%, rgba(249,115,22,0.6) 45%, transparent 70%)
+            radial-gradient(ellipse at 45% 50%, rgba(255,77,21,0.95) 0%, rgba(249,115,22,0.6) 45%, transparent 70%)
           `,
           filter: size === "sm" ? "blur(1px)" : size === "md" ? "blur(1px)" : "blur(2px)",
           animation: "gradient-breathe-reverse 8s ease-in-out infinite",

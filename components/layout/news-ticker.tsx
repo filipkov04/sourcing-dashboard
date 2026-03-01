@@ -117,7 +117,7 @@ export function NewsTicker({ onVisibilityChange }: NewsTickerProps) {
   return (
     <div
       ref={barRef}
-      className={`fixed left-0 right-0 top-0 z-50 flex h-9 items-center justify-center gap-3 border-b border-[#d4501f] bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] px-4 text-white transition-transform duration-300 ease-out ${
+      className={`fixed left-0 right-0 top-0 z-50 flex h-9 items-center justify-center gap-3 border-b border-[#d4501f] bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] px-4 text-white transition-transform duration-300 ease-out ${
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
       onMouseEnter={handleBarMouseEnter}

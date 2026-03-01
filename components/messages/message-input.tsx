@@ -19,6 +19,7 @@ import {
   CHAT_MAX_FILE_SIZE,
 } from "@/lib/chat-constants";
 import type { Message } from "@/lib/use-conversations";
+import { EmojiPickerPopover } from "./emoji-picker-popover";
 
 /* ─── Helpers ─── */
 
@@ -44,7 +45,6 @@ function getFileIcon(type: string) {
 interface MessageInputProps {
   onSend: (content: string, files: File[]) => void;
   onTyping: () => void;
-  onEmojiClick: () => void;
   onVoiceRecord: () => void;
   editingMessage: Message | null;
   onEditCancel: () => void;
@@ -57,7 +57,6 @@ interface MessageInputProps {
 export function MessageInput({
   onSend,
   onTyping,
-  onEmojiClick,
   onVoiceRecord,
   editingMessage,
   onEditCancel,
@@ -191,17 +190,17 @@ export function MessageInput({
     >
       {/* Drag overlay */}
       {dragging && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-[#FF8C1A] bg-[#FF8C1A]/10">
-          <p className="text-sm font-medium text-[#F97316]">Drop files here</p>
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-[#FF4D15] bg-[#FF4D15]/10">
+          <p className="text-sm font-medium text-[#FF4D15]">Drop files here</p>
         </div>
       )}
 
       {/* Edit banner */}
       {editingMessage && (
-        <div className="flex items-center justify-between bg-[#F97316]/5 border-b border-[#F97316]/20 px-4 py-2">
+        <div className="flex items-center justify-between bg-[#FF4D15]/5 border-b border-[#FF4D15]/20 px-4 py-2">
           <div className="flex items-center gap-2">
-            <div className="h-4 w-0.5 rounded-full bg-[#F97316]" />
-            <span className="text-xs font-medium text-[#F97316]">Editing message</span>
+            <div className="h-4 w-0.5 rounded-full bg-[#FF4D15]" />
+            <span className="text-xs font-medium text-[#FF4D15]">Editing message</span>
           </div>
           <button
             onClick={onEditCancel}
@@ -253,7 +252,7 @@ export function MessageInput({
       )}
 
       {/* Input row */}
-      <div className="flex items-end gap-2 px-4 py-3">
+      <div className="flex items-center gap-2 px-4 py-3">
         {/* Attachment button */}
         <button
           onClick={() => fileInputRef.current?.click()}
@@ -284,7 +283,7 @@ export function MessageInput({
             disabled={disabled}
             className={cn(
               "w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400",
-              "focus:border-[#FF8C1A] focus:outline-none focus:ring-1 focus:ring-[#FF8C1A]/20",
+              "focus:border-[#FF4D15] focus:outline-none focus:ring-1 focus:ring-[#FF4D15]/20",
               "dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-400",
               "transition-colors disabled:opacity-50"
             )}
@@ -305,15 +304,22 @@ export function MessageInput({
           )}
         </div>
 
-        {/* Emoji button */}
-        <button
-          onClick={onEmojiClick}
-          disabled={disabled}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors disabled:opacity-40"
-          title="Add emoji"
+        {/* Emoji picker */}
+        <EmojiPickerPopover
+          onSelect={(emoji) => {
+            setContent((prev) => prev + emoji);
+            textareaRef.current?.focus();
+          }}
         >
-          <Smile className="h-4 w-4" />
-        </button>
+          <button
+            type="button"
+            disabled={disabled}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors disabled:opacity-40"
+            title="Add emoji"
+          >
+            <Smile className="h-4 w-4" />
+          </button>
+        </EmojiPickerPopover>
 
         {/* Mic button */}
         {!editingMessage && (
@@ -334,7 +340,7 @@ export function MessageInput({
           className={cn(
             "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
             canSend
-              ? "bg-gradient-to-br from-[#F97316] to-[#d44a1a] text-white shadow-sm shadow-[#FF8C1A]/20 hover:shadow-md hover:scale-105"
+              ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white shadow-sm shadow-[#FF4D15]/20 hover:shadow-md hover:scale-105"
               : "bg-gray-100 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500"
           )}
           title={editingMessage ? "Save edit" : "Send message"}

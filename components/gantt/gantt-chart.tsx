@@ -287,7 +287,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
           >
             {preset.label}
             {currentPresetIndex === i && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-gradient-to-b from-[#FFA53A] via-[#FF8C1A] to-[#F97316] rounded-full" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-0.5 bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] rounded-full" />
             )}
           </button>
         ))}
