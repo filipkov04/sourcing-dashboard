@@ -53,6 +53,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { useBreadcrumb } from "@/lib/breadcrumb-context";
 import {
   DndContext,
   closestCenter,
@@ -229,6 +230,7 @@ export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const { setDetail } = useBreadcrumb();
   const isAdminOrOwner = session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -296,6 +298,7 @@ export default function OrderDetailPage() {
 
         if (data.success) {
           setOrder(data.data);
+          setDetail(`${data.data.orderNumber} — ${data.data.productName}`);
         }
       } catch (err) {
         setError("Failed to load order");
@@ -307,7 +310,7 @@ export default function OrderDetailPage() {
     if (params.id) {
       fetchOrder();
     }
-  }, [params.id]);
+  }, [params.id, setDetail]);
 
   // Fetch admin notes for all stages (visible to everyone as updates)
   useEffect(() => {

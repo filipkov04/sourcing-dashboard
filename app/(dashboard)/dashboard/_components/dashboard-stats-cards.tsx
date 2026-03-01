@@ -283,11 +283,15 @@ export function DashboardStatsCards() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 animate-pulse"
-              style={{ minHeight: "120px" }}
+              className="rounded-xl border border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)] animate-pulse"
             >
-              <div className="h-3 w-20 bg-gray-100 dark:bg-zinc-800 rounded" />
-              <div className="mt-3 h-8 w-16 bg-gray-100 dark:bg-zinc-800 rounded" />
+              <div className="px-5 pt-4 pb-3">
+                <div className="h-3 w-20 bg-gray-100 dark:bg-zinc-800 rounded" />
+              </div>
+              <div className="mx-4 h-px bg-gray-100 dark:bg-zinc-800" />
+              <div className="px-5 pt-4 pb-5">
+                <div className="h-9 w-16 bg-gray-100 dark:bg-zinc-800 rounded" />
+              </div>
             </div>
           ))}
         </div>
@@ -296,53 +300,68 @@ export function DashboardStatsCards() {
           {statsCards.map((stat, index) => (
             <div
               key={index}
-              className={`group relative rounded-lg border p-6 shadow-sm transition-all card-hover-glow ${
+              className={`group relative rounded-xl border transition-all ${
                 stat.highlight
-                  ? "bg-red-50/50 border-red-100 dark:bg-red-950/20 dark:border-red-900/30"
-                  : "bg-white border-gray-100 dark:bg-zinc-900 dark:border-zinc-800"
+                  ? "border-red-200/60 bg-white shadow-[0_1px_3px_rgba(255,77,21,0.06)] dark:border-red-900/30 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(255,77,21,0.1)]"
+                  : "border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_2px_12px_rgba(0,0,0,0.4)]"
               }`}
-              style={{ minHeight: "120px" }}
             >
-              <div className="flex items-start justify-between">
-                <p className={`text-[13px] font-medium tracking-wide uppercase ${stat.highlight ? "text-[#FF4D15] dark:text-[#FF4D15]" : "text-gray-400 dark:text-zinc-500"}`}>
+              {/* Header Zone */}
+              <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                <p className={`text-[11px] font-semibold tracking-[0.08em] uppercase ${
+                  stat.highlight ? "text-[#FF4D15]" : "text-gray-400 dark:text-zinc-500"
+                }`}>
                   {stat.label}
                 </p>
                 <stat.icon
-                  className={`h-5 w-5 ${stat.highlight ? "text-[#FF4D15] dark:text-[#FF4D15]" : "text-gray-300 dark:text-zinc-600"}`}
-                  strokeWidth={2}
+                  className={`h-4 w-4 ${stat.highlight ? "text-[#FF4D15]/60" : "text-gray-300 dark:text-zinc-700"}`}
+                  strokeWidth={1.5}
                 />
               </div>
-              <div className="mt-3 flex items-end justify-between">
-                <div>
-                  <p className={`text-3xl font-bold leading-none ${stat.highlight ? "text-[#FF4D15] dark:text-[#FF4D15]" : "text-gray-800 dark:text-white"}`}>
-                    <AnimatedNumber value={stat.value} />
-                  </p>
-                  <div className="mt-2 flex items-center gap-1">
-                    {stat.trend !== undefined && stat.trend !== 0 && (
-                      <span
-                        className={`text-xs font-medium ${
-                          stat.trend > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        }`}
-                      >
-                        {stat.trend > 0 ? "\u25B2" : "\u25BC"} {Math.abs(stat.trend)}%
-                      </span>
-                    )}
-                    {stat.trend !== undefined && stat.trend !== 0 && (
-                      <span className="text-[11px] text-gray-400 dark:text-zinc-500">
-                        from last period
-                      </span>
-                    )}
+
+              {/* Architectural divider */}
+              <div className={`mx-4 h-px ${
+                stat.highlight
+                  ? "bg-red-200/40 dark:bg-red-900/20"
+                  : "bg-gray-100 dark:bg-zinc-800"
+              }`} />
+
+              {/* Metric Zone */}
+              <div className="px-5 pt-4 pb-5">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className={`text-[36px] font-bold leading-none tracking-tight ${
+                      stat.highlight ? "text-[#FF4D15]" : "text-gray-900 dark:text-white"
+                    }`}>
+                      <AnimatedNumber value={stat.value} />
+                    </p>
+                    <div className="mt-2.5 flex items-center gap-1.5">
+                      {stat.trend !== undefined && stat.trend !== 0 && (
+                        <span
+                          className={`text-xs font-medium ${
+                            stat.trend > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                          }`}
+                        >
+                          {stat.trend > 0 ? "\u25B2" : "\u25BC"} {Math.abs(stat.trend)}%
+                        </span>
+                      )}
+                      {stat.trend !== undefined && stat.trend !== 0 && (
+                        <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+                          from last period
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {stat.sparkline && (
+                    <Sparkline data={stat.sparkline} color={stat.sparkColor} />
+                  )}
                 </div>
-                {stat.sparkline && (
-                  <Sparkline data={stat.sparkline} color={stat.sparkColor} />
+                {stat.subtitle && (
+                  <p className={`mt-2 text-xs font-medium ${stat.subtitleColor}`}>
+                    {stat.subtitle}
+                  </p>
                 )}
               </div>
-              {stat.subtitle && (
-                <p className={`mt-2 text-xs font-medium ${stat.subtitleColor}`}>
-                  {stat.subtitle}
-                </p>
-              )}
             </div>
           ))}
         </div>

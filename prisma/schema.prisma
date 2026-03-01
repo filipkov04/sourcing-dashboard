@@ -20,6 +20,7 @@ model User {
   name          String?
   password      String?      // hashed with bcrypt
   image         String?
+  avatarId      String?      // preset avatar: "avatar-1" through "avatar-7"
   role          UserRole     @default(MEMBER)
 
   // Relations

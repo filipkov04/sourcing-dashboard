@@ -39,6 +39,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { useBreadcrumb } from "@/lib/breadcrumb-context";
 
 type OrderStage = {
   id: string;
@@ -107,6 +108,7 @@ export default function FactoryDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const { setDetail } = useBreadcrumb();
   const isAdminOrOwner = session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
   const [factory, setFactory] = useState<Factory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,6 +131,7 @@ export default function FactoryDetailPage() {
 
         if (data.success) {
           setFactory(data.data);
+          setDetail(data.data.name);
         }
       } catch (err) {
         setError("Failed to load factory");
@@ -140,7 +143,7 @@ export default function FactoryDetailPage() {
     if (params.id) {
       fetchFactory();
     }
-  }, [params.id]);
+  }, [params.id, setDetail]);
 
   const handleDeleteClick = () => {
     setDeleteError(null);

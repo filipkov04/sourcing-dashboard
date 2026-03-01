@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, Plus, Package, Upload, X } from "lucide-react";
 import { SortableStageList } from "@/components/sortable-stage-list";
+import { useBreadcrumb } from "@/lib/breadcrumb-context";
 
 type Factory = {
   id: string;
@@ -49,6 +50,7 @@ const defaultStages = [
 export default function EditOrderPage() {
   const params = useParams();
   const router = useRouter();
+  const { setDetail } = useBreadcrumb();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState("");
@@ -105,6 +107,7 @@ export default function EditOrderPage() {
 
         if (data.success) {
           const order = data.data;
+          setDetail(`${order.orderNumber} — ${order.productName}`);
           setOrderNumber(order.orderNumber);
           setProductName(order.productName);
           setProductSKU(order.productSKU || "");
@@ -139,7 +142,7 @@ export default function EditOrderPage() {
     if (params.id) {
       fetchOrder();
     }
-  }, [params.id]);
+  }, [params.id, setDetail]);
 
   const addStage = () => {
     const newSequence = stages.length + 1;

@@ -1,28 +1,16 @@
 "use client";
 
-import { Bell, User, LogOut, Menu, CheckCheck } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { Bell, Menu, CheckCheck } from "lucide-react";
+import { BreadcrumbNav } from "./breadcrumb-nav";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useUnreadCount, useRecentAlerts, markAlertRead, markAllRead, type Alert } from "@/lib/use-alerts";
-
-function getInitials(name: string | null | undefined): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 function severityEmoji(severity: Alert["severity"]) {
   switch (severity) {
@@ -51,20 +39,13 @@ function formatTimestamp(dateStr: string) {
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  onToggleSidebar?: () => void;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
-  const { data: session } = useSession();
+export function Header({ onMenuClick, onToggleSidebar }: HeaderProps) {
   const router = useRouter();
   const { count: unreadCount, refresh: refreshCount } = useUnreadCount();
   const { alerts, refresh: refreshAlerts } = useRecentAlerts(5);
-
-  const user = {
-    name: session?.user?.name || "User",
-    email: session?.user?.email || "",
-    initials: getInitials(session?.user?.name),
-    orgName: session?.user?.organizationName || "",
-  };
 
   const handleViewOrder = async (e: React.MouseEvent, alert: Alert) => {
     e.stopPropagation();
@@ -92,7 +73,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-sm px-4 sm:px-6 dark:border-zinc-800 dark:bg-zinc-900/80">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-sm px-4 sm:px-6 dark:border-zinc-800 dark:bg-[#0C0E12]/80 dark:backdrop-blur-sm">
       {/* Left side - Mobile menu + Search */}
       <div className="flex flex-1 items-center gap-2 sm:gap-4">
         {/* Mobile menu button */}
@@ -103,6 +84,8 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Menu className="h-5 w-5" />
         </button>
 
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNav onToggleSidebar={onToggleSidebar} />
       </div>
 
       {/* Right side */}
@@ -208,37 +191,6 @@ export function Header({ onMenuClick }: HeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button suppressHydrationWarning className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-zinc-800">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#FF0F0F] via-[#FF6B15] to-[#FFB21A] text-sm font-semibold text-white">
-                {user.initials}
-              </div>
-              <div className="hidden text-left sm:block">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
-                <p className="text-xs text-gray-500 dark:text-zinc-400">{user.email}</p>
-              </div>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-red-600 cursor-pointer"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );

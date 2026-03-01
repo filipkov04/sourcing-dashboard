@@ -46,6 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           organizationId: user.organizationId,
           organizationName: user.organization.name,
+          avatarId: user.avatarId,
         };
       },
     }),
@@ -57,18 +58,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.organizationId = user.organizationId;
         token.organizationName = user.organizationName;
+        token.avatarId = user.avatarId ?? null;
       }
       // Always refresh role and org from DB so changes take effect without re-login
       if (token.id) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { role: true, organizationId: true, organization: { select: { name: true } } },
+            select: { role: true, organizationId: true, avatarId: true, organization: { select: { name: true } } },
           });
           if (dbUser) {
             token.role = dbUser.role;
             token.organizationId = dbUser.organizationId;
             token.organizationName = dbUser.organization.name;
+            token.avatarId = dbUser.avatarId ?? null;
           }
         } catch {
           // DB unavailable — keep existing token values rather than breaking the session
@@ -82,6 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as string;
         session.user.organizationId = token.organizationId as string;
         session.user.organizationName = token.organizationName as string;
+        session.user.avatarId = token.avatarId as string | null;
       }
       return session;
     },
