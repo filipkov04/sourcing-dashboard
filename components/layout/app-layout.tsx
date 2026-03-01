@@ -30,8 +30,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <RealtimeProvider>
     <div className="relative h-screen overflow-hidden bg-white dark:bg-[#0C0E12]">
       {/* Dark mode cinematic background layers */}
-      <div className="dark-glow-layer" aria-hidden="true" />
-      <div className="dark-noise-layer" aria-hidden="true" />
+      <div className="glow-layer" aria-hidden="true" />
+      <div className="noise-layer" aria-hidden="true" />
 
       {/* News Ticker — full width overlay at top, reveals on hover */}
       <NewsTicker onVisibilityChange={handleTickerVisibility} />
