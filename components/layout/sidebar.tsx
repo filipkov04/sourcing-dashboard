@@ -21,6 +21,7 @@ import {
 import { SaltoLogo } from "@/components/salto-logo";
 import { signOut, useSession } from "next-auth/react";
 import { useMessageUnreadCount } from "@/lib/use-conversations";
+import { useProfilePanel } from "@/lib/profile-panel-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +64,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose, collapsed = false }
   const pathname = usePathname();
   const { data: session, update: updateSession } = useSession();
   const { count: unreadMessageCount } = useMessageUnreadCount();
+  const profilePanel = useProfilePanel();
   const [localAvatarId, setLocalAvatarId] = useState<string | null | undefined>(undefined);
 
   const avatarId = localAvatarId !== undefined ? localAvatarId : session?.user?.avatarId ?? null;
@@ -209,7 +211,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose, collapsed = false }
               <DropdownMenuSeparator />
               <AvatarPicker currentAvatarId={avatarId} onSelect={handleAvatarSelect} />
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => profilePanel.open()}>
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>

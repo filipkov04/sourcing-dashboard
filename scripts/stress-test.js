@@ -72,6 +72,10 @@ const tests = [
   { name: 'Presence API', path: '/api/presence?userIds=test', expectedStatus: [200, 307, 401] },
   { name: 'Presence Manual Override', path: '/api/presence/manual', expectedStatus: [307, 401, 405] },
 
+  // Profile
+  { name: 'Profile Stats API', path: '/api/user/profile-stats', expectedStatus: [200, 307, 401] },
+  { name: 'Profile Update API', path: '/api/user/profile', expectedStatus: [307, 401, 405] },
+
   // Notification Settings
   { name: 'Settings Page', path: '/settings', expectedStatus: [200, 302, 307] },
   { name: 'Notification Prefs API', path: '/api/settings/notifications', expectedStatus: [200, 307, 401] },

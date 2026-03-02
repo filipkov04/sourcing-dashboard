@@ -65,9 +65,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { role: true, organizationId: true, avatarId: true, organization: { select: { name: true } } },
+            select: { name: true, role: true, organizationId: true, avatarId: true, organization: { select: { name: true } } },
           });
           if (dbUser) {
+            token.name = dbUser.name;
             token.role = dbUser.role;
             token.organizationId = dbUser.organizationId;
             token.organizationName = dbUser.organization.name;

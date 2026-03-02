@@ -10,8 +10,10 @@ import { ChatWidget } from "@/components/chat/chat-widget";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { RealtimeProvider } from "@/components/providers/realtime-provider";
 import { BreadcrumbProvider } from "@/lib/breadcrumb-context";
+import { ProfilePanelProvider } from "@/lib/profile-panel-context";
+import { ProfilePanel } from "@/components/profile/profile-panel";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -26,8 +28,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <BreadcrumbProvider>
-    <RealtimeProvider>
     <div className="relative h-screen overflow-hidden bg-white dark:bg-[#0C0E12]">
       {/* Dark mode cinematic background layers */}
       <div className="glow-layer" aria-hidden="true" />
@@ -54,12 +54,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {isMessagesPage ? children : <PageTransition>{children}</PageTransition>}
           </main>
         </div>
+
       </div>
 
       {/* Floating Chat Widget — hidden on /messages to avoid duplicate UI */}
       {!isMessagesPage && <ChatWidget />}
+
+      {/* Profile Modal */}
+      <ProfilePanel />
     </div>
+  );
+}
+
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ProfilePanelProvider>
+    <BreadcrumbProvider>
+    <RealtimeProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
     </RealtimeProvider>
     </BreadcrumbProvider>
+    </ProfilePanelProvider>
   );
 }
