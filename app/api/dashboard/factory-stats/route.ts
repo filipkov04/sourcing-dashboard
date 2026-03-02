@@ -16,11 +16,22 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
+    // Parse period filter
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get("period") || "all";
+    const orderWhere: any = {};
+
+    if (period !== "all") {
+      const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
+      orderWhere.orderDate = { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
+    }
+
     // Get all factories with their orders
     const factories = await prisma.factory.findMany({
       where: { organizationId },
       include: {
         orders: {
+          where: orderWhere,
           select: {
             id: true,
             status: true,

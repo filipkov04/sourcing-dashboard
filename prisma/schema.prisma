@@ -77,6 +77,7 @@ model Organization {
   alerts        Alert[]
   conversations Conversation[]
   requests      Request[]
+  customCharts  CustomChart[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -684,4 +685,41 @@ model Request {
 
   @@index([organizationId, status])
   @@index([requesterId])
+}
+
+// ============================================
+// CUSTOM CHARTS
+// ============================================
+
+enum ChartType {
+  BAR
+  LINE
+  PIE
+  AREA
+  RADAR
+  STACKED_BAR
+}
+
+enum ChartVisibility {
+  PERSONAL
+  SHARED
+}
+
+model CustomChart {
+  id             String          @id @default(cuid())
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatorId      String
+  title          String
+  chartType      ChartType
+  dataSource     String          // e.g. "status-breakdown", "trends", "lead-time"
+  metric         String          // e.g. "ordersByStatus", "ordersOverTime"
+  config         Json            // axes, colors, filters, dateRange, showTrendLine
+  visibility     ChartVisibility @default(PERSONAL)
+  sortOrder      Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([organizationId, visibility])
+  @@index([creatorId])
 }

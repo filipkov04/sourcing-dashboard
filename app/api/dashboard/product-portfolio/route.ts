@@ -29,9 +29,19 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
+    // Parse period filter
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get("period") || "all";
+    const where: any = { organizationId };
+
+    if (period !== "all") {
+      const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
+      where.orderDate = { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
+    }
+
     const grouped = await prisma.order.groupBy({
       by: ["productName"],
-      where: { organizationId },
+      where,
       _sum: { quantity: true },
     });
 

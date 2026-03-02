@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { BarChart3, Clock, Layers, Target } from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LeadTimeChart } from "./_components/lead-time-chart";
 import { StageDurationChart } from "./_components/stage-duration-chart";
 import { FactoryComparisonTable } from "./_components/factory-comparison-table";
 import { ForecastTimeline } from "./_components/forecast-timeline";
+import { CustomChartsTab } from "./_components/custom-charts-tab";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
 type LeadTimeData = {
@@ -28,6 +31,7 @@ type ForecastData = {
 };
 
 export default function AnalyticsPage() {
+  const { data: session } = useSession();
   const [leadTime, setLeadTime] = useState<LeadTimeData | null>(null);
   const [stageDuration, setStageDuration] = useState<StageDurationData | null>(null);
   const [forecast, setForecast] = useState<ForecastData | null>(null);
@@ -86,89 +90,104 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <ScrollReveal className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" stagger>
-        <SummaryCard
-          icon={Clock}
-          label="Avg Lead Time"
-          value={leadTime ? `${leadTime.overall.avgLeadTime}d` : "—"}
-          numericValue={leadTime?.overall.avgLeadTime}
-          suffix="d"
-          subtitle={leadTime ? `${leadTime.overall.totalOrders} completed orders` : "No data"}
-        />
-        <SummaryCard
-          icon={Layers}
-          label="Bottleneck Stage"
-          value={stageDuration?.bottleneck || "—"}
-          subtitle={stageDuration?.overall?.[0] ? `Avg ${stageDuration.overall[0].avgDuration}d` : "No data"}
-        />
-        <SummaryCard
-          icon={Target}
-          label="On Track"
-          value={forecast ? `${forecast.summary.onTrack}/${forecast.summary.total}` : "—"}
-          subtitle="Active orders on schedule"
-          highlight={forecast ? forecast.summary.critical > 0 : false}
-        />
-        <SummaryCard
-          icon={BarChart3}
-          label="At Risk"
-          value={forecast ? `${forecast.summary.atRisk + forecast.summary.critical}` : "—"}
-          numericValue={forecast ? forecast.summary.atRisk + forecast.summary.critical : undefined}
-          subtitle="Orders may miss deadline"
-          highlight={forecast ? forecast.summary.critical > 0 : false}
-        />
-      </ScrollReveal>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="custom">Custom Charts</TabsTrigger>
+        </TabsList>
 
-      {/* Lead Time Analysis */}
-      <ScrollReveal>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
-          <CardContent className="pt-6">
-            {leadTime && (
-              <LeadTimeChart data={leadTime.byFactory} overallAvg={leadTime.overall.avgLeadTime} />
-            )}
-          </CardContent>
-        </Card>
-      </ScrollReveal>
-
-      {/* Stage Duration */}
-      <ScrollReveal>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
-          <CardContent className="pt-6">
-            {stageDuration && (
-              <StageDurationChart
-                overall={stageDuration.overall}
-                bottleneck={stageDuration.bottleneck}
-                byFactory={stageDuration.byFactory}
+        <TabsContent value="overview">
+          <div className="space-y-5">
+            {/* Summary Cards */}
+            <ScrollReveal className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" stagger>
+              <SummaryCard
+                icon={Clock}
+                label="Avg Lead Time"
+                value={leadTime ? `${leadTime.overall.avgLeadTime}d` : "—"}
+                numericValue={leadTime?.overall.avgLeadTime}
+                suffix="d"
+                subtitle={leadTime ? `${leadTime.overall.totalOrders} completed orders` : "No data"}
               />
-            )}
-          </CardContent>
-        </Card>
-      </ScrollReveal>
-
-      {/* Factory Comparison Table */}
-      <ScrollReveal>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
-          <CardContent className="pt-6">
-            {leadTime && stageDuration && (
-              <FactoryComparisonTable
-                leadTimeData={leadTime.byFactory}
-                stageData={stageDuration.byFactory}
+              <SummaryCard
+                icon={Layers}
+                label="Bottleneck Stage"
+                value={stageDuration?.bottleneck || "—"}
+                subtitle={stageDuration?.overall?.[0] ? `Avg ${stageDuration.overall[0].avgDuration}d` : "No data"}
               />
-            )}
-          </CardContent>
-        </Card>
-      </ScrollReveal>
+              <SummaryCard
+                icon={Target}
+                label="On Track"
+                value={forecast ? `${forecast.summary.onTrack}/${forecast.summary.total}` : "—"}
+                subtitle="Active orders on schedule"
+                highlight={forecast ? forecast.summary.critical > 0 : false}
+              />
+              <SummaryCard
+                icon={BarChart3}
+                label="At Risk"
+                value={forecast ? `${forecast.summary.atRisk + forecast.summary.critical}` : "—"}
+                numericValue={forecast ? forecast.summary.atRisk + forecast.summary.critical : undefined}
+                subtitle="Orders may miss deadline"
+                highlight={forecast ? forecast.summary.critical > 0 : false}
+              />
+            </ScrollReveal>
 
-      {/* Production Forecast */}
-      <ScrollReveal>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
-          <CardContent className="pt-6">
-            {forecast && (
-              <ForecastTimeline forecasts={forecast.forecasts} summary={forecast.summary} />
-            )}
-          </CardContent>
-        </Card>
-      </ScrollReveal>
+            {/* Lead Time Analysis */}
+            <ScrollReveal>
+              <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+                <CardContent className="pt-6">
+                  {leadTime && (
+                    <LeadTimeChart data={leadTime.byFactory} overallAvg={leadTime.overall.avgLeadTime} />
+                  )}
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+
+            {/* Stage Duration */}
+            <ScrollReveal>
+              <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+                <CardContent className="pt-6">
+                  {stageDuration && (
+                    <StageDurationChart
+                      overall={stageDuration.overall}
+                      bottleneck={stageDuration.bottleneck}
+                      byFactory={stageDuration.byFactory}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+
+            {/* Factory Comparison Table */}
+            <ScrollReveal>
+              <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+                <CardContent className="pt-6">
+                  {leadTime && stageDuration && (
+                    <FactoryComparisonTable
+                      leadTimeData={leadTime.byFactory}
+                      stageData={stageDuration.byFactory}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+
+            {/* Production Forecast */}
+            <ScrollReveal>
+              <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+                <CardContent className="pt-6">
+                  {forecast && (
+                    <ForecastTimeline forecasts={forecast.forecasts} summary={forecast.summary} />
+                  )}
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="custom" forceMount className="data-[state=inactive]:hidden mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 dark:ring-offset-zinc-950 dark:focus-visible:ring-zinc-300">
+          <CustomChartsTab userId={session?.user?.id || ""} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

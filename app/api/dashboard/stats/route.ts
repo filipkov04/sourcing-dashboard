@@ -35,6 +35,9 @@ export async function GET(request: NextRequest) {
       case "90d":
         periodDays = 90;
         break;
+      case "all":
+        periodDays = 365 * 5; // 5 years back for "all time"
+        break;
       case "custom":
         from = customFrom ? new Date(customFrom) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         periodDays = Math.ceil((to.getTime() - from!.getTime()) / (24 * 60 * 60 * 1000));

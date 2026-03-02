@@ -16,16 +16,26 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
-    // Get orders from last 12 weeks
+    // Parse period filter
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get("period") || "all";
+
     const now = new Date();
-    const twelveWeeksAgo = new Date(now);
-    twelveWeeksAgo.setDate(now.getDate() - 84); // 12 weeks = 84 days
+    let days: number;
+    switch (period) {
+      case "7d": days = 7; break;
+      case "30d": days = 30; break;
+      case "90d": days = 90; break;
+      default: days = 84; break; // "all" defaults to 12 weeks for trends
+    }
+    const weeks = Math.max(1, Math.ceil(days / 7));
+    const from = new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000);
 
     const orders = await prisma.order.findMany({
       where: {
         organizationId,
         orderDate: {
-          gte: twelveWeeksAgo,
+          gte: from,
         },
       },
       select: {
@@ -38,7 +48,7 @@ export async function GET(request: NextRequest) {
     const weeklyData = new Map<string, { [key: string]: number }>();
 
     // Initialize weeks
-    for (let i = 11; i >= 0; i--) {
+    for (let i = weeks - 1; i >= 0; i--) {
       const weekStart = new Date(now);
       weekStart.setDate(now.getDate() - (i * 7));
       const weekKey = getWeekLabel(weekStart);
