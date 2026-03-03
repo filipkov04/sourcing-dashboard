@@ -300,10 +300,10 @@ export function DashboardStatsCards() {
           {statsCards.map((stat, index) => (
             <div
               key={index}
-              className={`group relative rounded-xl border transition-all ${
+              className={`group relative rounded-xl border transition-all card-hover-glow ${
                 stat.highlight
                   ? "border-red-200/60 bg-white shadow-[0_1px_3px_rgba(255,77,21,0.06)] dark:border-red-900/30 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(255,77,21,0.1)]"
-                  : "border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_2px_12px_rgba(0,0,0,0.4)]"
+                  : "border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)]"
               }`}
             >
               {/* Header Zone */}

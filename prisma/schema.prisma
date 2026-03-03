@@ -226,6 +226,12 @@ model Order {
   conversations  Conversation[]
   request        Request?
 
+  // Recurrence
+  recurrenceEnabled      Boolean   @default(false)
+  recurrenceIntervalDays Int?      // 30, 60, 90, 120, or custom
+  recurrenceNextDate     DateTime? // computed from interval OR manually overridden
+  recurrenceLastAlertAt  DateTime? // prevents duplicate reminder alerts
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

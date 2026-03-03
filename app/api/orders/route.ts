@@ -175,6 +175,9 @@ export async function POST(request: NextRequest) {
       notes,
       tags,
       stages,
+      recurrenceEnabled,
+      recurrenceIntervalDays,
+      recurrenceNextDate,
     } = body;
 
     // Validate required fields
@@ -194,6 +197,17 @@ export async function POST(request: NextRequest) {
       return error("Factory not found", 404);
     }
 
+    // Compute recurrence next date if enabled but not manually provided
+    let computedRecurrenceNextDate: Date | null = null;
+    if (recurrenceEnabled && recurrenceIntervalDays) {
+      if (recurrenceNextDate) {
+        computedRecurrenceNextDate = new Date(recurrenceNextDate);
+      } else {
+        const base = new Date(orderDate);
+        computedRecurrenceNextDate = new Date(base.getTime() + recurrenceIntervalDays * 24 * 60 * 60 * 1000);
+      }
+    }
+
     // Create order with stages
     const order = await prisma.order.create({
       data: {
@@ -210,6 +224,10 @@ export async function POST(request: NextRequest) {
         priority: priority || "NORMAL",
         notes,
         tags: tags || [],
+        recurrenceEnabled: recurrenceEnabled || false,
+        recurrenceIntervalDays: recurrenceEnabled ? (recurrenceIntervalDays || null) : null,
+        recurrenceNextDate: recurrenceEnabled ? computedRecurrenceNextDate : null,
+        recurrenceLastAlertAt: null,
         stages: stages
           ? {
               create: stages.map((stage: { name: string; sequence: number; notes?: string }) => ({

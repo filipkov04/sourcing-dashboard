@@ -17,7 +17,7 @@ import {
   CheckCheck,
   RefreshCw,
 } from "lucide-react";
-import type { Alert } from "@/lib/use-alerts";
+import { type Alert, notifyAlertsChanged } from "@/lib/use-alerts";
 
 type SeverityFilter = "ALL" | "CRITICAL" | "ERROR" | "WARNING" | "INFO";
 type StatusFilter = "ALL" | "UNREAD" | "READ" | "RESOLVED";
@@ -94,6 +94,7 @@ export default function AlertsPage() {
       body: JSON.stringify({ read: true }),
     });
     setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, read: true } : a)));
+    notifyAlertsChanged();
   }
 
   async function handleResolve(id: string) {
@@ -107,6 +108,7 @@ export default function AlertsPage() {
         a.id === id ? { ...a, resolved: true, read: true, resolvedAt: new Date().toISOString() } : a
       )
     );
+    notifyAlertsChanged();
   }
 
   async function handleMarkAllRead() {
@@ -124,6 +126,7 @@ export default function AlertsPage() {
       const unreadIds = new Set(unread.map((a) => a.id));
       return prev.map((a) => (unreadIds.has(a.id) ? { ...a, read: true } : a));
     });
+    notifyAlertsChanged();
   }
 
   // Apply filters

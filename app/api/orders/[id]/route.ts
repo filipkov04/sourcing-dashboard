@@ -110,6 +110,9 @@ export async function PATCH(
       notes,
       tags,
       stages,
+      recurrenceEnabled,
+      recurrenceIntervalDays,
+      recurrenceNextDate,
     } = body;
 
     // Validate required fields if provided
@@ -166,6 +169,34 @@ export async function PATCH(
     }
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;
     if (tags !== undefined) updateData.tags = tags;
+
+    // Handle recurrence fields
+    if (recurrenceEnabled !== undefined) {
+      updateData.recurrenceEnabled = recurrenceEnabled;
+      if (!recurrenceEnabled) {
+        // Disable: clear all recurrence fields
+        updateData.recurrenceIntervalDays = null;
+        updateData.recurrenceNextDate = null;
+        updateData.recurrenceLastAlertAt = null;
+      }
+    }
+    if (recurrenceEnabled || (recurrenceEnabled === undefined && existingOrder.recurrenceEnabled)) {
+      if (recurrenceIntervalDays !== undefined) {
+        updateData.recurrenceIntervalDays = recurrenceIntervalDays;
+      }
+      if (recurrenceNextDate !== undefined) {
+        // Manual date override takes precedence
+        updateData.recurrenceNextDate = recurrenceNextDate ? new Date(recurrenceNextDate) : null;
+      } else if (recurrenceIntervalDays !== undefined && recurrenceIntervalDays) {
+        // Recompute from order date + interval
+        const baseDate = orderDate ? new Date(orderDate) : existingOrder.orderDate;
+        updateData.recurrenceNextDate = new Date(new Date(baseDate).getTime() + recurrenceIntervalDays * 24 * 60 * 60 * 1000);
+      }
+      // Reset alert timestamp when next date changes so a new alert fires
+      if (updateData.recurrenceNextDate !== undefined) {
+        updateData.recurrenceLastAlertAt = null;
+      }
+    }
 
     // Handle stages update — upsert to preserve IDs, metadata, timestamps, and relations
     if (stages !== undefined) {
@@ -375,6 +406,36 @@ export async function PATCH(
           field: "tags",
           oldValue: oldTags,
           newValue: newTags,
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Recurrence changes
+    if (recurrenceEnabled !== undefined && recurrenceEnabled !== existingOrder.recurrenceEnabled) {
+      fieldsToTrack.push({
+        field: "recurrenceEnabled",
+        oldValue: String(existingOrder.recurrenceEnabled),
+        newValue: String(recurrenceEnabled),
+        eventType: "FIELD_CHANGE",
+      });
+    }
+    if (recurrenceIntervalDays !== undefined && recurrenceIntervalDays !== existingOrder.recurrenceIntervalDays) {
+      fieldsToTrack.push({
+        field: "recurrenceIntervalDays",
+        oldValue: existingOrder.recurrenceIntervalDays ? String(existingOrder.recurrenceIntervalDays) : null,
+        newValue: recurrenceIntervalDays ? String(recurrenceIntervalDays) : null,
+        eventType: "FIELD_CHANGE",
+      });
+    }
+    if (recurrenceNextDate !== undefined) {
+      const oldDate = existingOrder.recurrenceNextDate?.toISOString().split("T")[0] || null;
+      const newDate = recurrenceNextDate ? new Date(recurrenceNextDate).toISOString().split("T")[0] : null;
+      if (oldDate !== newDate) {
+        fieldsToTrack.push({
+          field: "recurrenceNextDate",
+          oldValue: existingOrder.recurrenceNextDate?.toISOString() || null,
+          newValue: recurrenceNextDate ? new Date(recurrenceNextDate).toISOString() : null,
           eventType: "FIELD_CHANGE",
         });
       }

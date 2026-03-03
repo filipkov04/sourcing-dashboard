@@ -67,7 +67,7 @@ export function Header({ onMenuClick, onToggleSidebar }: HeaderProps) {
     const unreadIds = alerts.filter((a) => !a.read).map((a) => a.id);
     if (unreadIds.length > 0) {
       await markAllRead(unreadIds);
-      refreshCount();
+      await refreshCount();
       refreshAlerts();
     }
   };

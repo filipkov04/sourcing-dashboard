@@ -51,7 +51,10 @@ import {
   Plus,
   Trash2,
   GripVertical,
+  Repeat,
+  Copy,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { AnimatedNumber } from "@/components/animated-number";
 import { useBreadcrumb } from "@/lib/breadcrumb-context";
 import {
@@ -117,6 +120,10 @@ type Order = {
   actualDate: string | null;
   notes: string | null;
   tags: string[];
+  recurrenceEnabled: boolean;
+  recurrenceIntervalDays: number | null;
+  recurrenceNextDate: string | null;
+  recurrenceLastAlertAt: string | null;
   factory: {
     id: string;
     name: string;
@@ -223,6 +230,199 @@ function SortableMetadataDisplayItem({
         <Trash2 className="h-3 w-3" />
       </button>
     </div>
+  );
+}
+
+function RecurrenceCard({ order, onUpdate }: {
+  order: Order;
+  onUpdate: (fields: Partial<Order>) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [enabled, setEnabled] = useState(order.recurrenceEnabled);
+  const [interval, setInterval] = useState(() => {
+    const days = order.recurrenceIntervalDays;
+    if (!days) return "60";
+    if ([30, 60, 90, 120].includes(days)) return String(days);
+    return "custom";
+  });
+  const [customDays, setCustomDays] = useState(() => {
+    const days = order.recurrenceIntervalDays;
+    return days && ![30, 60, 90, 120].includes(days) ? String(days) : "";
+  });
+  const [nextDate, setNextDate] = useState(
+    order.recurrenceNextDate ? new Date(order.recurrenceNextDate).toISOString().split("T")[0] : ""
+  );
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const intervalDays = enabled
+        ? parseInt(interval === "custom" ? customDays : interval) || null
+        : null;
+      const res = await fetch(`/api/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recurrenceEnabled: enabled,
+          recurrenceIntervalDays: intervalDays,
+          recurrenceNextDate: enabled && nextDate ? nextDate : null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        onUpdate({
+          recurrenceEnabled: data.data.recurrenceEnabled,
+          recurrenceIntervalDays: data.data.recurrenceIntervalDays,
+          recurrenceNextDate: data.data.recurrenceNextDate,
+          recurrenceLastAlertAt: data.data.recurrenceLastAlertAt,
+        });
+        setEditing(false);
+      }
+    } catch {
+      console.error("Failed to update recurrence");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!editing) {
+    return (
+      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-indigo-500" />
+              Recurrence
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+              <Pencil className="h-3.5 w-3.5 mr-1" />
+              Edit
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {order.recurrenceEnabled ? (
+            <div className="flex items-center gap-6 text-sm">
+              <div>
+                <p className="text-gray-600 dark:text-zinc-400">Status</p>
+                <Badge className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">Active</Badge>
+              </div>
+              <div>
+                <p className="text-gray-600 dark:text-zinc-400">Interval</p>
+                <p className="font-medium">Every {order.recurrenceIntervalDays} days</p>
+              </div>
+              {order.recurrenceNextDate && (
+                <div>
+                  <p className="text-gray-600 dark:text-zinc-400">Next Order Date</p>
+                  <p className="font-medium">{new Date(order.recurrenceNextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-zinc-400">Recurrence is not enabled for this order.</p>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800 shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Repeat className="h-5 w-5 text-indigo-500" />
+          Edit Recurrence
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label htmlFor="recurrence-toggle" className="text-sm font-medium cursor-pointer">Repeat this order</label>
+          <Switch
+            id="recurrence-toggle"
+            checked={enabled}
+            onCheckedChange={setEnabled}
+            disabled={saving}
+          />
+        </div>
+        {enabled && (
+          <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-zinc-800">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600 dark:text-zinc-400">Reorder Interval</label>
+                <Select
+                  value={interval}
+                  onValueChange={(val) => {
+                    setInterval(val);
+                    if (val !== "custom") {
+                      const d = new Date(order.orderDate);
+                      d.setDate(d.getDate() + parseInt(val));
+                      setNextDate(d.toISOString().split("T")[0]);
+                    }
+                  }}
+                  disabled={saving}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">Every 30 days</SelectItem>
+                    <SelectItem value="60">Every 60 days</SelectItem>
+                    <SelectItem value="90">Every 90 days</SelectItem>
+                    <SelectItem value="120">Every 120 days</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {interval === "custom" && (
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-600 dark:text-zinc-400">Custom Interval (days)</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="365"
+                    placeholder="e.g. 45"
+                    value={customDays}
+                    onChange={(e) => {
+                      setCustomDays(e.target.value);
+                      if (e.target.value) {
+                        const d = new Date(order.orderDate);
+                        d.setDate(d.getDate() + parseInt(e.target.value));
+                        setNextDate(d.toISOString().split("T")[0]);
+                      }
+                    }}
+                    disabled={saving}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-600 dark:text-zinc-400">Next Order Date</label>
+              <Input
+                type="date"
+                value={nextDate}
+                onChange={(e) => setNextDate(e.target.value)}
+                disabled={saving}
+              />
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                You&apos;ll receive a notification 7 days before this date to reorder.
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-3.5 w-3.5 mr-1" /> Save</>}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => {
+            setEditing(false);
+            setEnabled(order.recurrenceEnabled);
+          }} disabled={saving}>
+            Cancel
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -620,8 +820,10 @@ export default function OrderDetailPage() {
     );
   }
 
+  const isOrderDone = ["COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED"].includes(order.status);
+  const referenceDate = isOrderDone && order.actualDate ? new Date(order.actualDate) : new Date();
   const daysUntilDue = Math.ceil(
-    (new Date(order.expectedDate).getTime() - new Date().getTime()) /
+    (new Date(order.expectedDate).getTime() - referenceDate.getTime()) /
       (1000 * 60 * 60 * 24)
   );
 
@@ -698,10 +900,27 @@ export default function OrderDetailPage() {
               <Badge className={priorityColors[order.priority]}>
                 {order.priority}
               </Badge>
+              {order.recurrenceEnabled && (
+                <Badge
+                  className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
+                  title={`Repeats every ${order.recurrenceIntervalDays} days${order.recurrenceNextDate ? ` — next: ${new Date(order.recurrenceNextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}`}
+                >
+                  <Repeat className="h-3 w-3 mr-1" />
+                  Recurring
+                </Badge>
+              )}
             </div>
             <p className="text-gray-600 dark:text-zinc-400">{order.productName}</p>
           </div>
           <div className="flex items-center gap-2">
+            {order.recurrenceEnabled && (
+              <Link href={`/orders/new?reorderId=${order.id}`}>
+                <Button variant="outline" className="border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950">
+                  <Copy className="h-4 w-4 mr-2" />
+                  Reorder Now
+                </Button>
+              </Link>
+            )}
             {isAdminOrOwner ? (
               <>
                 <Link href={`/orders/${order.id}/edit`}>
@@ -748,14 +967,24 @@ export default function OrderDetailPage() {
             </span>
             <span
               className={`font-medium ${
-                daysUntilDue < 0
+                isOrderDone
+                  ? daysUntilDue < 0
+                    ? "text-red-600"
+                    : "text-green-600"
+                  : daysUntilDue < 0
                   ? "text-red-600"
                   : daysUntilDue <= 7
                   ? "text-yellow-600"
                   : "text-zinc-400"
               }`}
             >
-              {daysUntilDue < 0
+              {isOrderDone
+                ? daysUntilDue < 0
+                  ? `Delivered ${Math.abs(daysUntilDue)} days late`
+                  : daysUntilDue === 0
+                  ? "Delivered on time"
+                  : `Delivered ${daysUntilDue} days early`
+                : daysUntilDue < 0
                 ? `${Math.abs(daysUntilDue)} days overdue`
                 : daysUntilDue === 0
                 ? "Due today"
@@ -1027,6 +1256,40 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recurrence Settings (admin edit) */}
+      {isAdminOrOwner && (
+        <RecurrenceCard order={order} onUpdate={(updated) => {
+          setOrder({ ...order, ...updated });
+          setTimelineRefreshKey((k) => k + 1);
+        }} />
+      )}
+
+      {/* Recurrence Info (non-admin view) */}
+      {!isAdminOrOwner && order.recurrenceEnabled && (
+        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-indigo-500" />
+              Recurrence
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6 text-sm">
+              <div>
+                <p className="text-gray-600 dark:text-zinc-400">Interval</p>
+                <p className="font-medium">Every {order.recurrenceIntervalDays} days</p>
+              </div>
+              {order.recurrenceNextDate && (
+                <div>
+                  <p className="text-gray-600 dark:text-zinc-400">Next Order Date</p>
+                  <p className="font-medium">{new Date(order.recurrenceNextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Attachments */}
       <OrderAttachments orderId={order.id} isAdmin={isAdminOrOwner} />

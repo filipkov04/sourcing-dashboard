@@ -41,10 +41,21 @@ export function useUnreadCount() {
   useEffect(() => {
     refresh();
     const interval = setInterval(refresh, 30_000);
-    return () => clearInterval(interval);
+    // Listen for cross-component "alerts changed" events
+    const onAlertsChanged = () => refresh();
+    window.addEventListener("alerts-changed", onAlertsChanged);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("alerts-changed", onAlertsChanged);
+    };
   }, [refresh]);
 
   return { count, refresh };
+}
+
+/** Notify all useUnreadCount listeners to refresh */
+export function notifyAlertsChanged() {
+  window.dispatchEvent(new Event("alerts-changed"));
 }
 
 /** Fetches recent alerts for the dropdown */

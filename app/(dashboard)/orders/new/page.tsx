@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Upload, X, ImageIcon } from "lucide-react";
+import { ArrowLeft, Plus, Upload, X, ImageIcon, Repeat } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { SortableStageList } from "@/components/sortable-stage-list";
 
 type Factory = {
@@ -76,6 +77,12 @@ function NewOrderForm() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // Recurrence state
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [recurrenceInterval, setRecurrenceInterval] = useState("60");
+  const [recurrenceCustomDays, setRecurrenceCustomDays] = useState("");
+  const [recurrenceNextDate, setRecurrenceNextDate] = useState("");
+
   // Cleanup blob URL on unmount to prevent memory leak
   useEffect(() => {
     return () => {
@@ -132,6 +139,23 @@ function NewOrderForm() {
                 sequence: s.sequence,
               }))
             );
+          }
+          // Copy recurrence settings
+          if (order.recurrenceEnabled) {
+            setRecurrenceEnabled(true);
+            if (order.recurrenceIntervalDays) {
+              const interval = String(order.recurrenceIntervalDays);
+              if (["30", "60", "90", "120"].includes(interval)) {
+                setRecurrenceInterval(interval);
+              } else {
+                setRecurrenceInterval("custom");
+                setRecurrenceCustomDays(interval);
+              }
+              // Recompute next date from today + interval
+              const nextDate = new Date();
+              nextDate.setDate(nextDate.getDate() + order.recurrenceIntervalDays);
+              setRecurrenceNextDate(nextDate.toISOString().split("T")[0]);
+            }
           }
         }
       } catch (error) {
@@ -273,6 +297,11 @@ function NewOrderForm() {
             name: s.name,
             sequence: s.sequence,
           })),
+          recurrenceEnabled,
+          recurrenceIntervalDays: recurrenceEnabled
+            ? parseInt(recurrenceInterval === "custom" ? recurrenceCustomDays : recurrenceInterval) || null
+            : null,
+          recurrenceNextDate: recurrenceEnabled && recurrenceNextDate ? recurrenceNextDate : null,
         }),
       });
 
@@ -591,6 +620,95 @@ function NewOrderForm() {
                 Separate multiple tags with commas
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Recurrence */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-indigo-500" />
+              Recurrence
+            </CardTitle>
+            <CardDescription>Set up automatic reorder reminders</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="recurrenceEnabled" className="cursor-pointer">Repeat this order</Label>
+              <Switch
+                id="recurrenceEnabled"
+                checked={recurrenceEnabled}
+                onCheckedChange={setRecurrenceEnabled}
+                disabled={isLoading}
+              />
+            </div>
+            {recurrenceEnabled && (
+              <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="recurrenceInterval">Reorder Interval</Label>
+                    <Select
+                      value={recurrenceInterval}
+                      onValueChange={(val) => {
+                        setRecurrenceInterval(val);
+                        if (val !== "custom" && orderDate) {
+                          const d = new Date(orderDate);
+                          d.setDate(d.getDate() + parseInt(val));
+                          setRecurrenceNextDate(d.toISOString().split("T")[0]);
+                        }
+                      }}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">Every 30 days</SelectItem>
+                        <SelectItem value="60">Every 60 days</SelectItem>
+                        <SelectItem value="90">Every 90 days</SelectItem>
+                        <SelectItem value="120">Every 120 days</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {recurrenceInterval === "custom" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="recurrenceCustomDays">Custom Interval (days)</Label>
+                      <Input
+                        id="recurrenceCustomDays"
+                        type="number"
+                        min="1"
+                        max="365"
+                        placeholder="e.g. 45"
+                        value={recurrenceCustomDays}
+                        onChange={(e) => {
+                          setRecurrenceCustomDays(e.target.value);
+                          if (e.target.value && orderDate) {
+                            const d = new Date(orderDate);
+                            d.setDate(d.getDate() + parseInt(e.target.value));
+                            setRecurrenceNextDate(d.toISOString().split("T")[0]);
+                          }
+                        }}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recurrenceNextDate">Next Order Date</Label>
+                  <Input
+                    id="recurrenceNextDate"
+                    type="date"
+                    value={recurrenceNextDate}
+                    onChange={(e) => setRecurrenceNextDate(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    You&apos;ll receive a notification 7 days before this date to reorder.
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

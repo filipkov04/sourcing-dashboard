@@ -38,9 +38,9 @@ const severityConfig: Record<string, { icon: typeof AlertTriangle; bg: string; b
 export function DashboardAlertsWidget() {
   const { alerts, loading } = useRecentAlerts(5);
 
-  // Only show critical/error/warning alerts that are unresolved
+  // Show unresolved alerts (all severities including INFO for recurring order reminders)
   const activeAlerts = alerts
-    .filter((a) => !a.resolved && ["CRITICAL", "ERROR", "WARNING"].includes(a.severity))
+    .filter((a) => !a.resolved)
     .slice(0, 3);
 
   if (loading || activeAlerts.length === 0) return null;

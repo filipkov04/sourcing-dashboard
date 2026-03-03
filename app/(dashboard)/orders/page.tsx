@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download, ChevronDown, FileSpreadsheet, FileText } from "lucide-react";
+import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download, ChevronDown, FileSpreadsheet, FileText, Repeat } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +53,8 @@ type Order = {
   };
   hasBlockedStage?: boolean;
   hasDelayedStage?: boolean;
+  recurrenceEnabled?: boolean;
+  recurrenceNextDate?: string | null;
 };
 
 type Factory = {
@@ -291,33 +293,41 @@ export default function OrdersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={isExporting}>
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
+          {mounted ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={isExporting}>
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  Export
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport("csv")}>
                   <Download className="h-4 w-4 mr-2" />
-                )}
-                Export
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport("csv")}>
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("xlsx")}>
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Export Excel
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("pdf")}>
-                <FileText className="h-4 w-4 mr-2" />
-                Export PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  Export CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport("xlsx")}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Export Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" disabled>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+              <ChevronDown className="h-3 w-3 ml-1" />
+            </Button>
+          )}
           {isAdminOrOwner ? (
             <Link href="/orders/new">
               <Button>
@@ -633,7 +643,13 @@ export default function OrdersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-zinc-400">
-                    {formatDate(order.expectedDate)}
+                    <div>{formatDate(order.expectedDate)}</div>
+                    {order.recurrenceEnabled && order.recurrenceNextDate && (
+                      <div className="flex items-center gap-1 mt-0.5 text-xs text-indigo-600 dark:text-indigo-400">
+                        <Repeat className="h-3 w-3" />
+                        <span>Next: {formatDate(order.recurrenceNextDate)}</span>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

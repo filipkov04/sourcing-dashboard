@@ -115,7 +115,80 @@ export async function generateAlertsForOrganization(organizationId: string) {
 
   // Create alerts with deduplication
   const created = await Promise.all(alerts.map(createAlertIfNew));
-  return created.filter(Boolean);
+
+  // Also generate recurrence alerts
+  const recurrenceAlerts = await generateRecurrenceAlerts(organizationId);
+
+  return [...created.filter(Boolean), ...recurrenceAlerts];
+}
+
+/**
+ * Generate alerts for orders with recurrence enabled that are due for reorder soon.
+ * Creates INFO alerts for 3-7 days out, WARNING for 0-2 days or past due.
+ * Prevents spam by checking recurrenceLastAlertAt (minimum 3 days between alerts).
+ */
+async function generateRecurrenceAlerts(organizationId: string) {
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+  // Find orders with recurrence enabled and next date within 7 days
+  const recurringOrders = await prisma.order.findMany({
+    where: {
+      organizationId,
+      recurrenceEnabled: true,
+      recurrenceNextDate: { lte: sevenDaysFromNow },
+      OR: [
+        { recurrenceLastAlertAt: null },
+        { recurrenceLastAlertAt: { lt: threeDaysAgo } },
+      ],
+    },
+    include: {
+      factory: { select: { id: true, name: true } },
+    },
+  });
+
+  const results = [];
+
+  for (const order of recurringOrders) {
+    if (!order.recurrenceNextDate) continue;
+
+    const daysUntilDue = Math.ceil(
+      (order.recurrenceNextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    const isOverdue = daysUntilDue < 0;
+    const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 2;
+    const severity: Severity = isOverdue || isDueSoon ? "WARNING" : "INFO";
+    const title = isOverdue ? "Recurring order overdue" : "Recurring order due soon";
+    const dateStr = order.recurrenceNextDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const message = `Order ${order.orderNumber} (${order.productName}) is scheduled for reorder on ${dateStr}. Click below to start a new order.`;
+
+    const alert = await createAlertIfNew({
+      organizationId,
+      title,
+      message,
+      severity,
+      orderId: order.id,
+      factoryId: order.factory.id,
+    });
+
+    if (alert) {
+      results.push(alert);
+    }
+
+    // Update last alert timestamp regardless (even if deduplicated) to prevent re-querying
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { recurrenceLastAlertAt: now },
+    });
+  }
+
+  return results;
 }
 
 /**
