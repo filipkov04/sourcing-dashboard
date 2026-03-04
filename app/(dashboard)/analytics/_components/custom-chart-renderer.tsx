@@ -45,6 +45,42 @@ export function CustomChartRenderer({
   const axisColor = isDark ? "#71717a" : "#9ca3af";
   const gridColor = isDark ? "#3f3f46" : "#e5e7eb";
   const palette = colors?.length ? colors : CHART_PALETTE;
+  const legendStyle = { fontSize: 11, color: isDark ? "#a1a1aa" : "#6b7280" };
+  const arrowId = isDark ? "axis-arrow-dark" : "axis-arrow-light";
+  const arrowUpId = `${arrowId}-up`;
+  const xAxisLine = { stroke: gridColor, strokeWidth: 1, markerEnd: `url(#${arrowId})` };
+  const yAxisLine = { stroke: gridColor, strokeWidth: 1, markerStart: `url(#${arrowUpId})` };
+
+  // SVG arrow marker definitions — filled triangles
+  const axisArrowDefs = (
+    <defs>
+      <marker id={arrowId} markerWidth="10" markerHeight="10" refX="10" refY="5">
+        <path d="M0,0 L10,5 L0,10 Z" fill={gridColor} />
+      </marker>
+      <marker id={arrowUpId} markerWidth="10" markerHeight="10" refX="5" refY="0">
+        <path d="M0,10 L5,0 L10,10 Z" fill={gridColor} />
+      </marker>
+    </defs>
+  );
+
+  // Custom angled tick that renders entirely below the axis line
+  const angledTick = ({ x, y, payload }: any) => {
+    const label = String(payload?.value || "");
+    const short = label.length > 14 ? label.slice(0, 13) + "…" : label;
+    return (
+      <g transform={`translate(${x},${y + 10})`}>
+        <text
+          x={0} y={0}
+          textAnchor="end"
+          fill={axisColor}
+          fontSize={10}
+          transform="rotate(-40)"
+        >
+          {short}
+        </text>
+      </g>
+    );
+  };
 
   if (!data || data.length === 0) {
     return (
@@ -55,25 +91,38 @@ export function CustomChartRenderer({
   }
 
   switch (chartType) {
-    case "BAR":
+    case "BAR": {
+      const manyItems = data.length > 5;
+      const multiKey = dataKeys.length > 1;
       return (
         <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <Tooltip {...TOOLTIP_STYLE} />
+          <BarChart data={data} margin={{ top: 15, right: 20, left: 0, bottom: 5 }}>
+            {axisArrowDefs}
+            {manyItems && multiKey ? (
+              <XAxis dataKey={nameKey} tick={false} tickLine={false} axisLine={xAxisLine} padding={{ right: 15 }} />
+            ) : manyItems ? (
+              <XAxis dataKey={nameKey} tick={angledTick} tickLine={false} axisLine={xAxisLine} interval={0} height={90} padding={{ right: 15 }} />
+            ) : (
+              <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={xAxisLine} padding={{ right: 15 }} />
+            )}
+            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={{ stroke: gridColor, strokeWidth: 1 }} tickSize={4} axisLine={yAxisLine} padding={{ top: 15 }} />
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+            {dataKeys.length > 1 && <Legend wrapperStyle={legendStyle} />}
             {dataKeys.map((key, i) => (
               <Bar key={key} dataKey={key} fill={palette[i % palette.length]} radius={[4, 4, 0, 0]} barSize={32} />
             ))}
           </BarChart>
         </ResponsiveContainer>
       );
+    }
 
     case "LINE": {
       const showTrend = config?.showTrendLine;
       let trendData: any[] | null = null;
-      if (showTrend && dataKeys.length === 1) {
-        const points = data.map((d, i) => ({ x: i, y: Number(d[dataKeys[0]]) || 0 }));
+      if (showTrend) {
+        // For single-key, trend that key; for multi-key, trend the first key
+        const trendKey = dataKeys[0];
+        const points = data.map((d, i) => ({ x: i, y: Number(d[trendKey]) || 0 }));
         const { slope, intercept } = linearRegression(points);
         trendData = data.map((d, i) => ({ ...d, _trend: Math.round((slope * i + intercept) * 100) / 100 }));
         // Add forecast points
@@ -88,22 +137,25 @@ export function CustomChartRenderer({
       const chartData = trendData || data;
       return (
         <ResponsiveContainer width="100%" height={height}>
-          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <Tooltip {...TOOLTIP_STYLE} />
+          <LineChart data={chartData} margin={{ top: 15, right: 20, left: 0, bottom: 5 }}>
+            {axisArrowDefs}
+            <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={xAxisLine} padding={{ right: 15 }} />
+            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={{ stroke: gridColor, strokeWidth: 1 }} tickSize={4} axisLine={yAxisLine} padding={{ top: 15 }} />
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }} />
+            {(dataKeys.length > 1 || showTrend) && <Legend wrapperStyle={legendStyle} />}
             {dataKeys.map((key, i) => (
               <Line key={key} type="monotone" dataKey={key} stroke={palette[i % palette.length]} strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
             ))}
             {showTrend && (
-              <Line type="monotone" dataKey="_trend" stroke="#a1a1aa" strokeWidth={1.5} strokeDasharray="6 3" dot={false} name="Trend" />
+              <Line type="monotone" dataKey="_trend" stroke="#a1a1aa" strokeWidth={1.5} strokeDasharray="6 3" dot={false} name="Forecast" />
             )}
           </LineChart>
         </ResponsiveContainer>
       );
     }
 
-    case "PIE":
+    case "PIE": {
+      const pieTotal = data.reduce((sum, d) => sum + (Number(d[dataKeys[0]]) || 0), 0);
       return (
         <ResponsiveContainer width="100%" height={height}>
           <PieChart>
@@ -115,24 +167,28 @@ export function CustomChartRenderer({
               cy="50%"
               outerRadius={height / 3}
               innerRadius={height / 6}
-              paddingAngle={2}
-              label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-              labelLine={{ stroke: axisColor }}
+              paddingAngle={0}
             >
               {data.map((entry, i) => (
                 <Cell key={i} fill={entry.color || palette[i % palette.length]} />
               ))}
             </Pie>
-            <Tooltip {...TOOLTIP_STYLE} />
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} formatter={(value: any, name: any) => {
+              const pct = pieTotal > 0 ? ((Number(value) / pieTotal) * 100).toFixed(0) : 0;
+              return [`${value} (${pct}%)`, name];
+            }} />
+            <Legend wrapperStyle={legendStyle} />
           </PieChart>
         </ResponsiveContainer>
       );
+    }
 
     case "AREA": {
       const showTrend = config?.showTrendLine;
       let trendData: any[] | null = null;
-      if (showTrend && dataKeys.length === 1) {
-        const points = data.map((d, i) => ({ x: i, y: Number(d[dataKeys[0]]) || 0 }));
+      if (showTrend) {
+        const trendKey = dataKeys[0];
+        const points = data.map((d, i) => ({ x: i, y: Number(d[trendKey]) || 0 }));
         const { slope, intercept } = linearRegression(points);
         trendData = data.map((d, i) => ({ ...d, _trend: Math.round((slope * i + intercept) * 100) / 100 }));
         for (let f = 0; f < 4; f++) {
@@ -146,15 +202,17 @@ export function CustomChartRenderer({
       const chartData = trendData || data;
       return (
         <ResponsiveContainer width="100%" height={height}>
-          <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <Tooltip {...TOOLTIP_STYLE} />
+          <AreaChart data={chartData} margin={{ top: 15, right: 20, left: 0, bottom: 5 }}>
+            {axisArrowDefs}
+            <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={xAxisLine} padding={{ right: 15 }} />
+            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={{ stroke: gridColor, strokeWidth: 1 }} tickSize={4} axisLine={yAxisLine} padding={{ top: 15 }} />
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+            {(dataKeys.length > 1 || showTrend) && <Legend wrapperStyle={legendStyle} />}
             {dataKeys.map((key, i) => (
               <Area key={key} type="monotone" dataKey={key} stroke={palette[i % palette.length]} fill={palette[i % palette.length]} fillOpacity={0.15} strokeWidth={2} />
             ))}
             {showTrend && (
-              <Line type="monotone" dataKey="_trend" stroke="#a1a1aa" strokeWidth={1.5} strokeDasharray="6 3" dot={false} name="Trend" />
+              <Line type="monotone" dataKey="_trend" stroke="#a1a1aa" strokeWidth={1.5} strokeDasharray="6 3" dot={false} name="Forecast" />
             )}
           </AreaChart>
         </ResponsiveContainer>
@@ -182,26 +240,33 @@ export function CustomChartRenderer({
             {dataKeys.map((key, i) => (
               <Radar key={key} name={key} dataKey={key} stroke={palette[i % palette.length]} fill={palette[i % palette.length]} fillOpacity={0.2} />
             ))}
-            <Tooltip {...TOOLTIP_STYLE} />
-            {dataKeys.length > 1 && <Legend />}
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+            {dataKeys.length > 1 && <Legend wrapperStyle={legendStyle} />}
           </RadarChart>
         </ResponsiveContainer>
       );
 
-    case "STACKED_BAR":
+    case "STACKED_BAR": {
+      const manyItems = data.length > 5;
       return (
         <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={false} />
-            <Tooltip {...TOOLTIP_STYLE} />
-            <Legend />
+          <BarChart data={data} margin={{ top: 15, right: 20, left: 0, bottom: 5 }}>
+            {axisArrowDefs}
+            {manyItems ? (
+              <XAxis dataKey={nameKey} tick={angledTick} tickLine={false} axisLine={xAxisLine} interval={0} height={90} padding={{ right: 15 }} />
+            ) : (
+              <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: axisColor }} tickLine={false} axisLine={xAxisLine} padding={{ right: 15 }} />
+            )}
+            <YAxis tick={{ fontSize: 11, fill: axisColor }} tickLine={{ stroke: gridColor, strokeWidth: 1 }} tickSize={4} axisLine={yAxisLine} padding={{ top: 15 }} />
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+            <Legend wrapperStyle={legendStyle} />
             {dataKeys.map((key, i) => (
               <Bar key={key} dataKey={key} stackId="1" fill={palette[i % palette.length]} />
             ))}
           </BarChart>
         </ResponsiveContainer>
       );
+    }
 
     default:
       return (

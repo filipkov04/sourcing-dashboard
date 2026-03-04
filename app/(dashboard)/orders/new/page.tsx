@@ -312,6 +312,24 @@ function NewOrderForm() {
         return;
       }
 
+      // Disable recurrence on the old order if this was a reorder
+      const reorderId = searchParams.get("reorderId");
+      if (reorderId && recurrenceEnabled) {
+        try {
+          await fetch(`/api/orders/${reorderId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              recurrenceEnabled: false,
+              recurrenceIntervalDays: null,
+              recurrenceNextDate: null,
+            }),
+          });
+        } catch {
+          // Non-fatal — the new order was already created
+        }
+      }
+
       // Redirect to orders list on success
       router.push("/orders");
       router.refresh();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, Lock, Users } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Lock, Users, Clock } from "lucide-react";
 import { useChartData, type CustomChart } from "@/lib/use-custom-charts";
 import { CustomChartRenderer } from "./custom-chart-renderer";
 
@@ -16,6 +16,14 @@ export function CustomChartCard({ chart, onEdit, onDelete, isOwner }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { transformedData, loading } = useChartData(chart.dataSource, chart.metric, chart.config);
 
+  const periodLabels: Record<string, string> = {
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    "all": "All time",
+  };
+  const periodLabel = periodLabels[chart.config?.period || "all"] || "All time";
+
   return (
     <div className="rounded-lg border bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow overflow-hidden">
       {/* Header */}
@@ -29,6 +37,11 @@ export function CustomChartCard({ chart, onEdit, onDelete, isOwner }: Props) {
           ) : (
             <span className="flex items-center gap-1 text-[10px] font-medium text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded">
               <Users className="h-2.5 w-2.5" /> Shared
+            </span>
+          )}
+          {(
+            <span className="flex items-center gap-1 text-[10px] font-medium text-gray-400 dark:text-zinc-500 bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+              <Clock className="h-2.5 w-2.5" /> {periodLabel}
             </span>
           )}
         </div>
@@ -66,7 +79,7 @@ export function CustomChartCard({ chart, onEdit, onDelete, isOwner }: Props) {
       {/* Chart */}
       <div className="px-4 pb-4">
         {loading ? (
-          <div className="flex items-center justify-center h-[250px]">
+          <div className="flex items-center justify-center h-[360px]">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#EB5D2E]" />
           </div>
         ) : transformedData ? (
@@ -77,10 +90,10 @@ export function CustomChartCard({ chart, onEdit, onDelete, isOwner }: Props) {
             nameKey={transformedData.nameKey}
             colors={transformedData.colors}
             config={chart.config}
-            height={250}
+            height={360}
           />
         ) : (
-          <div className="flex items-center justify-center h-[250px] text-sm text-gray-400 dark:text-zinc-500">
+          <div className="flex items-center justify-center h-[360px] text-sm text-gray-400 dark:text-zinc-500">
             Unable to load chart data
           </div>
         )}

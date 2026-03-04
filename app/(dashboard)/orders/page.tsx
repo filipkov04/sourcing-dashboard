@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download, ChevronDown, FileSpreadsheet, FileText, Repeat } from "lucide-react";
+import { Plus, Search, Package, Filter, X, Loader2, CheckSquare, Download, ChevronDown, FileSpreadsheet, FileText, Repeat, Archive } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +91,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [factoryFilter, setFactoryFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -156,6 +157,11 @@ export default function OrdersPage() {
 
   const hasActiveFilters = search || statusFilter !== "all" || factoryFilter !== "all" || priorityFilter !== "all";
 
+  const DONE_STATUSES = ["COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED"];
+  const visibleOrders = !showCompleted && statusFilter === "all"
+    ? orders.filter((o) => !DONE_STATUSES.includes(o.status))
+    : orders;
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -178,10 +184,10 @@ export default function OrdersPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === orders.length) {
+    if (selectedIds.size === visibleOrders.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(orders.map((o) => o.id)));
+      setSelectedIds(new Set(visibleOrders.map((o) => o.id)));
     }
   };
 
@@ -435,15 +441,27 @@ export default function OrdersPage() {
           )}
         </div>
 
-        {/* Clear Filters */}
-        {hasActiveFilters && (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowCompleted(!showCompleted)}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+              showCompleted
+                ? "border-[#EB5D2E] bg-[#EB5D2E]/10 text-[#EB5D2E]"
+                : "border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:border-gray-300 dark:hover:border-zinc-600"
+            }`}
+          >
+            <Archive className="h-3.5 w-3.5" />
+            {showCompleted ? "Showing all orders" : "Show completed"}
+          </button>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="h-4 w-4 mr-1" />
               Clear filters
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Bulk Action Toolbar */}
@@ -491,13 +509,15 @@ export default function OrdersPage() {
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D15]" />
           </div>
-        ) : orders.length === 0 ? (
+        ) : visibleOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-600 dark:text-zinc-400">
             <Package className="h-12 w-12 mb-4 text-zinc-600" />
             <p className="text-lg font-medium text-gray-700 dark:text-zinc-300">No orders found</p>
             <p className="text-sm">
               {hasActiveFilters
                 ? "Try adjusting your filters"
+                : !showCompleted && orders.length > 0
+                ? "All orders are completed — toggle \"Show completed\" to see them"
                 : "Create your first order to get started"}
             </p>
             {!hasActiveFilters && (
@@ -527,7 +547,7 @@ export default function OrdersPage() {
                   <TableHead className="w-10">
                     <input
                       type="checkbox"
-                      checked={orders.length > 0 && selectedIds.size === orders.length}
+                      checked={visibleOrders.length > 0 && selectedIds.size === visibleOrders.length}
                       onChange={toggleSelectAll}
                       className="h-4 w-4 rounded border-gray-300 dark:border-zinc-600 accent-blue-600"
                     />
@@ -544,7 +564,7 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {visibleOrders.map((order) => (
                 <TableRow
                   key={order.id}
                   className={`cursor-pointer hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 ${
@@ -660,9 +680,9 @@ export default function OrdersPage() {
       </div>
 
       {/* Summary */}
-      {orders.length > 0 && (
+      {visibleOrders.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-zinc-400">
-          Showing {orders.length} order{orders.length !== 1 ? "s" : ""}
+          Showing {visibleOrders.length} order{visibleOrders.length !== 1 ? "s" : ""}{!showCompleted && orders.length > visibleOrders.length ? ` (${orders.length - visibleOrders.length} completed hidden)` : ""}
         </div>
       )}
     </div>

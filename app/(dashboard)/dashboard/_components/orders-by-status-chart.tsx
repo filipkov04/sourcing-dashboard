@@ -26,7 +26,7 @@ export function OrdersByStatusChart({ data }: { data: OrdersByStatusData }) {
               cy="50%"
               innerRadius={45}
               outerRadius={72}
-              paddingAngle={3}
+              paddingAngle={0}
               dataKey="value"
               strokeWidth={0}
             >

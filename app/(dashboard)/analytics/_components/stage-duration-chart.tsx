@@ -100,9 +100,14 @@ export function StageDurationChart({ overall, bottleneck, byFactory }: StageDura
           <h4 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-3">By Factory (stacked)</h4>
           <ResponsiveContainer width="100%" height={factoryData.length * 50 + 60}>
             <BarChart data={factoryData} layout="vertical" margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
+              <defs>
+                <marker id="arrow-x-sd" markerWidth="10" markerHeight="10" refX="10" refY="5">
+                  <path d="M0,0 L10,5 L0,10 Z" fill={isDark ? "#3f3f46" : "#e5e7eb"} />
+                </marker>
+              </defs>
               <CartesianGrid strokeDasharray="0" stroke={isDark ? "#3f3f46" : "#e5e7eb"} opacity={0.3} horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: isDark ? "#71717a" : "#9ca3af" }} tickLine={false} axisLine={false} unit="d" />
-              <YAxis type="category" dataKey="factory" width={120} tick={{ fontSize: 12, fill: isDark ? "#a1a1aa" : "#6b7280" }} tickLine={false} axisLine={false} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: isDark ? "#71717a" : "#9ca3af" }} tickLine={{ stroke: isDark ? "#3f3f46" : "#e5e7eb", strokeWidth: 1 }} tickSize={4} axisLine={{ stroke: isDark ? "#3f3f46" : "#e5e7eb", strokeWidth: 1, markerEnd: "url(#arrow-x-sd)" }} unit="d" padding={{ right: 15 }} />
+              <YAxis type="category" dataKey="factory" width={120} tick={{ fontSize: 12, fill: isDark ? "#a1a1aa" : "#6b7280" }} tickLine={false} axisLine={{ stroke: isDark ? "#3f3f46" : "#e5e7eb", strokeWidth: 1 }} />
               <Tooltip
                 cursor={{ fill: "rgba(255,255,255,0.04)" }}
                 contentStyle={{

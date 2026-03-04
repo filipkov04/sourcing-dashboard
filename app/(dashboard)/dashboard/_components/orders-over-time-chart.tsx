@@ -15,15 +15,22 @@ import type { OrderSummaryData } from "./orders-over-time-section";
 export function OrderSummaryChart({ data }: { data: OrderSummaryData }) {
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+      <BarChart data={data} layout="vertical" margin={{ left: 20, right: 15 }}>
+        <defs>
+          <marker id="arrow-x-oot" markerWidth="10" markerHeight="10" refX="10" refY="5">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#3f3f46" />
+          </marker>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" horizontal={true} vertical={false} />
         <XAxis
           type="number"
           stroke="#a1a1aa"
           fontSize={12}
-          tickLine={false}
-          axisLine={false}
+          tickLine={{ stroke: "#3f3f46", strokeWidth: 1 }}
+          tickSize={4}
+          axisLine={{ stroke: "#3f3f46", strokeWidth: 1, markerEnd: "url(#arrow-x-oot)" }}
           allowDecimals={false}
+          padding={{ right: 15 }}
         />
         <YAxis
           type="category"
@@ -31,7 +38,7 @@ export function OrderSummaryChart({ data }: { data: OrderSummaryData }) {
           stroke="#a1a1aa"
           fontSize={12}
           tickLine={false}
-          axisLine={false}
+          axisLine={{ stroke: "#3f3f46", strokeWidth: 1 }}
           width={80}
         />
         <Tooltip

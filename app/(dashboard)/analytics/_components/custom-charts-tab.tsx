@@ -83,6 +83,7 @@ export function CustomChartsTab({ userId }: Props) {
       />
 
       <ChartBuilderWizard
+        key={editingChart?.id || "new"}
         open={wizardOpen}
         onOpenChange={handleWizardClose}
         onSave={handleSave}

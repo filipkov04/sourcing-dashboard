@@ -25,9 +25,11 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
+  const gridColor = isDark ? "#3f3f46" : "#e5e7eb";
+
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 15, right: 20, left: -20, bottom: 0 }}>
         <defs>
           {/* Light blue gradient for Pending */}
           <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
@@ -44,6 +46,12 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
             <stop offset="5%" stopColor="#FF4D15" stopOpacity={0.18} />
             <stop offset="95%" stopColor="#FF4D15" stopOpacity={0.08} />
           </linearGradient>
+          <marker id="arrow-x-trend" markerWidth="10" markerHeight="10" refX="10" refY="5">
+            <path d="M0,0 L10,5 L0,10 Z" fill={gridColor} />
+          </marker>
+          <marker id="arrow-y-trend" markerWidth="10" markerHeight="10" refX="5" refY="0">
+            <path d="M0,10 L5,0 L10,10 Z" fill={gridColor} />
+          </marker>
         </defs>
 
         {/* Light horizontal grid lines only */}
@@ -60,18 +68,20 @@ export function OrdersTrendChart({ data }: { data: OrderTrendData }) {
           stroke={isDark ? "#71717a" : "#6b7280"}
           fontSize={12}
           tickLine={false}
-          axisLine={false}
+          axisLine={{ stroke: gridColor, strokeWidth: 1, markerEnd: "url(#arrow-x-trend)" }}
           dy={8}
+          padding={{ right: 15 }}
         />
 
-        {/* Y-axis with no axis line */}
         <YAxis
           stroke={isDark ? "#71717a" : "#6b7280"}
           fontSize={12}
-          tickLine={false}
-          axisLine={false}
+          tickLine={{ stroke: gridColor, strokeWidth: 1 }}
+          tickSize={4}
+          axisLine={{ stroke: gridColor, strokeWidth: 1, markerStart: "url(#arrow-y-trend)" }}
           allowDecimals={false}
           width={40}
+          padding={{ top: 15 }}
         />
 
         {/* Clean tooltip */}

@@ -310,14 +310,25 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         transform: (data: any) => {
           const sparklines = data.sparklines || {};
           const total = sparklines.total || [];
+          const bucketCount = total.length || 7;
+
+          // Compute real date labels from period.from / period.to
+          const fromMs = data.period?.from ? new Date(data.period.from).getTime() : Date.now() - 30 * 86400000;
+          const toMs = data.period?.to ? new Date(data.period.to).getTime() : Date.now();
+          const bucketMs = (toMs - fromMs) / bucketCount;
+
           return {
-            chartData: total.map((_: number, i: number) => ({
-              name: `Period ${i + 1}`,
-              Total: sparklines.total?.[i] || 0,
-              Active: sparklines.active?.[i] || 0,
-              Completed: sparklines.completed?.[i] || 0,
-              Delayed: sparklines.delayed?.[i] || 0,
-            })),
+            chartData: total.map((_: number, i: number) => {
+              const bucketDate = new Date(fromMs + bucketMs * i + bucketMs / 2);
+              const label = bucketDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+              return {
+                name: label,
+                Total: sparklines.total?.[i] || 0,
+                Active: sparklines.active?.[i] || 0,
+                Completed: sparklines.completed?.[i] || 0,
+                Delayed: sparklines.delayed?.[i] || 0,
+              };
+            }),
             dataKeys: ["Total", "Active", "Completed", "Delayed"],
             nameKey: "name",
             colors: [CHART_PALETTE[0], CHART_PALETTE[1], CHART_PALETTE[2], CHART_PALETTE[3]],

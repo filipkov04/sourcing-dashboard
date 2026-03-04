@@ -55,7 +55,7 @@ type Props = {
 };
 
 export function ChartBuilderWizard({ open, onOpenChange, onSave, editChart }: Props) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => editChart ? 2 : 0);
   const [state, setState] = useState<WizardState>(() => {
     if (editChart) {
       const cfg = (editChart.config || {}) as Record<string, any>;

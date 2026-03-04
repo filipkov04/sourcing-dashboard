@@ -27,7 +27,7 @@ export function ProductPortfolioChart({ data }: { data: ProductPortfolioData }) 
               outerRadius={65}
               dataKey="value"
               stroke="none"
-              paddingAngle={1}
+              paddingAngle={0}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />

@@ -17,9 +17,19 @@ export function OrdersTrendBarChart({ data }: { data: OrderTrendData }) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
+  const gridColor = isDark ? "#3f3f46" : "#e5e7eb";
+
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 15, right: 20, left: -20, bottom: 0 }}>
+        <defs>
+          <marker id="arrow-x-tbar" markerWidth="10" markerHeight="10" refX="10" refY="5">
+            <path d="M0,0 L10,5 L0,10 Z" fill={gridColor} />
+          </marker>
+          <marker id="arrow-y-tbar" markerWidth="10" markerHeight="10" refX="5" refY="0">
+            <path d="M0,10 L5,0 L10,10 Z" fill={gridColor} />
+          </marker>
+        </defs>
         <CartesianGrid
           strokeDasharray="0"
           stroke={isDark ? "#3f3f46" : "#e5e7eb"}
@@ -31,16 +41,19 @@ export function OrdersTrendBarChart({ data }: { data: OrderTrendData }) {
           stroke={isDark ? "#71717a" : "#6b7280"}
           fontSize={12}
           tickLine={false}
-          axisLine={false}
+          axisLine={{ stroke: gridColor, strokeWidth: 1, markerEnd: "url(#arrow-x-tbar)" }}
           dy={8}
+          padding={{ right: 15 }}
         />
         <YAxis
           stroke={isDark ? "#71717a" : "#6b7280"}
           fontSize={12}
-          tickLine={false}
-          axisLine={false}
+          tickLine={{ stroke: gridColor, strokeWidth: 1 }}
+          tickSize={4}
+          axisLine={{ stroke: gridColor, strokeWidth: 1, markerStart: "url(#arrow-y-tbar)" }}
           allowDecimals={false}
           width={40}
+          padding={{ top: 15 }}
         />
         <Tooltip
           cursor={{ fill: "rgba(255,255,255,0.04)" }}
