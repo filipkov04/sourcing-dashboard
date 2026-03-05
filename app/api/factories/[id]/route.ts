@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError, error, validationError } from "@/lib/api";
+import { success, notFound, unauthorized, handleError, error, validationError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
@@ -20,7 +20,7 @@ export async function GET(
     const factory = await prisma.factory.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: {
         orders: {
@@ -78,7 +78,7 @@ export async function PATCH(
     const existingFactory = await prisma.factory.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 
@@ -137,7 +137,7 @@ export async function DELETE(
     const existingFactory = await prisma.factory.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: {
         _count: {

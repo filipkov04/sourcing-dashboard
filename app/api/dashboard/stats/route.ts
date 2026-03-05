@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Parse period from query params
     const { searchParams } = new URL(request.url);
@@ -56,19 +57,19 @@ export async function GET(request: NextRequest) {
     const [orders, previousPeriodOrders, previousCompletedOrders] = await Promise.all([
       prisma.order.findMany({
         where: {
-          organizationId,
+          organizationId, ...(projectId ? { projectId } : {}),
           orderDate: { gte: from!, lte: to },
         },
       }),
       prisma.order.count({
         where: {
-          organizationId,
+          organizationId, ...(projectId ? { projectId } : {}),
           orderDate: { gte: previousFrom, lt: from! },
         },
       }),
       prisma.order.count({
         where: {
-          organizationId,
+          organizationId, ...(projectId ? { projectId } : {}),
           status: "COMPLETED",
           actualDate: { gte: previousFrom, lt: from! },
         },

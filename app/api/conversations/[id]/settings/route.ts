@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError } from "@/lib/api";
+import { success, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       where: {
         conversationId: id,
         userId: session.user.id,
-        conversation: { organizationId: session.user.organizationId },
+        conversation: { ...projectScope(session) },
       },
       select: {
         muted: true,
@@ -48,7 +48,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: {
         conversationId: id,
         userId: session.user.id,
-        conversation: { organizationId: session.user.organizationId },
+        conversation: { ...projectScope(session) },
       },
     });
 

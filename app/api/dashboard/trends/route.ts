@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Parse period filter
     const { searchParams } = new URL(request.url);
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
     const orders = await prisma.order.findMany({
       where: {
         organizationId,
+        ...(projectId ? { projectId } : {}),
         orderDate: {
           gte: from,
         },

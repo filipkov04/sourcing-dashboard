@@ -15,10 +15,11 @@ export async function GET() {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     const completedOrders = await prisma.order.findMany({
       where: {
-        organizationId,
+        organizationId, ...(projectId ? { projectId } : {}),
         status: { in: ["COMPLETED", "SHIPPED", "DELIVERED"] },
         actualDate: { not: null },
       },

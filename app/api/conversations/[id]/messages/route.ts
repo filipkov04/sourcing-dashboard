@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { error, notFound, unauthorized, forbidden, handleError, created } from "@/lib/api";
+import { error, notFound, unauthorized, forbidden, handleError, created , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { supabase, CHAT_ATTACHMENT_BUCKET, getChatAttachmentUrl } from "@/lib/supabase";
 import { CHAT_ALLOWED_FILE_TYPES, CHAT_MAX_FILE_SIZE } from "@/lib/chat-constants";
@@ -26,7 +26,7 @@ export async function POST(
       where: {
         conversationId: id,
         userId: session.user.id,
-        conversation: { organizationId: session.user.organizationId },
+        conversation: { ...projectScope(session) },
       },
     });
 

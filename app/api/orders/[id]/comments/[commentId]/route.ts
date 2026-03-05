@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, forbidden, handleError } from "@/lib/api";
+import { success, error, notFound, unauthorized, forbidden, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 const MAX_COMMENT_LENGTH = 2000;
@@ -22,7 +22,7 @@ export async function PATCH(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 
@@ -82,7 +82,7 @@ export async function DELETE(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 

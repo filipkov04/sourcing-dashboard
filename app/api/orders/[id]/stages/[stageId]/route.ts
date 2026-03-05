@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError, error } from "@/lib/api";
+import { success, notFound, unauthorized, handleError, error , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent } from "@/lib/history";
 import { fireAlert } from "@/lib/alert-generator";
@@ -30,7 +30,7 @@ export async function PATCH(
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: { factory: { select: { name: true } } },
     });
@@ -209,7 +209,7 @@ export async function PATCH(
     if (updateData.status !== undefined && updateData.status !== existingStage.status) {
       if (updateData.status === "BLOCKED") {
         fireAlert({
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           title: "Stage blocked",
           message: `Stage "${existingStage.name}" on order ${order.orderNumber} has been blocked.`,
           severity: "CRITICAL",
@@ -218,7 +218,7 @@ export async function PATCH(
         });
       } else if (updateData.status === "DELAYED") {
         fireAlert({
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           title: "Stage delayed",
           message: `Stage "${existingStage.name}" on order ${order.orderNumber} has been delayed.`,
           severity: "WARNING",
@@ -281,7 +281,7 @@ export async function PATCH(
     if (result.orderStatus !== order.status) {
       notifyOrderStatusChange({
         orderId: orderId,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
         orderNumber: order.orderNumber,
         productName: order.productName,
         oldStatus: order.status,

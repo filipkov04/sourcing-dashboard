@@ -3,6 +3,7 @@ import type { Severity } from "@prisma/client";
 
 type AlertInput = {
   organizationId: string;
+  projectId?: string | null;
   title: string;
   message: string;
   severity: Severity;
@@ -27,7 +28,13 @@ async function createAlertIfNew(alert: AlertInput) {
 
   if (existing) return null;
 
-  return prisma.alert.create({ data: alert });
+  const { projectId, ...rest } = alert;
+  return prisma.alert.create({
+    data: {
+      ...rest,
+      ...(projectId ? { projectId } : {}),
+    },
+  });
 }
 
 /**
@@ -68,6 +75,7 @@ export async function generateAlertsForOrganization(organizationId: string) {
       );
       alerts.push({
         organizationId,
+        projectId: order.projectId,
         title: "Order overdue",
         message: `Order ${order.orderNumber} (${order.productName}) is ${daysOverdue} day${daysOverdue !== 1 ? "s" : ""} past its expected delivery date. Factory: ${order.factory.name}. Progress: ${order.overallProgress}%.`,
         severity: daysOverdue > 7 ? "CRITICAL" : "ERROR",
@@ -80,6 +88,7 @@ export async function generateAlertsForOrganization(organizationId: string) {
     if (isDueSoon && order.overallProgress < 80) {
       alerts.push({
         organizationId,
+        projectId: order.projectId,
         title: "Order at risk",
         message: `Order ${order.orderNumber} (${order.productName}) is due in less than 3 days but only ${order.overallProgress}% complete. Factory: ${order.factory.name}.`,
         severity: "WARNING",
@@ -92,6 +101,7 @@ export async function generateAlertsForOrganization(organizationId: string) {
     for (const stage of blockedStages) {
       alerts.push({
         organizationId,
+        projectId: order.projectId,
         title: "Stage blocked",
         message: `Stage "${stage.name}" on order ${order.orderNumber} (${order.productName}) is blocked. Factory: ${order.factory.name}.`,
         severity: "CRITICAL",
@@ -104,6 +114,7 @@ export async function generateAlertsForOrganization(organizationId: string) {
     for (const stage of delayedStages) {
       alerts.push({
         organizationId,
+        projectId: order.projectId,
         title: "Stage delayed",
         message: `Stage "${stage.name}" on order ${order.orderNumber} (${order.productName}) is delayed. Factory: ${order.factory.name}.`,
         severity: "WARNING",
@@ -170,6 +181,7 @@ async function generateRecurrenceAlerts(organizationId: string) {
 
     const alert = await createAlertIfNew({
       organizationId,
+      projectId: order.projectId,
       title,
       message,
       severity,

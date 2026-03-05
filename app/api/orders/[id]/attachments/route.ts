@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, handleError, created } from "@/lib/api";
+import { success, error, notFound, unauthorized, handleError, created , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { supabase, ATTACHMENT_BUCKET } from "@/lib/supabase";
 import crypto from "crypto";
@@ -38,7 +38,7 @@ export async function GET(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 
@@ -74,7 +74,7 @@ export async function POST(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 

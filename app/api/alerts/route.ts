@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, unauthorized, handleError } from "@/lib/api";
+import { success, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 // GET /api/alerts — List alerts for the current organization
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get("unread") === "true";
 
     const where: Record<string, unknown> = {
-      organizationId: session.user.organizationId,
+      ...projectScope(session),
     };
     if (unreadOnly) {
       where.read = false;

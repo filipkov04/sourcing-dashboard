@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { success, unauthorized, handleError } from "@/lib/api";
+import { success, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 // GET /api/alerts/unread-count — Returns unread alert count for badge
@@ -12,7 +12,7 @@ export async function GET() {
 
     const count = await prisma.alert.count({
       where: {
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
         read: false,
       },
     });

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     const factories = await prisma.factory.findMany({
       where: {
-        organizationId: session.user.organizationId,
+        ...api.projectScope(session),
         OR: [{ latitude: null }, { longitude: null }],
       },
     });

@@ -15,11 +15,12 @@ export async function GET() {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Fetch completed stages with timing data
     const stages = await prisma.orderStage.findMany({
       where: {
-        order: { organizationId },
+        order: { organizationId, ...(projectId ? { projectId } : {}) },
         status: "COMPLETED",
         startedAt: { not: null },
         completedAt: { not: null },

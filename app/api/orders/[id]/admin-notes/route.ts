@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, forbidden, handleError, created } from "@/lib/api";
+import { success, error, notFound, unauthorized, forbidden, handleError, created , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 // GET /api/orders/[id]/admin-notes - Fetch admin notes for an order
@@ -21,7 +21,7 @@ export async function GET(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 
@@ -68,7 +68,7 @@ export async function POST(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 

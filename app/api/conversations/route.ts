@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, unauthorized, handleError, created } from "@/lib/api";
+import { success, error, unauthorized, handleError, created , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 import { getWelcomeMessage, getCategoryLabel, type ChatType } from "@/lib/chat-constants";
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const conversations = await prisma.conversation.findMany({
       where: {
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
         participants: { some: { userId: session.user.id } },
         ...(typeFilter && ["SUPPORT", "FACTORY", "GENERAL", "DIRECT"].includes(typeFilter)
           ? { type: typeFilter as "SUPPORT" | "FACTORY" | "GENERAL" | "DIRECT" }
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       // Check for existing DIRECT conversation between these two users
       const existingDM = await prisma.conversation.findFirst({
         where: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           type: "DIRECT",
           AND: [
             { participants: { some: { userId: session.user.id } } },
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     // Ensure all participants belong to the same organization
     if (participantIds.length > 0) {
       const participants = await prisma.user.findMany({
-        where: { id: { in: participantIds }, organizationId: session.user.organizationId },
+        where: { id: { in: participantIds }, ...projectScope(session) },
         select: { id: true },
       });
       if (participants.length !== participantIds.length) {
@@ -154,14 +154,14 @@ export async function POST(request: NextRequest) {
     // Verify order/factory belong to org if provided
     if (orderId) {
       const order = await prisma.order.findFirst({
-        where: { id: orderId, organizationId: session.user.organizationId },
+        where: { id: orderId, ...projectScope(session) },
       });
       if (!order) return error("Order not found in your organization", 404);
     }
 
     if (factoryId) {
       const factory = await prisma.factory.findFirst({
-        where: { id: factoryId, organizationId: session.user.organizationId },
+        where: { id: factoryId, ...projectScope(session) },
       });
       if (!factory) return error("Factory not found in your organization", 404);
     }
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
     if (type === "SUPPORT") {
       const admins = await prisma.user.findMany({
         where: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           role: { in: ["OWNER", "ADMIN"] },
         },
         select: { id: true },
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
       // Create the conversation with participants
       const conv = await tx.conversation.create({
         data: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           name: name ?? null,
           subject,
           type,

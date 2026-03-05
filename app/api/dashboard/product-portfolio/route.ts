@@ -28,11 +28,12 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Parse period filter
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "all";
-    const where: any = { organizationId };
+    const where: any = { organizationId, ...(projectId ? { projectId } : {}) };
 
     if (period !== "all") {
       const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;

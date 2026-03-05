@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { success, created, error, unauthorized, validationError, handleError } from "@/lib/api";
+import { success, created, error, unauthorized, validationError, handleError , projectScope } from "@/lib/api";
 
 const orderRequestDataSchema = z.object({
   productName: z.string().min(1, "Product name is required").max(200),
@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
     const type = searchParams.get("type");
 
     const where: Record<string, unknown> = {
-      organizationId: session.user.organizationId,
+      ...projectScope(session),
     };
     if (status) where.status = status;
     if (type) where.type = type;
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
         const factory = await prisma.factory.findFirst({
           where: {
             id: dataValidation.data.factoryId,
-            organizationId: session.user.organizationId,
+            ...projectScope(session),
           },
         });
         if (!factory) return error("Factory not found", 404);
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
       if (!dataValidation.success) return validationError(dataValidation.error);
 
       const order = await prisma.order.findFirst({
-        where: { id: dataValidation.data.orderId, organizationId: session.user.organizationId },
+        where: { id: dataValidation.data.orderId, ...projectScope(session) },
       });
       if (!order) return error("Order not found", 404);
       targetOrderId = order.id;
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
       if (!dataValidation.success) return validationError(dataValidation.error);
 
       const factory = await prisma.factory.findFirst({
-        where: { id: dataValidation.data.factoryId, organizationId: session.user.organizationId },
+        where: { id: dataValidation.data.factoryId, ...projectScope(session) },
       });
       if (!factory) return error("Factory not found", 404);
       targetFactoryId = factory.id;
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
       if (!dataValidation.success) return validationError(dataValidation.error);
 
       const order = await prisma.order.findFirst({
-        where: { id: dataValidation.data.orderId, organizationId: session.user.organizationId },
+        where: { id: dataValidation.data.orderId, ...projectScope(session) },
       });
       if (!order) return error("Order not found", 404);
       targetOrderId = order.id;
@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
       if (!dataValidation.success) return validationError(dataValidation.error);
 
       const factory = await prisma.factory.findFirst({
-        where: { id: dataValidation.data.factoryId, organizationId: session.user.organizationId },
+        where: { id: dataValidation.data.factoryId, ...projectScope(session) },
       });
       if (!factory) return error("Factory not found", 404);
       targetFactoryId = factory.id;
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
         type,
         data: data as object,
         requesterId: session.user.id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
         ...(targetOrderId && { targetOrderId }),
         ...(targetFactoryId && { targetFactoryId }),
       },
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
 
       const adminUsers = await prisma.user.findMany({
         where: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           role: { in: ["OWNER", "ADMIN"] },
         },
         select: { id: true },
@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
 
       const conv = await prisma.conversation.create({
         data: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           subject: `Request: ${summary}`,
           type: "SUPPORT",
           participants: {

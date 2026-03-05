@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, forbidden, handleError } from "@/lib/api";
+import { success, error, notFound, unauthorized, forbidden, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { serverBroadcast } from "@/lib/realtime-server";
 
@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         id: messageId,
         conversationId: id,
         conversation: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           participants: { some: { userId: session.user.id } },
         },
       },
@@ -86,7 +86,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         id: messageId,
         conversationId: id,
         conversation: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           participants: { some: { userId: session.user.id } },
         },
       },

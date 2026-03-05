@@ -26,11 +26,13 @@ export async function GET() {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
     const userId = session.user.id;
 
     const charts = await prisma.customChart.findMany({
       where: {
         organizationId,
+        ...(projectId ? { projectId } : {}),
         OR: [
           { creatorId: userId },
           { visibility: "SHARED" },
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     const chart = await prisma.customChart.create({
       data: {
-        organizationId: session.user.organizationId,
+        ...api.projectScope(session),
         creatorId: session.user.id,
         title,
         chartType,

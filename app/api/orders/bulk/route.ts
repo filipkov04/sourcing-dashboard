@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, unauthorized, forbidden, handleError } from "@/lib/api";
+import { success, error, unauthorized, forbidden, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent } from "@/lib/history";
 
@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest) {
     const orders = await prisma.order.findMany({
       where: {
         id: { in: orderIds },
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       select: { id: true, status: true, actualDate: true },
     });
@@ -64,7 +64,7 @@ export async function PATCH(request: NextRequest) {
     await prisma.order.updateMany({
       where: {
         id: { in: orderIds },
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       data: updateData,
     });

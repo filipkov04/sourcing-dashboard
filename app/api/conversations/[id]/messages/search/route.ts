@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, handleError } from "@/lib/api";
+import { success, error, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { getChatAttachmentUrl } from "@/lib/supabase";
 
@@ -20,7 +20,7 @@ export async function GET(
       where: {
         conversationId: id,
         userId: session.user.id,
-        conversation: { organizationId: session.user.organizationId },
+        conversation: { ...projectScope(session) },
       },
     });
 

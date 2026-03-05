@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { success, error, unauthorized, handleError } from "@/lib/api";
+import { success, error, unauthorized, handleError, projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { checkAndUpdateDelays } from "@/lib/check-delays";
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const validPriorities = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
 
     const where: Prisma.OrderWhereInput = {
-      organizationId: session.user.organizationId,
+      ...projectScope(session),
     };
 
     if (status && (validStatuses as readonly string[]).includes(status)) {
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
     const factory = await prisma.factory.findFirst({
       where: {
         id: factoryId,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
         quantity,
         unit: unit || "pieces",
         factoryId,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
         orderDate: new Date(orderDate),
         expectedDate: new Date(expectedDate),
         priority: priority || "NORMAL",

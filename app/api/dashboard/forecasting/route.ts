@@ -15,11 +15,12 @@ export async function GET() {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Get historical completed orders to compute avg daily progress per factory
     const completedOrders = await prisma.order.findMany({
       where: {
-        organizationId,
+        organizationId, ...(projectId ? { projectId } : {}),
         status: { in: ["COMPLETED", "SHIPPED", "DELIVERED"] },
         actualDate: { not: null },
       },
@@ -64,7 +65,7 @@ export async function GET() {
     // Get active orders
     const activeOrders = await prisma.order.findMany({
       where: {
-        organizationId,
+        organizationId, ...(projectId ? { projectId } : {}),
         status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
       },
       select: {

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, forbidden, noContent, handleError, error } from "@/lib/api";
+import { success, notFound, unauthorized, forbidden, noContent, handleError, error , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent, OrderEventType } from "@/lib/history";
 import { notifyOrderStatusChange } from "@/lib/notifications";
@@ -22,7 +22,7 @@ export async function GET(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: {
         factory: true,
@@ -44,7 +44,7 @@ export async function GET(
       const freshOrder = await prisma.order.findFirst({
         where: {
           id,
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
         },
         include: {
           factory: true,
@@ -83,7 +83,7 @@ export async function PATCH(
     const existingOrder = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: {
         stages: true,
@@ -131,7 +131,7 @@ export async function PATCH(
       const factory = await prisma.factory.findFirst({
         where: {
           id: factoryId,
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
         },
       });
       if (!factory) {
@@ -490,7 +490,7 @@ export async function PATCH(
     if (status !== undefined && status !== existingOrder.status) {
       notifyOrderStatusChange({
         orderId: id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
         orderNumber: updatedOrder.orderNumber,
         productName: updatedOrder.productName,
         oldStatus: existingOrder.status,
@@ -521,7 +521,7 @@ export async function DELETE(
     const { id } = await params;
 
     const order = await prisma.order.findFirst({
-      where: { id, organizationId: session.user.organizationId },
+      where: { id, ...projectScope(session) },
     });
 
     if (!order) return notFound("Order");

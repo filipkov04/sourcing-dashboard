@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { success, error, unauthorized, forbidden, notFound, validationError, handleError } from "@/lib/api";
+import { success, error, unauthorized, forbidden, notFound, validationError, handleError , projectScope } from "@/lib/api";
 
 async function sendConversationMessage(
   conversationId: string,
@@ -51,7 +51,7 @@ export async function GET(
     const request = await prisma.request.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: {
         requester: { select: { id: true, name: true, email: true } },
@@ -95,7 +95,7 @@ export async function PATCH(
     const request = await prisma.request.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 
@@ -201,14 +201,14 @@ export async function PATCH(
     if (request.type === "ORDER_EDIT_REQUEST" || request.type === "ORDER_DELETE_REQUEST") {
       if (!request.targetOrderId) return error("No target order linked to this request", 400);
       const targetOrder = await prisma.order.findFirst({
-        where: { id: request.targetOrderId, organizationId: session.user.organizationId },
+        where: { id: request.targetOrderId, ...projectScope(session) },
       });
       if (!targetOrder) return error("Target order no longer exists", 404);
     }
     if (request.type === "FACTORY_EDIT_REQUEST" || request.type === "FACTORY_DELETE_REQUEST") {
       if (!request.targetFactoryId) return error("No target factory linked to this request", 400);
       const targetFactory = await prisma.factory.findFirst({
-        where: { id: request.targetFactoryId, organizationId: session.user.organizationId },
+        where: { id: request.targetFactoryId, ...projectScope(session) },
       });
       if (!targetFactory) return error("Target factory no longer exists", 404);
     }
@@ -228,7 +228,7 @@ export async function PATCH(
               quantity: data.quantity as number,
               unit: (data.unit as string) || "pieces",
               factoryId: data.factoryId as string,
-              organizationId: session.user.organizationId,
+              ...projectScope(session),
               orderDate: data.orderDate ? new Date(data.orderDate as string) : new Date(),
               expectedDate: data.expectedDate ? new Date(data.expectedDate as string) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
               priority: (data.priority as "LOW" | "NORMAL" | "HIGH" | "URGENT") || "NORMAL",
@@ -257,7 +257,7 @@ export async function PATCH(
               contactName: (data.contactName as string) || null,
               contactEmail: (data.contactEmail as string) || null,
               contactPhone: (data.contactPhone as string) || null,
-              organizationId: session.user.organizationId,
+              ...projectScope(session),
             },
           });
           targetFactoryId = factory.id;

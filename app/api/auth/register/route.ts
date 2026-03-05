@@ -81,6 +81,11 @@ export async function POST(request: Request) {
 
       // Create user and accept invitation in a transaction
       const result = await prisma.$transaction(async (tx) => {
+        // Find the org's default project to set as active
+        const defaultProject = await tx.project.findFirst({
+          where: { organizationId: invitation.organizationId, isDefault: true },
+        });
+
         const user = await tx.user.create({
           data: {
             name,
@@ -88,6 +93,7 @@ export async function POST(request: Request) {
             password: hashedPassword,
             role: invitation.role,
             organizationId: invitation.organizationId,
+            activeProjectId: defaultProject?.id || null,
           },
         });
 
@@ -146,7 +152,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create organization and user in a transaction
+    // Create organization, user, and default project in a transaction
     const result = await prisma.$transaction(async (tx) => {
       const organization = await tx.organization.create({
         data: {
@@ -165,7 +171,25 @@ export async function POST(request: Request) {
         },
       });
 
-      return { organization, user };
+      // Create a default project and set it as the user's active project
+      const project = await tx.project.create({
+        data: {
+          name: "Default Project",
+          slug: "default",
+          description: "Your first project",
+          color: "#6366F1",
+          organizationId: organization.id,
+          createdById: user.id,
+          isDefault: true,
+        },
+      });
+
+      await tx.user.update({
+        where: { id: user.id },
+        data: { activeProjectId: project.id },
+      });
+
+      return { organization, user, project };
     });
 
     return NextResponse.json(

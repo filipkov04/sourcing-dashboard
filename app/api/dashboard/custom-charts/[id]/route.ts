@@ -31,7 +31,7 @@ export async function GET(
     const chart = await prisma.customChart.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...api.projectScope(session),
       },
     });
 
@@ -65,7 +65,7 @@ export async function PATCH(
     const existing = await prisma.customChart.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...api.projectScope(session),
       },
     });
 
@@ -120,7 +120,7 @@ export async function DELETE(
     const existing = await prisma.customChart.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...api.projectScope(session),
       },
     });
 

@@ -47,6 +47,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           organizationId: user.organizationId,
           organizationName: user.organization.name,
           avatarId: user.avatarId,
+          projectId: null,
+          projectName: null,
         };
       },
     }),
@@ -59,13 +61,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.organizationId = user.organizationId;
         token.organizationName = user.organizationName;
         token.avatarId = user.avatarId ?? null;
+        token.projectId = null;
+        token.projectName = null;
       }
       // Always refresh role and org from DB so changes take effect without re-login
       if (token.id) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { name: true, role: true, organizationId: true, avatarId: true, organization: { select: { name: true } } },
+            select: {
+              name: true,
+              role: true,
+              organizationId: true,
+              avatarId: true,
+              organization: { select: { name: true } },
+              activeProjectId: true,
+              activeProject: { select: { name: true } },
+            },
           });
           if (dbUser) {
             token.name = dbUser.name;
@@ -73,6 +85,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.organizationId = dbUser.organizationId;
             token.organizationName = dbUser.organization.name;
             token.avatarId = dbUser.avatarId ?? null;
+            token.projectId = dbUser.activeProjectId ?? null;
+            token.projectName = dbUser.activeProject?.name ?? null;
           }
         } catch {
           // DB unavailable — keep existing token values rather than breaking the session
@@ -87,6 +101,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.organizationId = token.organizationId as string;
         session.user.organizationName = token.organizationName as string;
         session.user.avatarId = token.avatarId as string | null;
+        session.user.projectId = (token.projectId as string) ?? null;
+        session.user.projectName = (token.projectName as string) ?? null;
       }
       return session;
     },

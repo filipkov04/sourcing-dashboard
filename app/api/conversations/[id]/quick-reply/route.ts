@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, forbidden, handleError } from "@/lib/api";
+import { success, error, notFound, unauthorized, forbidden, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { getCategoryLabel, getAutoReply, SUPPORT_CATEGORIES } from "@/lib/chat-constants";
 
@@ -33,7 +33,7 @@ export async function POST(
         conversationId: id,
         userId: session.user.id,
         conversation: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           type: "SUPPORT",
         },
       },

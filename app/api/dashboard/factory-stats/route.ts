@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Parse period filter
     const { searchParams } = new URL(request.url);
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Get all factories with their orders
     const factories = await prisma.factory.findMany({
-      where: { organizationId },
+      where: { organizationId, ...(projectId ? { projectId } : {}) },
       include: {
         orders: {
           where: orderWhere,

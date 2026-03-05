@@ -20,6 +20,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { SaltoLogo } from "@/components/salto-logo";
+import { ProjectSwitcher } from "@/components/layout/project-switcher";
 import { signOut, useSession } from "next-auth/react";
 import { useMessageUnreadCount } from "@/lib/use-conversations";
 import { useProfilePanel } from "@/lib/profile-panel-context";
@@ -115,6 +116,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose, collapsed = false }
           </Link>
         )}
       </div>
+
+      {/* Project Switcher */}
+      <ProjectSwitcher collapsed={collapsed} />
 
       {/* Navigation */}
       <nav className={cn("flex-1 space-y-1", collapsed ? "space-y-1.5 px-2 py-3" : "px-3 py-3")}>

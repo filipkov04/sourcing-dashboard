@@ -15,7 +15,10 @@ export default async function FactoriesPage() {
   }
 
   const factoryCount = await prisma.factory.count({
-    where: { organizationId: session.user.organizationId },
+    where: {
+      organizationId: session.user.organizationId,
+      ...(session.user.projectId ? { projectId: session.user.projectId } : {}),
+    },
   });
 
   return (
@@ -54,7 +57,7 @@ export default async function FactoriesPage() {
 
       {/* Factories Table */}
       <Suspense fallback={<FactoriesTableSkeleton />}>
-        <FactoriesTableContent organizationId={session.user.organizationId} userRole={session.user.role} />
+        <FactoriesTableContent organizationId={session.user.organizationId} projectId={session.user.projectId} userRole={session.user.role} />
       </Suspense>
     </div>
   );
@@ -62,15 +65,18 @@ export default async function FactoriesPage() {
 
 async function FactoriesTableContent({
   organizationId,
+  projectId,
   userRole,
 }: {
   organizationId: string;
+  projectId: string | null;
   userRole: string;
 }) {
   // Fetch factories with order count
   const factories = await prisma.factory.findMany({
     where: {
       organizationId,
+      ...(projectId ? { projectId } : {}),
     },
     include: {
       _count: {

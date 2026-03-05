@@ -15,10 +15,11 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Get recent orders (last 10) with factory info
     const recentOrders = await prisma.order.findMany({
-      where: { organizationId },
+      where: { organizationId, ...(projectId ? { projectId } : {}) },
       include: {
         factory: {
           select: {

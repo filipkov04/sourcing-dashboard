@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError } from "@/lib/api";
+import { success, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 // GET /api/orders/[id]/timeline - Get order event history
@@ -20,7 +20,7 @@ export async function GET(
     const order = await prisma.order.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 

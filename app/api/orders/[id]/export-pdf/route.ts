@@ -1,3 +1,4 @@
+import { projectScope } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -25,7 +26,7 @@ export async function GET(
     const { id } = await params;
 
     const order = await prisma.order.findFirst({
-      where: { id, organizationId: session.user.organizationId },
+      where: { id, ...projectScope(session) },
       include: {
         factory: { select: { name: true, location: true } },
         stages: {

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, created, unauthorized, handleError, validationError } from "@/lib/api";
+import { success, created, unauthorized, handleError, validationError, projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
 
     const where: any = {
-      organizationId: session.user.organizationId,
+      ...projectScope(session),
     };
 
     if (search) {
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         contactName: data.contactName || null,
         contactEmail: data.contactEmail || null,
         contactPhone: data.contactPhone || null,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
       include: {
         _count: {

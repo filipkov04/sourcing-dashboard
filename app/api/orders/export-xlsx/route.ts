@@ -1,3 +1,4 @@
+import { projectScope } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority");
 
     const where: Record<string, unknown> = {
-      organizationId: session.user.organizationId,
+      ...projectScope(session),
     };
     if (status) where.status = status;
     if (factoryId) where.factoryId = factoryId;

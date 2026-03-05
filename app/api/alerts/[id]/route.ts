@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError } from "@/lib/api";
+import { success, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 // PATCH /api/alerts/[id] — Update alert (mark read/resolved)
@@ -21,7 +21,7 @@ export async function PATCH(
     const alert = await prisma.alert.findFirst({
       where: {
         id,
-        organizationId: session.user.organizationId,
+        ...projectScope(session),
       },
     });
 

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, handleError } from "@/lib/api";
+import { success, error, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { serverBroadcast } from "@/lib/realtime-server";
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         id: messageId,
         deletedAt: null,
         conversation: {
-          organizationId: session.user.organizationId,
+          ...projectScope(session),
           participants: {
             some: { userId: session.user.id },
           },
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       where: {
         userId: session.user.id,
         conversationId: { in: conversationIds },
-        conversation: { organizationId: session.user.organizationId },
+        conversation: { ...projectScope(session) },
       },
       select: { conversationId: true },
     });

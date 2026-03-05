@@ -15,6 +15,10 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ["/login", "/register", "/api/auth", "/invite", "/api/invitations/", "/api/news/", "/api/cron/", "/api/mock-factory/", "/api/webhooks/"];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
+  // Routes that require auth but NOT a project selection
+  const noProjectRoutes = ["/projects", "/api/projects", "/api/user/active-project"];
+  const isNoProjectRoute = noProjectRoutes.some((route) => pathname.startsWith(route));
+
   // If not authenticated and trying to access protected route
   if (!token && !isPublicRoute && pathname !== "/") {
     const loginUrl = new URL("/login", request.url);
@@ -22,17 +26,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If authenticated and trying to access login/register, redirect to dashboard
+  // If authenticated and trying to access login/register, redirect to projects
   if (token && (pathname === "/login" || pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/projects", request.url));
   }
 
-  // Redirect root to dashboard if authenticated, otherwise to login
+  // Redirect root to projects if authenticated, otherwise to login
   if (pathname === "/") {
     if (token) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/projects", request.url));
     }
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Authenticated user with no active project trying to access app routes → redirect to /projects
+  if (token && !token.projectId && !isPublicRoute && !isNoProjectRoute && !pathname.startsWith("/api/")) {
+    return NextResponse.redirect(new URL("/projects", request.url));
   }
 
   return NextResponse.next();

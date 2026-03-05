@@ -161,6 +161,16 @@ export function handleError(err: unknown): NextResponse<ApiErrorResponse> {
 }
 
 /**
+ * Get project + org scope from session for Prisma where clauses
+ */
+export function projectScope(session: { user: { organizationId: string; projectId: string | null } }) {
+  return {
+    organizationId: session.user.organizationId,
+    ...(session.user.projectId ? { projectId: session.user.projectId } : {}),
+  };
+}
+
+/**
  * Async error wrapper for API route handlers
  * Automatically catches errors and returns formatted responses
  *

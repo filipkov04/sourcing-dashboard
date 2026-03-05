@@ -15,11 +15,12 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    const projectId = session.user.projectId;
 
     // Fetch completed/delivered orders with factory info
     const orders = await prisma.order.findMany({
       where: {
-        organizationId,
+        organizationId, ...(projectId ? { projectId } : {}),
         status: { in: ["COMPLETED", "DELIVERED"] },
       },
       include: {

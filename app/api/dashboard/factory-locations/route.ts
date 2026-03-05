@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const factories = await prisma.factory.findMany({
-      where: { organizationId: session.user.organizationId },
+      where: { ...api.projectScope(session) },
       select: {
         id: true,
         name: true,

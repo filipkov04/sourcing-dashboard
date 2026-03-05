@@ -17,7 +17,7 @@ export async function POST(
     const { id } = await params;
 
     const factory = await prisma.factory.findFirst({
-      where: { id, organizationId: session.user.organizationId },
+      where: { id, ...api.projectScope(session) },
     });
 
     if (!factory) {
