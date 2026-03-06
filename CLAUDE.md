@@ -38,6 +38,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 **Prisma:** Always `npx prisma generate` after schema changes, restart dev server.
 
+**Project Scoping:** All data queries must include `projectId` alongside `organizationId`. Use `projectScope(session)` from `lib/api.ts` which returns `{ organizationId, ...(projectId ? { projectId } : {}) }`. Team/invitations/presence are org-level (no projectId). Server components must pass `session.user.projectId` explicitly.
+
 ## Status System
 
 **Order Status** (auto-updated from stages): PENDING | IN_PROGRESS | DELAYED | DISRUPTED | COMPLETED | SHIPPED | DELIVERED | CANCELLED
@@ -46,9 +48,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 26 — Mar 1, 2026)
+## Current Status (Session 27 — Mar 5, 2026)
 
-**Last completed:** Animated Count-Up Numbers + Exchange Rate Tooltip Fix
+**Last completed:** Project Selector & Onboarding Flow (BL-1)
+
+**Session 27 changes (Marco):**
+- **Project Selector & Multi-Project Data Isolation** — Full implementation of Project layer between Organization and data:
+  - **Schema:** Added `Project` model (`id`, `name`, `slug`, `description`, `color`, `icon`, `isDefault`, `organizationId`, `createdById`). Added nullable `projectId` + relation + index to: Factory, Order, Alert, Conversation, Request, CustomChart, Integration. Added `activeProjectId`/`activeProject` to User.
+  - **Auth/Session:** `projectId` and `projectName` added to JWT/session types (`types/next-auth.d.ts`, `lib/auth.ts`). Middleware redirects to `/projects` when no active project.
+  - **Onboarding Flow:** `app/(onboarding)/layout.tsx` + `app/(onboarding)/projects/page.tsx`. State machine (`components/projects/project-flow.tsx`): SPLASH → GREETING → PROJECT_SELECT. Animated splash (`splash-screen.tsx`), welcome greeting with quotes (`greeting-screen.tsx`, `lib/quotes.ts`).
+  - **Project Selector UI:** `components/projects/project-selector.tsx` — card grid with edit/delete actions for ADMIN/OWNER. `project-card.tsx` — color stripe, counts, pencil/trash icons. `create-project-dialog.tsx` — dual-mode create/edit with color picker. `delete-project-dialog.tsx` — confirmation with error surfacing.
+  - **Sidebar Switcher:** `components/layout/project-switcher.tsx` — dropdown with color dots, loading spinner, "Manage Projects" link. Uses `lib/use-projects.ts` (SWR hook).
+  - **API Endpoints:** `app/api/projects/route.ts` (GET/POST), `app/api/projects/[id]/route.ts` (GET/PATCH/DELETE), `app/api/user/active-project/route.ts` (PATCH). Delete prevented on default project or projects with orders.
+  - **Data Scoping:** Added `projectScope()` helper to `lib/api.ts`. ~40 API routes updated to filter by `projectId`. Factories page server component (`FactoriesTableContent`) fixed to include `projectId` in where clause.
+  - **Login/Register:** Login redirects to `/projects?welcome=1`. Registration auto-creates "Default Project" and sets `activeProjectId`.
+  - **Migration Script:** `scripts/migrate-default-projects.ts` — creates default project per org, backfills all existing data.
+  - **Package:** Added `swr` dependency.
+  - **Key pattern:** Project switching uses `window.location.href` for hard navigation (ensures fresh JWT cookie).
+  - **Scoping rules:** Factories, orders, alerts, conversations, requests, custom charts, integrations are **project-scoped**. Team members, invitations, presence are **org-scoped** (no change).
 
 **Session 26 changes (Marco):**
 - **Animated Count-Up Numbers:**
@@ -151,7 +168,7 @@ Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order D
 - Session 20 (Filip): Tasks 5.18–5.22 (Chat system: DB models, API backend, UI, messages page, unread badge)
 - Session 18: Tasks 5.1-5.6 (Full alert system, pushed). Stress test: 25/25 endpoints.
 
-**Next task:** Week 5 PR OR BL-1 (Project Selector)
+**Next task:** Week 7 PR or Week 8
 
 ## Plugins
 

@@ -38,6 +38,8 @@ export default async function ProjectsPage({
         isDefault: p.isDefault,
         orderCount: p._count.orders,
         factoryCount: p._count.factories,
+        startDate: p.startDate?.toISOString() ?? null,
+        endDate: p.endDate?.toISOString() ?? null,
       }))}
       userName={session.user.name || "there"}
       activeProjectId={session.user.projectId}

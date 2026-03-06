@@ -17,6 +17,8 @@ interface Project {
   isDefault: boolean;
   orderCount: number;
   factoryCount: number;
+  startDate: string | null;
+  endDate: string | null;
 }
 
 interface ProjectSelectorProps {
@@ -66,25 +68,28 @@ export function ProjectSelector({ projects: initialProjects, activeProjectId, us
 
   return (
     <motion.div
-      className="min-h-screen bg-zinc-950 px-6 py-16"
+      className="min-h-screen bg-zinc-950 px-6 py-20"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <div className="mx-auto max-w-4xl">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <h1 className="text-3xl font-bold text-white">Select a Project</h1>
-          <p className="mt-2 text-zinc-400">
-            Choose a project to work on, or create a new one.
-          </p>
-        </motion.div>
+      <div className="mx-auto max-w-3xl">
+        {/* Header — clips up */}
+        <div className="overflow-hidden">
+          <motion.div
+            className="text-center"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            transition={{ delay: 0.05, duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+          >
+            <h1 className="text-2xl font-semibold text-white">Select a project</h1>
+            <p className="mt-1.5 text-sm text-zinc-500">
+              Choose a project to continue, or create a new one.
+            </p>
+          </motion.div>
+        </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project, i) => (
             <div key={project.id} className="relative">
               <ProjectCard
@@ -97,24 +102,38 @@ export function ProjectSelector({ projects: initialProjects, activeProjectId, us
                 onDelete={() => setDeleteProject(project)}
               />
               {loading === project.id && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-zinc-900/60">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                </div>
+                <motion.div
+                  className="absolute inset-0 flex items-center justify-center rounded-xl bg-zinc-950/60 backdrop-blur-[2px]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <motion.div
+                    className="h-5 w-5 rounded-full border-[1.5px] border-zinc-600 border-t-white"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
+                  />
+                </motion.div>
               )}
             </div>
           ))}
 
-          {/* Create project card */}
+          {/* Create project */}
           {canManage && (
             <motion.button
-              className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-700 text-zinc-500 transition-colors hover:border-zinc-500 hover:text-zinc-300"
+              className="group flex min-h-[140px] flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 text-zinc-600 transition-colors duration-200 hover:border-zinc-700 hover:text-zinc-400"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: projects.length * 0.08, duration: 0.4 }}
+              transition={{
+                delay: 0.15 + projects.length * 0.06,
+                duration: 0.45,
+                ease: [0.33, 1, 0.68, 1],
+              }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowCreate(true)}
             >
-              <Plus className="mb-2 h-8 w-8" />
-              <span className="text-sm font-medium">Create Project</span>
+              <Plus className="mb-1.5 h-5 w-5" />
+              <span className="text-xs font-medium">New Project</span>
             </motion.button>
           )}
         </div>
@@ -136,6 +155,8 @@ export function ProjectSelector({ projects: initialProjects, activeProjectId, us
               isDefault: false,
               orderCount: 0,
               factoryCount: 0,
+              startDate: null,
+              endDate: null,
             },
           ]);
           setShowCreate(false);
@@ -152,7 +173,7 @@ export function ProjectSelector({ projects: initialProjects, activeProjectId, us
           setProjects((prev) =>
             prev.map((p) =>
               p.id === updated.id
-                ? { ...p, name: updated.name, description: updated.description, color: updated.color }
+                ? { ...p, name: updated.name, description: updated.description, color: updated.color, startDate: updated.startDate, endDate: updated.endDate }
                 : p
             )
           );

@@ -19,6 +19,8 @@ interface ProjectFlowProps {
     isDefault: boolean;
     orderCount: number;
     factoryCount: number;
+    startDate: string | null;
+    endDate: string | null;
   }>;
   userName: string;
   activeProjectId: string | null;

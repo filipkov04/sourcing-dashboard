@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, color, icon } = body;
+    const { name, description, color, icon, startDate, endDate } = body;
 
     if (!name || !name.trim()) {
       return error("Project name is required", 400);
@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
         description: description || null,
         color: color || "#6366F1",
         icon: icon || null,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
         organizationId: session.user.organizationId,
         createdById: session.user.id,
       },

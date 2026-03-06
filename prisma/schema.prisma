@@ -97,6 +97,8 @@ model Project {
   description    String?
   color          String?  // hex color for card/badge
   icon           String?  // emoji or icon name
+  startDate      DateTime?
+  endDate        DateTime?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

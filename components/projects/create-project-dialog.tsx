@@ -15,6 +15,8 @@ interface ProjectData {
   name: string;
   description: string | null;
   color: string | null;
+  startDate: string | null;
+  endDate: string | null;
 }
 
 interface CreateProjectDialogProps {
@@ -26,11 +28,18 @@ interface CreateProjectDialogProps {
   onUpdated?: (project: ProjectData) => void;
 }
 
+function toInputDate(val: string | null | undefined): string {
+  if (!val) return "";
+  return new Date(val).toISOString().split("T")[0];
+}
+
 export function CreateProjectDialog({ open, onClose, onCreated, editProject, onUpdated }: CreateProjectDialogProps) {
   const isEdit = !!editProject;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(PRESET_COLORS[0]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,10 +49,14 @@ export function CreateProjectDialog({ open, onClose, onCreated, editProject, onU
       setName(editProject.name);
       setDescription(editProject.description || "");
       setColor(editProject.color || PRESET_COLORS[0]);
+      setStartDate(toInputDate(editProject.startDate));
+      setEndDate(toInputDate(editProject.endDate));
     } else {
       setName("");
       setDescription("");
       setColor(PRESET_COLORS[0]);
+      setStartDate("");
+      setEndDate("");
     }
     setError("");
   }, [editProject, open]);
@@ -58,11 +71,19 @@ export function CreateProjectDialog({ open, onClose, onCreated, editProject, onU
     setError("");
 
     try {
+      const payload = {
+        name: name.trim(),
+        description: description.trim() || null,
+        color,
+        startDate: startDate || null,
+        endDate: endDate || null,
+      };
+
       if (isEdit) {
         const res = await fetch(`/api/projects/${editProject!.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name.trim(), description: description.trim() || null, color }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -74,7 +95,7 @@ export function CreateProjectDialog({ open, onClose, onCreated, editProject, onU
         const res = await fetch("/api/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name.trim(), description: description.trim() || null, color }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -87,6 +108,8 @@ export function CreateProjectDialog({ open, onClose, onCreated, editProject, onU
       setName("");
       setDescription("");
       setColor(PRESET_COLORS[0]);
+      setStartDate("");
+      setEndDate("");
     } catch {
       setError("Something went wrong");
     } finally {
@@ -137,6 +160,30 @@ export function CreateProjectDialog({ open, onClose, onCreated, editProject, onU
               placeholder="Brief description..."
               className="bg-zinc-800 border-zinc-700 text-white"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="project-start" className="text-zinc-300">Start date (optional)</Label>
+              <Input
+                id="project-start"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-end" className="text-zinc-300">End date (optional)</Label>
+              <Input
+                id="project-end"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || undefined}
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

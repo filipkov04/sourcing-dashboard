@@ -46,7 +46,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, description, color, icon } = body;
+    const { name, description, color, icon, startDate, endDate } = body;
 
     const project = await prisma.project.findFirst({
       where: { id, organizationId: session.user.organizationId },
@@ -65,6 +65,8 @@ export async function PATCH(
     if (description !== undefined) data.description = description;
     if (color !== undefined) data.color = color;
     if (icon !== undefined) data.icon = icon;
+    if (startDate !== undefined) data.startDate = startDate ? new Date(startDate) : null;
+    if (endDate !== undefined) data.endDate = endDate ? new Date(endDate) : null;
 
     const updated = await prisma.project.update({
       where: { id },
