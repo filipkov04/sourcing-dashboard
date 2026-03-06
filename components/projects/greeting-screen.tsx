@@ -15,12 +15,32 @@ export function GreetingScreen({ userName, onContinue }: GreetingScreenProps) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950 px-6"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#08090a] px-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35 }}
     >
+      {/* Grid overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+
+      {/* HUD label */}
+      <motion.p
+        className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-orange-500/40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
+        User Identified
+      </motion.p>
+
       {/* Welcome line — clips up into view */}
       <div className="overflow-hidden">
         <motion.h1
@@ -35,7 +55,7 @@ export function GreetingScreen({ userName, onContinue }: GreetingScreenProps) {
 
       {/* Divider line */}
       <motion.div
-        className="mt-6 h-px w-16 bg-zinc-700"
+        className="mt-6 h-px w-16 bg-gradient-to-r from-transparent via-zinc-700 to-transparent"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ delay: 0.6, duration: 0.5, ease: [0.65, 0, 0.35, 1] }}
@@ -59,7 +79,7 @@ export function GreetingScreen({ userName, onContinue }: GreetingScreenProps) {
 
       {/* Continue button */}
       <motion.button
-        className="mt-10 rounded-full border border-zinc-700 px-8 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+        className="mt-10 rounded-full border border-zinc-700 px-8 py-2.5 font-mono text-xs uppercase tracking-wider text-zinc-400 transition-colors hover:border-orange-500/40 hover:text-white"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.4 }}
