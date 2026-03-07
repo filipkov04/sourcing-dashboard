@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Package, Activity, CheckCircle, AlertTriangle, AlertCircle, Calendar, RefreshCw } from "lucide-react";
 import { useAutoRefresh, formatTimeAgo } from "@/lib/use-auto-refresh";
 import { AnimatedNumber } from "@/components/animated-number";
+import { motion } from "framer-motion";
 
 type DelayDetail = {
   count: number;
@@ -55,7 +56,6 @@ function Sparkline({ data, color = "#3b82f6" }: { data: number[]; color?: string
   }));
 
   const linePoints = coords.map((c) => `${c.x},${c.y}`).join(" ");
-  // Closed polygon for gradient fill
   const fillPoints = [
     ...coords.map((c) => `${c.x},${c.y}`),
     `${coords[coords.length - 1].x},${h}`,
@@ -80,6 +80,17 @@ function Sparkline({ data, color = "#3b82f6" }: { data: number[]; color?: string
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function HUDCardBorder() {
+  return (
+    <div className="pointer-events-none absolute inset-0 rounded-xl">
+      <div className="absolute left-0 top-0 h-px w-0 bg-gradient-to-r from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:w-full" />
+      <div className="absolute bottom-0 right-0 h-px w-0 bg-gradient-to-l from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:w-full" />
+      <div className="absolute left-0 top-0 h-0 w-px bg-gradient-to-b from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:h-full" />
+      <div className="absolute bottom-0 right-0 h-0 w-px bg-gradient-to-t from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:h-full" />
+    </div>
   );
 }
 
@@ -149,7 +160,6 @@ export function DashboardStatsCards() {
     ? "text-[#FF4D15]"
     : "text-green-600 dark:text-green-400";
 
-  // Derive trend from sparkline data when no explicit trend is provided
   function sparklineTrend(data?: number[]): number | undefined {
     if (!data || data.length < 2) return undefined;
     const mid = Math.floor(data.length / 2);
@@ -162,6 +172,7 @@ export function DashboardStatsCards() {
   const statsCards = [
     {
       label: "Total Orders",
+      tag: "ORD",
       value: stats?.totalOrders ?? 0,
       icon: Package,
       trend: stats?.trends.orders,
@@ -170,6 +181,7 @@ export function DashboardStatsCards() {
     },
     {
       label: "Active Orders",
+      tag: "ACT",
       value: stats?.activeOrders ?? 0,
       icon: Activity,
       trend: sparklineTrend(stats?.sparklines?.active),
@@ -178,6 +190,7 @@ export function DashboardStatsCards() {
     },
     {
       label: "Completed",
+      tag: "CMP",
       value: stats?.completedOrders ?? 0,
       icon: CheckCircle,
       trend: stats?.trends.completion,
@@ -186,6 +199,7 @@ export function DashboardStatsCards() {
     },
     {
       label: "Delayed",
+      tag: "DLY",
       value: stats?.delayDetail.count ?? 0,
       icon: AlertTriangle,
       subtitle: delaySubtitle,
@@ -196,6 +210,7 @@ export function DashboardStatsCards() {
     },
     {
       label: "Disrupted",
+      tag: "DSR",
       value: stats?.disruptedOrders ?? 0,
       icon: AlertCircle,
       highlight: (stats?.disruptedOrders ?? 0) > 0,
@@ -211,8 +226,10 @@ export function DashboardStatsCards() {
     <div className="col-span-full">
       {/* Period Selector */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Overview</p>
+        <div className="flex items-center gap-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+            Overview
+          </p>
           {timeAgoText && (
             <span className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-zinc-600">
               <RefreshCw className="h-2.5 w-2.5" />
@@ -221,12 +238,12 @@ export function DashboardStatsCards() {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-zinc-800 p-1">
+          <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 dark:bg-zinc-800/80 p-0.5 ring-1 ring-transparent dark:ring-zinc-700/50">
             {periodOptions.map((p) => (
               <button
                 key={p}
                 onClick={() => handlePeriodChange(p)}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                   period === p
                     ? "bg-gradient-to-b from-[#FFB21A] via-[#FF4D15] to-[#FF4D15] text-white shadow-sm"
                     : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
@@ -237,7 +254,7 @@ export function DashboardStatsCards() {
             ))}
             <button
               onClick={() => handlePeriodChange("custom")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
                 period === "custom"
                   ? "bg-gradient-to-b from-[#FFB21A] via-[#FF4D15] to-[#FF4D15] text-white shadow-sm"
                   : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
@@ -279,90 +296,104 @@ export function DashboardStatsCards() {
 
       {/* Stats Grid */}
       {isLoading ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="rounded-xl border border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)] animate-pulse"
+              className="rounded-xl border border-gray-100 bg-white dark:border-zinc-800 dark:bg-zinc-900 animate-pulse"
             >
-              <div className="px-5 pt-4 pb-3">
-                <div className="h-3 w-20 bg-gray-100 dark:bg-zinc-800 rounded" />
+              <div className="px-4 pt-3 pb-2">
+                <div className="h-2.5 w-16 bg-gray-100 dark:bg-zinc-800 rounded" />
               </div>
-              <div className="mx-4 h-px bg-gray-100 dark:bg-zinc-800" />
-              <div className="px-5 pt-4 pb-5">
-                <div className="h-9 w-16 bg-gray-100 dark:bg-zinc-800 rounded" />
+              <div className="mx-3 h-px bg-gray-100 dark:bg-zinc-800" />
+              <div className="px-4 pt-3 pb-4">
+                <div className="h-8 w-14 bg-gray-100 dark:bg-zinc-800 rounded" />
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {statsCards.map((stat, index) => (
-            <div
+            <motion.div
               key={index}
-              className={`group relative rounded-xl border transition-all card-hover-glow ${
+              className={`group relative overflow-hidden rounded-xl border transition-all ${
                 stat.highlight
-                  ? "border-red-200/60 bg-white shadow-[0_1px_3px_rgba(255,77,21,0.06)] dark:border-red-900/30 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(255,77,21,0.1)]"
-                  : "border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)]"
+                  ? "border-red-200/60 bg-white dark:border-red-900/30 dark:bg-[#0d0f13]"
+                  : "border-gray-100 bg-white dark:border-zinc-800/60 dark:bg-[#0d0f13]"
               }`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.05 + index * 0.06,
+                duration: 0.4,
+                ease: [0.33, 1, 0.68, 1],
+              }}
             >
+              <HUDCardBorder />
+
               {/* Header Zone */}
-              <div className="flex items-center justify-between px-5 pt-4 pb-3">
-                <p className={`text-[11px] font-semibold tracking-[0.08em] uppercase ${
-                  stat.highlight ? "text-[#FF4D15]" : "text-gray-400 dark:text-zinc-500"
-                }`}>
-                  {stat.label}
-                </p>
+              <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`font-mono text-[9px] uppercase tracking-[0.12em] ${
+                    stat.highlight ? "text-[#FF4D15]/70" : "text-zinc-500 dark:text-zinc-600"
+                  }`}>
+                    {stat.tag}
+                  </span>
+                  <p className={`text-[11px] font-semibold tracking-wide ${
+                    stat.highlight ? "text-[#FF4D15]" : "text-gray-400 dark:text-zinc-400"
+                  }`}>
+                    {stat.label}
+                  </p>
+                </div>
                 <stat.icon
-                  className={`h-4 w-4 ${stat.highlight ? "text-[#FF4D15]/60" : "text-gray-300 dark:text-zinc-700"}`}
+                  className={`h-3.5 w-3.5 ${stat.highlight ? "text-[#FF4D15]/50" : "text-gray-300 dark:text-zinc-700"}`}
                   strokeWidth={1.5}
                 />
               </div>
 
-              {/* Architectural divider */}
-              <div className={`mx-4 h-px ${
+              {/* Divider */}
+              <div className={`mx-3 h-px ${
                 stat.highlight
                   ? "bg-red-200/40 dark:bg-red-900/20"
-                  : "bg-gray-100 dark:bg-zinc-800"
+                  : "bg-gray-100 dark:bg-zinc-800/80"
               }`} />
 
               {/* Metric Zone */}
-              <div className="px-5 pt-4 pb-5">
+              <div className="px-4 pt-3 pb-4">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className={`text-[36px] font-bold leading-none tracking-tight ${
+                    <p className={`text-[32px] font-bold leading-none tracking-tight tabular-nums ${
                       stat.highlight ? "text-[#FF4D15]" : "text-gray-900 dark:text-white"
                     }`}>
                       <AnimatedNumber value={stat.value} />
                     </p>
-                    <div className="mt-2.5 flex items-center gap-1.5">
-                      {stat.trend !== undefined && stat.trend !== 0 && (
+                    {stat.trend !== undefined && stat.trend !== 0 && (
+                      <div className="mt-2 flex items-center gap-1.5">
                         <span
-                          className={`text-xs font-medium ${
+                          className={`text-[10px] font-medium ${
                             stat.trend > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                           }`}
                         >
                           {stat.trend > 0 ? "\u25B2" : "\u25BC"} {Math.abs(stat.trend)}%
                         </span>
-                      )}
-                      {stat.trend !== undefined && stat.trend !== 0 && (
-                        <span className="text-[11px] text-gray-400 dark:text-zinc-500">
-                          from last period
+                        <span className="text-[10px] text-gray-400 dark:text-zinc-600">
+                          vs prior
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                   {stat.sparkline && (
                     <Sparkline data={stat.sparkline} color={stat.sparkColor} />
                   )}
                 </div>
                 {stat.subtitle && (
-                  <p className={`mt-2 text-xs font-medium ${stat.subtitleColor}`}>
+                  <p className={`mt-1.5 text-[10px] font-medium ${stat.subtitleColor}`}>
                     {stat.subtitle}
                   </p>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
