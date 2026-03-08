@@ -158,6 +158,18 @@ model Factory {
   contactEmail String?
   contactPhone String?
 
+  // Intelligence fields
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  categories         String[]           // ["Knitwear", "Wovens"]
+  capabilities       String[]           // ["Screen Print", "Embroidery"]
+  moqMin             Int?
+  leadTimeDays       Int?
+  reliabilityScore   Float?             // 0-100
+  riskLevel          RiskLevel          @default(LOW)
+  isPreferred        Boolean            @default(false)
+  displayPrecision   DisplayPrecision   @default(EXACT)
+  lastQcAt           DateTime?
+
   // Relations
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -304,6 +316,25 @@ enum Priority {
   NORMAL
   HIGH
   URGENT
+}
+
+enum VerificationStatus {
+  VERIFIED
+  UNVERIFIED
+  PENDING
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DisplayPrecision {
+  EXACT
+  APPROXIMATE
+  CITY_LEVEL
 }
 
 model OrderStage {

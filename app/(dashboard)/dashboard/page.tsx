@@ -10,7 +10,7 @@ import { DashboardHeader } from "./_components/dashboard-header";
 import { FactoryPerformanceSection } from "./_components/factory-performance-section";
 import { BestSellers } from "./_components/best-sellers";
 import { ExchangeRateCards } from "./_components/exchange-rate-cards";
-import { FactoryGlobe } from "./_components/factory-globe";
+import { ManufacturerMap } from "./_components/manufacturer-map";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { DashboardAlertsWidget } from "./_components/dashboard-alerts-widget";
 
@@ -58,10 +58,16 @@ export default async function DashboardPage() {
         <BestSellers />
       </ScrollReveal>
 
-      {/* Exchange Rates & Factory Globe */}
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
+      {/* Manufacturer Intelligence Map */}
+      <ScrollReveal delay={0.15}>
+        <ManufacturerMap />
+      </ScrollReveal>
+
+      {/* Exchange Rates */}
+      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.2}>
         <ExchangeRateCards />
-        <FactoryGlobe />
+        {/* Future widget slot */}
+        <div />
       </ScrollReveal>
 
       {/* Factory Performance Section */}
