@@ -40,8 +40,8 @@ const quickActions = [
 
 export function QuickActions() {
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 card-hover-glow">
-      <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h2>
+    <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+      <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {quickActions.map((action) => (

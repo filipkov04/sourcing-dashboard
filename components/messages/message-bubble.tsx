@@ -242,10 +242,15 @@ export function MessageBubble({
         {/* Bubble */}
         <div
           className={cn(
-            "rounded-2xl px-3 py-2.5 text-[13px] leading-relaxed",
-            isOwn
-              ? "bg-gradient-to-br from-[#FF0F0F] to-[#FFB21A] text-white rounded-br-md shadow-sm shadow-[#FF4D15]/15"
-              : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
+            "rounded-2xl text-[13px] leading-relaxed",
+            message.attachments?.length && message.attachments.every((a) => a.fileType.startsWith("audio/"))
+              ? ""
+              : cn(
+                  "px-3 py-2.5",
+                  isOwn
+                    ? "bg-[#FF4D15] text-white rounded-br-md shadow-sm shadow-[#FF4D15]/15"
+                    : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
+                )
           )}
         >
           {/* Hide auto-generated "Shared N file" text when all attachments are audio/voice */}

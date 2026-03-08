@@ -86,10 +86,10 @@ function Sparkline({ data, color = "#3b82f6" }: { data: number[]; color?: string
 function HUDCardBorder() {
   return (
     <div className="pointer-events-none absolute inset-0 rounded-xl">
-      <div className="absolute left-0 top-0 h-px w-0 bg-gradient-to-r from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:w-full" />
-      <div className="absolute bottom-0 right-0 h-px w-0 bg-gradient-to-l from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:w-full" />
-      <div className="absolute left-0 top-0 h-0 w-px bg-gradient-to-b from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:h-full" />
-      <div className="absolute bottom-0 right-0 h-0 w-px bg-gradient-to-t from-orange-500/40 to-orange-500/10 transition-all duration-500 ease-out group-hover:h-full" />
+      <div className="absolute left-0 top-0 h-px w-0 bg-gradient-to-r from-orange-500/25 to-orange-500/5 transition-all duration-500 ease-out group-hover:w-full" />
+      <div className="absolute bottom-0 right-0 h-px w-0 bg-gradient-to-l from-orange-500/25 to-orange-500/5 transition-all duration-500 ease-out group-hover:w-full" />
+      <div className="absolute left-0 top-0 h-0 w-px bg-gradient-to-b from-orange-500/25 to-orange-500/5 transition-all duration-500 ease-out group-hover:h-full" />
+      <div className="absolute bottom-0 right-0 h-0 w-px bg-gradient-to-t from-orange-500/25 to-orange-500/5 transition-all duration-500 ease-out group-hover:h-full" />
     </div>
   );
 }
@@ -319,8 +319,8 @@ export function DashboardStatsCards() {
               key={index}
               className={`group relative overflow-hidden rounded-xl border transition-all ${
                 stat.highlight
-                  ? "border-red-200/60 bg-white dark:border-red-900/30 dark:bg-[#0d0f13]"
-                  : "border-gray-100 bg-white dark:border-zinc-800/60 dark:bg-[#0d0f13]"
+                  ? "border-red-200/60 bg-white dark:border-red-900/30 dark:bg-zinc-900/80"
+                  : "border-gray-100 bg-white dark:border-zinc-800/60 dark:bg-zinc-900/80"
               }`}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}

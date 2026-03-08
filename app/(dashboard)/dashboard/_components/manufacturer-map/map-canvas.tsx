@@ -213,6 +213,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       mapRef.current = map;
 
       map.on("load", () => {
+        if (map.getSource(SOURCE_ID)) removeSourceAndLayers(map);
         addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
 
         // Fit to markers on initial load

@@ -22,67 +22,56 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="relative space-y-6">
-      {/* Subtle grid overlay — dark mode only */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
+    <div className="relative">
+      {/* Zone A — Status Overview */}
+      <div className="space-y-4 mb-10">
+        <DashboardHeader userName={session.user.name || session.user.email} />
 
-      {/* Page Header */}
-      <DashboardHeader userName={session.user.name || session.user.email} />
+        <ScrollReveal>
+          <DashboardStatsCards />
+        </ScrollReveal>
 
-      {/* Stats Cards with Period Selector */}
-      <ScrollReveal>
-        <DashboardStatsCards />
-      </ScrollReveal>
+        <ScrollReveal>
+          <DashboardAlertsWidget />
+        </ScrollReveal>
+      </div>
 
-      {/* Active Alerts */}
-      <ScrollReveal>
-        <DashboardAlertsWidget />
-      </ScrollReveal>
+      {/* Zone B — Analytics */}
+      <div className="space-y-5 mb-10">
+        <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger>
+          <OrdersByStatusSection />
+          <ProductPortfolioSection />
+        </ScrollReveal>
 
-      {/* Status Breakdown + Product Portfolio */}
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger>
-        <OrdersByStatusSection />
-        <ProductPortfolioSection />
-      </ScrollReveal>
+        <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
+          <ReorderSuggestions />
+          <BestSellers />
+        </ScrollReveal>
 
-      {/* Reorder Suggestions & Best Sellers */}
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
-        <ReorderSuggestions />
-        <BestSellers />
-      </ScrollReveal>
+        <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
+          <ExchangeRateCards />
+        </ScrollReveal>
+      </div>
 
       {/* Manufacturer Intelligence Map */}
       <ScrollReveal delay={0.15}>
         <ManufacturerMap />
       </ScrollReveal>
 
-      {/* Exchange Rates */}
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.2}>
-        <ExchangeRateCards />
-        {/* Future widget slot */}
-        <div />
-      </ScrollReveal>
+      {/* Zone C — Operations */}
+      <div className="space-y-5">
+        <ScrollReveal direction="down" delay={0.2}>
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-5">
+            Factory Performance
+          </h2>
+          <FactoryPerformanceSection />
+        </ScrollReveal>
 
-      {/* Factory Performance Section */}
-      <ScrollReveal direction="down" delay={0.2}>
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-5">
-          Factory Performance
-        </h2>
-        <FactoryPerformanceSection />
-      </ScrollReveal>
-
-      {/* Activity & Quick Actions Grid */}
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger direction="down" delay={0.3}>
-        <RecentActivityFeed />
-        <QuickActions />
-      </ScrollReveal>
+        <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger direction="down" delay={0.3}>
+          <RecentActivityFeed />
+          <QuickActions />
+        </ScrollReveal>
+      </div>
     </div>
   );
 }

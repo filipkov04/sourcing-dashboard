@@ -49,9 +49,9 @@ export function RecentActivityFeed() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         </div>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -70,7 +70,7 @@ export function RecentActivityFeed() {
 
   if (activities.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
         <div className="text-center py-8">
           <Clock className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500 mb-3" />
@@ -81,9 +81,9 @@ export function RecentActivityFeed() {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 card-hover-glow">
+    <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
         <Link
           href="/orders"
           className="text-sm text-[#FF4D15] dark:text-[#FF4D15] hover:text-[#d4522a] dark:hover:text-[#f07040] font-medium flex items-center gap-1"

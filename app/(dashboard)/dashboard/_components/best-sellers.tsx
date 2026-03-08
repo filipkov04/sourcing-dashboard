@@ -58,11 +58,11 @@ export function BestSellers() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Best Sellers</h2>
-            <p className="text-sm text-gray-500 dark:text-zinc-400">Based on order volume</p>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Best Sellers</h2>
+            <p className="text-xs text-zinc-500">Based on order volume</p>
           </div>
         </div>
         <div className="space-y-4">
@@ -83,7 +83,7 @@ export function BestSellers() {
 
   if (bestSellers.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Best Sellers</h2>
           <p className="text-sm text-gray-500 dark:text-zinc-400">Based on order volume</p>
@@ -100,7 +100,7 @@ export function BestSellers() {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 p-5 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 card-hover-glow">
+    <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Best Sellers</h2>

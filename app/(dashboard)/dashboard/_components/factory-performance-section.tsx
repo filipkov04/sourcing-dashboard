@@ -72,7 +72,7 @@ export function FactoryPerformanceSection() {
   if (loading) {
     return (
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900/80 border-zinc-200/60 dark:border-zinc-800/60">
           <CardHeader>
             <Skeleton className="h-6 w-40" />
           </CardHeader>
@@ -80,7 +80,7 @@ export function FactoryPerformanceSection() {
             <Skeleton className="h-20 w-full" />
           </CardContent>
         </Card>
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+        <Card className="bg-white dark:bg-zinc-900/80 border-zinc-200/60 dark:border-zinc-800/60">
           <CardHeader>
             <Skeleton className="h-6 w-40" />
           </CardHeader>
@@ -109,7 +109,7 @@ export function FactoryPerformanceSection() {
 
       <AnimatedChartContainer viewKey={activeView}>
         {activeView === "radar" ? (
-          <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+          <Card className="bg-white dark:bg-zinc-900/80 border-zinc-200/60 dark:border-zinc-800/60">
             <CardHeader>
               <CardTitle className="text-gray-800 dark:text-gray-100">
                 Factory Comparison
@@ -122,7 +122,7 @@ export function FactoryPerformanceSection() {
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Top Performers */}
-            <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+            <Card className="bg-white dark:bg-zinc-900/80 border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
                   <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -171,7 +171,7 @@ export function FactoryPerformanceSection() {
             </Card>
 
             {/* Needs Attention */}
-            <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+            <Card className="bg-white dark:bg-zinc-900/80 border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
                   <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
