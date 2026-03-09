@@ -144,6 +144,9 @@ function addSourceAndLayers(
   factories: MapFactory[],
   clusteringEnabled: boolean
 ) {
+  if (map.getSource(SOURCE_ID)) {
+    removeSourceAndLayers(map);
+  }
   map.addSource(SOURCE_ID, {
     type: "geojson",
     data: factoriesToGeoJSON(factories),
@@ -285,10 +288,18 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     // Update data / clustering
     useEffect(() => {
       const map = mapRef.current;
-      if (!map || !map.isStyleLoaded()) return;
+      if (!map) return;
 
-      removeSourceAndLayers(map);
-      addSourceAndLayers(map, factories, clusteringEnabled);
+      function update() {
+        removeSourceAndLayers(map);
+        addSourceAndLayers(map, factories, clusteringEnabled);
+      }
+
+      if (map.isStyleLoaded()) {
+        update();
+      } else {
+        map.once("style.load", update);
+      }
     }, [factories, clusteringEnabled]);
 
     return (
