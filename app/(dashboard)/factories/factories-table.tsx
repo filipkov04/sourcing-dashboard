@@ -141,7 +141,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
   // Empty state - no factories at all
   if (factories.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-12 text-center">
+      <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-12 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FF4D15]/10 dark:bg-[#FF4D15]/10">
           <Package className="h-8 w-8 text-[#FF4D15] dark:text-[#FF4D15]" />
         </div>
@@ -182,11 +182,17 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
   return (
     <div className="space-y-4">
       {/* Summary Stats */}
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Overview
+      </p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">Total Factories</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">FAC</span>
+                <p className="text-sm text-gray-500 dark:text-zinc-400">Total Factories</p>
+              </div>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={totalFactories} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10">
@@ -194,10 +200,13 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
             </div>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">Total Orders</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ORD</span>
+                <p className="text-sm text-gray-500 dark:text-zinc-400">Total Orders</p>
+              </div>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={totalOrders} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
@@ -205,10 +214,13 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
             </div>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">Avg Orders / Factory</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">AVG</span>
+                <p className="text-sm text-gray-500 dark:text-zinc-400">Avg Orders / Factory</p>
+              </div>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"><AnimatedNumber value={avgOrdersNum} formatFn={(n) => n.toFixed(1)} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/10">
@@ -216,10 +228,13 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
             </div>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">Idle Factories</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">IDL</span>
+                <p className="text-sm text-gray-500 dark:text-zinc-400">Idle Factories</p>
+              </div>
               <p className={`mt-1 text-2xl font-bold ${idleCount > 0 ? "text-amber-500" : "text-gray-900 dark:text-white"}`}><AnimatedNumber value={idleCount} /></p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
@@ -332,7 +347,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
 
       {/* No results */}
       {filteredAndSortedFactories.length === 0 && (
-        <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-8 text-center">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-8 text-center">
           <p className="text-sm text-gray-600 dark:text-zinc-400">
             {hasActiveFilters
               ? "No factories found matching your filters"
@@ -343,7 +358,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
 
       {/* Factories Table */}
       {filteredAndSortedFactories.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] card-hover-glow">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
             <thead className="bg-gray-50/50 dark:bg-zinc-800/50">
               <tr>

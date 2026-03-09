@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   CalendarDays,
   Package,
+  Volume2,
 } from "lucide-react";
 
 interface NotificationPreferences {
@@ -59,9 +60,13 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   useEffect(() => {
     fetchPreferences();
+    // Load sound preference from localStorage
+    const stored = localStorage.getItem("alertSoundEnabled");
+    setSoundEnabled(stored === "true");
   }, []);
 
   async function fetchPreferences() {
@@ -145,7 +150,16 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
@@ -157,9 +171,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Notification Preferences */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Preferences
+      </p>
+      <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">NTF</span>
             <Bell className="h-5 w-5 text-orange-500" />
             Email Notifications
           </CardTitle>
@@ -203,6 +221,63 @@ export default function SettingsPage() {
                 </div>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sound Effects */}
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Sound
+      </p>
+      <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
+        <CardHeader>
+          <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">SFX</span>
+            <Volume2 className="h-5 w-5 text-orange-500" />
+            Sound Effects
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5">
+                <Bell className="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <Label
+                  htmlFor="soundEffects"
+                  className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
+                >
+                  Alert Sound
+                </Label>
+                <p className="text-sm text-gray-500 dark:text-zinc-400 mt-0.5">
+                  Play a notification chime when new critical alerts arrive
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="soundEffects"
+              checked={soundEnabled}
+              onCheckedChange={(checked) => {
+                setSoundEnabled(checked);
+                localStorage.setItem("alertSoundEnabled", String(checked));
+                if (checked) {
+                  // Play a preview sound when enabling
+                  const ctx = new AudioContext();
+                  const osc = ctx.createOscillator();
+                  const gain = ctx.createGain();
+                  osc.connect(gain);
+                  gain.connect(ctx.destination);
+                  osc.frequency.setValueAtTime(880, ctx.currentTime);
+                  osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.1);
+                  gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                  osc.start(ctx.currentTime);
+                  osc.stop(ctx.currentTime + 0.3);
+                }
+              }}
+              className="shrink-0 ml-4 data-[state=checked]:bg-orange-500 data-[state=unchecked]:bg-zinc-600 dark:data-[state=unchecked]:bg-zinc-700 h-6 w-11"
+            />
           </div>
         </CardContent>
       </Card>

@@ -346,7 +346,16 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -397,10 +406,14 @@ export default function TeamPage() {
       )}
 
       {/* Team Stats */}
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Overview
+      </p>
       <div className="grid gap-4 sm:grid-cols-4">
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ALL</span>
               <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Total Members</p>
@@ -410,9 +423,10 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">OWN</span>
               <Crown className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Owners</p>
@@ -424,9 +438,10 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ADM</span>
               <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Admins</p>
@@ -438,9 +453,10 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">MBR</span>
               <User className="h-5 w-5 text-green-600 dark:text-green-400" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Members</p>
@@ -454,9 +470,15 @@ export default function TeamPage() {
       </div>
 
       {/* Team Members Table */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Roster
+      </p>
+      <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
         <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">All Members</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">USR</span>
+            All Members
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -593,9 +615,10 @@ export default function TeamPage() {
 
       {/* Pending Invitations */}
       {isAdminOrOwner && invitations.filter((inv) => inv.status === "PENDING").length > 0 && (
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">INV</span>
               <Mail className="h-5 w-5 text-orange-500" />
               Pending Invitations ({invitations.filter((inv) => inv.status === "PENDING").length})
             </CardTitle>

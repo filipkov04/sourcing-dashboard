@@ -289,7 +289,16 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -363,8 +372,9 @@ export default function OrdersPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#0d0f13] p-5 rounded-xl border border-gray-100 dark:border-zinc-800/60 space-y-4 card-hover-glow hud-corners">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300">
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">FLT</span>
           <Filter className="h-4 w-4" />
           Filters
         </div>
@@ -504,7 +514,10 @@ export default function OrdersPage() {
       )}
 
       {/* Orders Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-x-auto">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Order Registry
+      </p>
+      <div className="bg-white dark:bg-[#0d0f13] rounded-xl border border-gray-100 dark:border-zinc-800/60 overflow-x-auto card-hover-glow">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D15]" />
@@ -631,9 +644,17 @@ export default function OrdersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={priorityColors[order.priority] || ""}>
-                      {order.priority}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      {(order.priority === "URGENT" || order.priority === "HIGH") && (
+                        <span className={`relative flex h-2 w-2 shrink-0 ${order.priority === "URGENT" ? "priority-pulse-urgent" : "priority-pulse-high"}`}>
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${order.priority === "URGENT" ? "bg-red-500" : "bg-orange-500"}`} />
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${order.priority === "URGENT" ? "bg-red-500" : "bg-orange-500"}`} />
+                        </span>
+                      )}
+                      <Badge className={priorityColors[order.priority] || ""}>
+                        {order.priority}
+                      </Badge>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

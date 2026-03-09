@@ -22,7 +22,16 @@ export default async function FactoriesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,19 +55,50 @@ export default function AlertsPage() {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("ALL");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
 
+  const prevAlertCountRef = useRef<number | null>(null);
+
+  const playAlertSound = useCallback(() => {
+    if (localStorage.getItem("alertSoundEnabled") !== "true") return;
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    } catch {
+      // AudioContext may not be available
+    }
+  }, []);
+
   const fetchAlerts = useCallback(async () => {
     try {
       const res = await fetch("/api/alerts?limit=100");
       if (res.ok) {
         const json = await res.json();
-        setAlerts(json.data);
+        const newAlerts: Alert[] = json.data;
+        const newUnread = newAlerts.filter((a) => !a.read).length;
+
+        // Play sound if new unread alerts appeared (not on initial load)
+        if (prevAlertCountRef.current !== null && newUnread > prevAlertCountRef.current) {
+          playAlertSound();
+        }
+        prevAlertCountRef.current = newUnread;
+
+        setAlerts(newAlerts);
       }
     } catch {
       console.error("Failed to fetch alerts");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [playAlertSound]);
 
   useEffect(() => {
     fetchAlerts();
@@ -129,9 +160,10 @@ export default function AlertsPage() {
     notifyAlertsChanged();
   }
 
-  // Apply filters
+  // Apply filters — "ALL" hides resolved by default so they don't clutter the feed
   const filteredAlerts = alerts.filter((alert) => {
     if (severityFilter !== "ALL" && alert.severity !== severityFilter) return false;
+    if (statusFilter === "ALL" && alert.resolved) return false;
     if (statusFilter === "UNREAD" && alert.read) return false;
     if (statusFilter === "READ" && (!alert.read || alert.resolved)) return false;
     if (statusFilter === "RESOLVED" && !alert.resolved) return false;
@@ -157,7 +189,16 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -222,12 +263,17 @@ export default function AlertsPage() {
         </Select>
         <span className="text-sm text-gray-400 dark:text-zinc-500">
           {filteredAlerts.length} notification{filteredAlerts.length !== 1 ? "s" : ""}
+          {statusFilter === "ALL" && alerts.filter((a) => a.resolved).length > 0 && (
+            <span className="ml-1">
+              ({alerts.filter((a) => a.resolved).length} resolved hidden)
+            </span>
+          )}
         </span>
       </div>
 
       {/* Alert List */}
       {filteredAlerts.length === 0 ? (
-        <div className="rounded-xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col items-center justify-center py-16 text-center">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] flex flex-col items-center justify-center py-16 text-center">
           <Bell className="h-12 w-12 text-gray-200 dark:text-zinc-700 mb-4" />
           <h3 className="text-lg font-medium text-gray-600 dark:text-zinc-400">No notifications</h3>
           <p className="text-sm text-gray-400 dark:text-zinc-500 mt-1">
@@ -237,7 +283,11 @@ export default function AlertsPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 divide-y divide-gray-50 dark:divide-zinc-800/50 overflow-hidden">
+        <>
+        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+          Alert Feed
+        </p>
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] divide-y divide-gray-50 dark:divide-zinc-800/50 overflow-hidden card-hover-glow hud-corners">
           {filteredAlerts.map((alert) => (
             <div
               key={alert.id}
@@ -295,7 +345,7 @@ export default function AlertsPage() {
                       onClick={() => handleResolve(alert.id)}
                       className="text-xs text-gray-400 hover:text-green-600 dark:text-zinc-500 dark:hover:text-green-400"
                     >
-                      Resolve
+                      Set as resolved
                     </button>
                   )}
                   {alert.resolved && (
@@ -320,6 +370,7 @@ export default function AlertsPage() {
             </div>
           ))}
         </div>
+        </>
       )}
     </div>
   );

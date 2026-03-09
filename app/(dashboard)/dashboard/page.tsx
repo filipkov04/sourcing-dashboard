@@ -33,6 +33,10 @@ export default async function DashboardPage() {
       />
 
         <ScrollReveal>
+          <DashboardHeader userName={session.user?.name} />
+        </ScrollReveal>
+
+        <ScrollReveal>
           <DashboardStatsCards />
         </ScrollReveal>
 

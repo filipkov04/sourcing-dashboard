@@ -15,6 +15,7 @@ type Forecast = {
   predictedDate: string;
   predictedDaysLate: number;
   daysUntilExpected: number;
+  deltaDays?: number;
   risk: "on-track" | "at-risk" | "critical";
   method: string;
 };
@@ -66,7 +67,7 @@ export function ForecastTimeline({ forecasts, summary }: ForecastTimelineProps) 
       <div>
         <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Production Forecast</h3>
         <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-          Predicted completion dates for active orders
+          Based on actual stage completion vs planned dates
         </p>
       </div>
 
@@ -111,6 +112,14 @@ export function ForecastTimeline({ forecasts, summary }: ForecastTimelineProps) 
                   <span>{forecast.factoryName}</span>
                   <span>•</span>
                   <span>{forecast.progress}% complete</span>
+                  {forecast.deltaDays != null && forecast.deltaDays !== 0 && (
+                    <>
+                      <span>•</span>
+                      <span className={forecast.deltaDays > 0 ? "text-red-500 dark:text-red-400" : "text-green-500 dark:text-green-400"}>
+                        {forecast.deltaDays > 0 ? `+${forecast.deltaDays}d behind` : `${Math.abs(forecast.deltaDays)}d ahead`}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -126,7 +135,9 @@ export function ForecastTimeline({ forecasts, summary }: ForecastTimelineProps) 
                 </div>
                 <Badge variant="outline" className={`${config.badge} text-xs`}>
                   {forecast.risk === "on-track"
-                    ? config.label
+                    ? forecast.deltaDays != null && forecast.deltaDays < 0
+                      ? `${Math.abs(forecast.deltaDays)}d early`
+                      : config.label
                     : `+${forecast.predictedDaysLate}d late`}
                 </Badge>
               </div>

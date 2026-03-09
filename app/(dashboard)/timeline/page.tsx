@@ -145,7 +145,16 @@ export default function TimelinePage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
@@ -158,18 +167,23 @@ export default function TimelinePage() {
 
       {/* Stats Strip */}
       {!isLoading && orders.length > 0 && (
+        <>
+        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+          Overview
+        </p>
         <div className="flex gap-3 flex-wrap">
           {[
-            { label: "Total",       value: stats.total,      color: "#71717a" },
-            { label: "In Progress", value: stats.inProgress, color: "#3b82f6" },
-            { label: "Critical",    value: stats.critical,   color: "#ef4444" },
-            { label: "Done",        value: stats.done,       color: "#22c55e" },
-          ].map(({ label, value, color }) => (
+            { label: "Total",       tag: "TOT", value: stats.total,      color: "#71717a" },
+            { label: "In Progress", tag: "WIP", value: stats.inProgress, color: "#3b82f6" },
+            { label: "Critical",    tag: "CRT", value: stats.critical,   color: "#ef4444" },
+            { label: "Done",        tag: "DON", value: stats.done,       color: "#22c55e" },
+          ].map(({ label, tag, value, color }) => (
             <div
               key={label}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white dark:bg-[#0d0f13] border border-gray-100 dark:border-zinc-800/60 card-hover-glow hud-corners"
               style={{ borderLeft: `3px solid ${color}` }}
             >
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">{tag}</span>
               <span className="text-base font-bold tabular-nums text-gray-900 dark:text-white">
                 <AnimatedNumber value={value} />
               </span>
@@ -179,12 +193,14 @@ export default function TimelinePage() {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {/* Filters */}
-      <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#0d0f13] p-5 rounded-xl border border-gray-100 dark:border-zinc-800/60 space-y-4 card-hover-glow hud-corners">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300">
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">FLT</span>
             <Filter className="h-4 w-4" />
             Filters
             {activeFilterCount > 0 && (
@@ -275,7 +291,10 @@ export default function TimelinePage() {
       </div>
 
       {/* Gantt Chart */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 overflow-hidden card-hover-glow">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Gantt View
+      </p>
+      <div className="bg-white dark:bg-[#0d0f13] rounded-xl border border-gray-100 dark:border-zinc-800/60 p-4 overflow-hidden card-hover-glow hud-corners">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4D15]" />

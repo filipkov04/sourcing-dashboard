@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Minus, Plus, Maximize2, Minimize2, X } from "lucide-react";
+import { Minus, Plus, Maximize2, Minimize2, X, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type TimelineControlsProps = {
@@ -133,29 +133,39 @@ export function TimelineControls({
           {Math.round(zoom * 100)}%
         </span>
 
+        <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700" />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onReset}
+          className="h-7 w-7 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
+          aria-label="Reset view"
+          title="Reset view"
+        >
+          <LocateFixed className="h-4 w-4" />
+        </Button>
+
         {onToggleFullscreen && (
-          <>
-            <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleFullscreen}
-              className="h-7 w-7 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
-              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-            >
-              {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
-            </Button>
-          </>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleFullscreen}
+            className="h-7 w-7 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </Button>
         )}
       </div>
 
       {/* Hint text - bottom right */}
       <div className="absolute bottom-3 right-3 text-xs text-gray-400 dark:text-zinc-500 z-10">
-        Scroll to zoom • Drag to pan • Arrow keys to navigate
+        Scroll to zoom • Drag to pan
       </div>
     </>
   );

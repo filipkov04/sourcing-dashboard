@@ -218,15 +218,19 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 77, 21, 0.5), transparent);
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.4), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 1;
     pointer-events: none;
   }
 
+  .dark .card-hover-glow::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 77, 21, 0.5), transparent);
+  }
+
   .card-hover-glow:hover::before {
-    opacity: 0.5;
+    opacity: 0.6;
   }
 
   .dark .card-hover-glow:hover::before {
@@ -234,7 +238,7 @@
   }
 
   .card-hover-glow:hover {
-    box-shadow: 0 0 0 1px rgba(235, 93, 46, 0.15), 0 4px 16px rgba(235, 93, 46, 0.06);
+    box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.15), 0 4px 16px rgba(148, 163, 184, 0.08);
   }
 
   .dark .card-hover-glow:hover {
@@ -253,12 +257,13 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #FF4D15, #FFB21A);
+    background: linear-gradient(135deg, #94a3b8, #cbd5e1);
     flex-shrink: 0;
-    opacity: 0.5;
+    opacity: 0.6;
   }
 
   .dark .hud-section-label::before {
+    background: linear-gradient(135deg, #FF4D15, #FFB21A);
     opacity: 1;
   }
 
@@ -266,7 +271,7 @@
     content: "";
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, rgba(255, 77, 21, 0.15), transparent 80%);
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.2), transparent 80%);
   }
 
   .dark .hud-section-label::after {
@@ -285,29 +290,39 @@
     width: 12px;
     height: 12px;
     pointer-events: none;
-    opacity: 0.2;
+    opacity: 0.15;
     transition: opacity 0.3s ease;
   }
 
   .hud-corners::before {
     top: -1px;
     left: -1px;
-    border-top: 1.5px solid #FF4D15;
-    border-left: 1.5px solid #FF4D15;
+    border-top: 1.5px solid #94a3b8;
+    border-left: 1.5px solid #94a3b8;
     border-top-left-radius: 4px;
   }
 
   .hud-corners::after {
     bottom: -1px;
     right: -1px;
-    border-bottom: 1.5px solid #FF4D15;
-    border-right: 1.5px solid #FF4D15;
+    border-bottom: 1.5px solid #94a3b8;
+    border-right: 1.5px solid #94a3b8;
     border-bottom-right-radius: 4px;
   }
 
   .hud-corners:hover::before,
   .hud-corners:hover::after {
-    opacity: 0.45;
+    opacity: 0.35;
+  }
+
+  .dark .hud-corners::before {
+    border-top-color: #FF4D15;
+    border-left-color: #FF4D15;
+  }
+
+  .dark .hud-corners::after {
+    border-bottom-color: #FF4D15;
+    border-right-color: #FF4D15;
   }
 
   .dark .hud-corners::before,

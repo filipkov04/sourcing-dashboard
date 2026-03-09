@@ -288,10 +288,11 @@ function RecurrenceCard({ order, onUpdate }: {
 
   if (!editing) {
     return (
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
+      <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">REC</span>
               <Repeat className="h-5 w-5 text-indigo-500" />
               Recurrence
             </CardTitle>
@@ -328,9 +329,10 @@ function RecurrenceCard({ order, onUpdate }: {
   }
 
   return (
-    <Card className="bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800 shadow-sm">
+    <Card className="bg-white dark:bg-[#0d0f13] border-indigo-200 dark:border-indigo-800 rounded-xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">REC</span>
           <Repeat className="h-5 w-5 text-indigo-500" />
           Edit Recurrence
         </CardTitle>
@@ -848,7 +850,16 @@ export default function OrderDetailPage() {
   const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 7;
 
   return (
-    <div className="space-y-8">
+    <div className="relative space-y-8">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Back nav */}
       <Button
         variant="ghost"
@@ -860,7 +871,7 @@ export default function OrderDetailPage() {
       </Button>
 
       {/* Hero Card */}
-      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 space-y-5 card-hover-glow">
+      <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-6 space-y-5 card-hover-glow hud-corners">
         {/* Identity row */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1 min-w-0">
@@ -1017,9 +1028,12 @@ export default function OrderDetailPage() {
         {/* Summary stat mini-cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Stages */}
-          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/50 p-4">
+          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/30 border border-transparent dark:border-zinc-800/40 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Stages</p>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">STG</span>
+                <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Stages</p>
+              </div>
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/10">
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
               </span>
@@ -1029,9 +1043,12 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Quantity */}
-          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/50 p-4">
+          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/30 border border-transparent dark:border-zinc-800/40 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Quantity</p>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">QTY</span>
+                <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Quantity</p>
+              </div>
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500/10">
                 <Package className="h-3.5 w-3.5 text-orange-500" />
               </span>
@@ -1041,9 +1058,12 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Ordered */}
-          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/50 p-4">
+          <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/30 border border-transparent dark:border-zinc-800/40 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Ordered</p>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ORD</span>
+                <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Ordered</p>
+              </div>
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10">
                 <Calendar className="h-3.5 w-3.5 text-blue-500" />
               </span>
@@ -1053,15 +1073,18 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Due */}
-          <div className={`rounded-lg p-4 ${
+          <div className={`rounded-lg border border-transparent p-4 ${
             isDueOverdue
               ? "bg-red-50 dark:bg-red-950/20 ring-1 ring-red-200 dark:ring-red-900/40"
               : isDueSoon
               ? "bg-amber-50 dark:bg-amber-950/20 ring-1 ring-amber-200 dark:ring-amber-900/40"
-              : "bg-gray-50 dark:bg-zinc-800/50"
+              : "bg-gray-50 dark:bg-zinc-800/30 dark:border-zinc-800/40"
           }`}>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Due</p>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">DUE</span>
+                <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Due</p>
+              </div>
               <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${
                 isDueOverdue ? "bg-red-500/10" : isDueSoon ? "bg-amber-500/10" : "bg-gray-500/10 dark:bg-zinc-600/20"
               }`}>
@@ -1078,11 +1101,15 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        Details
+      </p>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Details */}
-        <Card className="lg:col-span-2 bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
+        <Card className="lg:col-span-2 bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">INF</span>
               <Package className="h-5 w-5" />
               Order Details
             </CardTitle>
@@ -1187,9 +1214,10 @@ export default function OrderDetailPage() {
         </Card>
 
         {/* Factory Info */}
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">MFG</span>
               <Factory className="h-5 w-5" />
               Factory
             </CardTitle>
@@ -1267,9 +1295,10 @@ export default function OrderDetailPage() {
 
       {/* Recurrence Info (non-admin view) */}
       {!isAdminOrOwner && order.recurrenceEnabled && (
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm card-hover-glow">
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">REC</span>
               <Repeat className="h-5 w-5 text-indigo-500" />
               Recurrence
             </CardTitle>
@@ -1303,9 +1332,16 @@ export default function OrderDetailPage() {
 
       {/* Production Pipeline */}
       {order.stages && order.stages.length > 0 && (
-        <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
+        <>
+        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+          Production
+        </p>
+        <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardHeader>
-            <CardTitle>Production Pipeline</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">PIP</span>
+              Production Pipeline
+            </CardTitle>
             <CardDescription>
               {completedStages} of {totalStages} stages complete
             </CardDescription>
@@ -1942,12 +1978,17 @@ export default function OrderDetailPage() {
             </div>
           </CardContent>
         </Card>
+        </>
       )}
 
       {/* Activity Timeline */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 shadow-sm">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        History
+      </p>
+      <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">LOG</span>
             <History className="h-5 w-5" />
             Activity Timeline
           </CardTitle>

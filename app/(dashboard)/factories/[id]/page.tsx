@@ -236,7 +236,16 @@ export default function FactoryDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -310,11 +319,18 @@ export default function FactoryDetailPage() {
           : null;
 
         return (
+          <>
+          <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+            Performance
+          </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Orders */}
-            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+            <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Total Orders</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">TOT</span>
+                  <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Total Orders</p>
+                </div>
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF4D15]/10">
                   <Package className="h-4 w-4 text-[#FF4D15]" />
                 </span>
@@ -324,9 +340,12 @@ export default function FactoryDetailPage() {
             </div>
 
             {/* Active Orders */}
-            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+            <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Active</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ACT</span>
+                  <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Active</p>
+                </div>
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
                   <Activity className="h-4 w-4 text-blue-500" />
                 </span>
@@ -336,13 +355,16 @@ export default function FactoryDetailPage() {
             </div>
 
             {/* On-Time Rate */}
-            <div className={`rounded-lg border p-5 shadow-sm card-hover-glow ${
+            <div className={`rounded-xl border p-5 card-hover-glow hud-corners ${
               onTimeRate !== null && onTimeRate < 80
                 ? "border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20"
-                : "border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+                : "border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13]"
             }`}>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">On-Time Rate</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">OTR</span>
+                  <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">On-Time Rate</p>
+                </div>
                 <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                   onTimeRate !== null && onTimeRate < 80
                     ? "bg-red-500/10"
@@ -362,9 +384,12 @@ export default function FactoryDetailPage() {
             </div>
 
             {/* Avg Progress */}
-            <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm card-hover-glow">
+            <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Avg Progress</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">PRG</span>
+                  <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Avg Progress</p>
+                </div>
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10">
                   <TrendingUp className="h-4 w-4 text-purple-500" />
                 </span>
@@ -385,15 +410,22 @@ export default function FactoryDetailPage() {
               )}
             </div>
           </div>
+          </>
         );
       })()}
 
       {/* Factory & Contact Info — single condensed card */}
-      <div className="rounded-lg border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm card-hover-glow">
-        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-zinc-800">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+        Details
+      </p>
+      <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] card-hover-glow hud-corners">
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-zinc-800/60">
           {/* Factory Info */}
           <div className="p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Factory</h3>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">MFG</span>
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Factory</h3>
+            </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <FactoryIcon className="h-4 w-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
@@ -411,7 +443,10 @@ export default function FactoryDetailPage() {
 
           {/* Contact Info */}
           <div className="p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Contact</h3>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">CON</span>
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Contact</h3>
+            </div>
             {factory.contactName || factory.contactEmail || factory.contactPhone ? (
               <div className="space-y-2">
                 {factory.contactName && (
@@ -451,14 +486,20 @@ export default function FactoryDetailPage() {
       </div>
 
       {/* Orders from this Factory */}
-      <Card className="bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 card-hover-glow">
+      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+        Production
+      </p>
+      <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-gray-900 dark:text-white">Orders</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-zinc-400">
-                All orders from this factory
-              </CardDescription>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ORD</span>
+              <div>
+                <CardTitle className="text-gray-900 dark:text-white">Orders</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-zinc-400">
+                  All orders from this factory
+                </CardDescription>
+              </div>
             </div>
             <Badge variant="secondary" className="bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300">
               {factory.orders.length} {factory.orders.length === 1 ? "Order" : "Orders"}

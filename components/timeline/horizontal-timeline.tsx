@@ -400,19 +400,10 @@ export function HorizontalTimeline({
     [sortedStages]
   );
 
-  // Keyboard navigation
-  const hasInteracted = useRef(false);
-
+  // Keyboard navigation (Enter/Space to toggle, Escape to close)
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      hasInteracted.current = true;
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-        e.preventDefault();
-        setFocusedIndex((prev) => Math.min(prev + 1, allNodeIds.length - 1));
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-        e.preventDefault();
-        setFocusedIndex((prev) => Math.max(prev - 1, 0));
-      } else if (e.key === "Enter" || e.key === " ") {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         const nodeId = allNodeIds[focusedIndex];
         if (nodeId) handleNodeClick(nodeId);
@@ -423,16 +414,6 @@ export function HorizontalTimeline({
     },
     [allNodeIds, focusedIndex, handleNodeClick]
   );
-
-  // Focus the right button when focusedIndex changes
-  useEffect(() => {
-    if (!hasInteracted.current || focusedIndex < 0 || !timelineRef.current) return;
-    const buttons = timelineRef.current.querySelectorAll<HTMLButtonElement>("[data-timeline-node]");
-    const idx = focusedIndex + 1;
-    if (buttons[idx]) {
-      buttons[idx].focus({ preventScroll: true });
-    }
-  }, [focusedIndex]);
 
   // Container min-height grows when panels are open, but nodes stay at fixed positions
   const containerMinHeight = expandedNodeIds.size > 0

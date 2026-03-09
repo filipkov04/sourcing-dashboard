@@ -237,7 +237,16 @@ export default function RequestsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* HUD Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -301,7 +310,7 @@ export default function RequestsPage() {
 
       {/* Request List */}
       {filteredRequests.length === 0 ? (
-        <div className="rounded-xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col items-center justify-center py-16 text-center">
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] flex flex-col items-center justify-center py-16 text-center">
           <ClipboardList className="h-12 w-12 text-gray-200 dark:text-zinc-700 mb-4" />
           <h3 className="text-lg font-medium text-gray-600 dark:text-zinc-400">No requests</h3>
           <p className="text-sm text-gray-400 dark:text-zinc-500 mt-1">
@@ -327,7 +336,7 @@ export default function RequestsPage() {
               <div
                 key={request.id}
                 data-request-id={request.id}
-                className="rounded-xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-800 overflow-hidden"
+                className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] overflow-hidden card-hover-glow"
               >
                 {/* Card Header — clickable to expand/collapse */}
                 <button
