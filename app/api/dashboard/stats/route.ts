@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     // Run all DB queries in parallel
     const previousFrom = new Date(from!.getTime() - periodDays * 24 * 60 * 60 * 1000);
 
-    const [orders, previousPeriodOrders, previousCompletedOrders] = await Promise.all([
+    const [orders, previousPeriodOrders, previousCompletedOrders, previousCompletedWithDates] = await Promise.all([
       prisma.order.findMany({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
@@ -74,48 +74,67 @@ export async function GET(request: NextRequest) {
           actualDate: { gte: previousFrom, lt: from! },
         },
       }),
+      prisma.order.findMany({
+        where: {
+          organizationId, ...(projectId ? { projectId } : {}),
+          status: "COMPLETED",
+          actualDate: { gte: previousFrom, lt: from!, not: null },
+        },
+        select: { actualDate: true, expectedDate: true, orderDate: true },
+      }),
     ]);
 
     // Calculate statistics
     const totalOrders = orders.length;
 
-    const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
+    // Active pipeline = only healthy in-flight orders (not delayed/disrupted)
+    const pipelineStatuses = ["PENDING", "IN_PROGRESS"];
     const activeOrders = orders.filter((order) =>
-      activeStatuses.includes(order.status)
+      pipelineStatuses.includes(order.status)
     ).length;
 
     const completedOrders = orders.filter((order) =>
       order.status === "COMPLETED"
     ).length;
 
-    const delayedOrdersList = orders.filter((order) =>
-      order.status === "DELAYED"
+    // On-time rate: completed orders where actualDate <= expectedDate
+    const completedWithDates = orders.filter(
+      (o) => o.status === "COMPLETED" && o.actualDate && o.expectedDate
     );
-
-    const disruptedOrders = orders.filter((order) =>
-      order.status === "DISRUPTED"
+    const onTimeCount = completedWithDates.filter(
+      (o) => new Date(o.actualDate!).getTime() <= new Date(o.expectedDate).getTime()
     ).length;
+    const onTimeRate = completedWithDates.length > 0
+      ? Math.round((onTimeCount / completedWithDates.length) * 100)
+      : 0;
 
-    // Calculate delay details
-    const delayDetail = {
-      count: delayedOrdersList.length,
-      avgDelayDays: 0,
-      maxDelayDays: 0,
-      avgOriginalDays: 0,
-    };
+    // Previous period on-time rate for trend
+    const prevOnTimeCount = previousCompletedWithDates.filter(
+      (o) => o.actualDate && o.expectedDate && new Date(o.actualDate).getTime() <= new Date(o.expectedDate).getTime()
+    ).length;
+    const prevOnTimeRate = previousCompletedWithDates.length > 0
+      ? Math.round((prevOnTimeCount / previousCompletedWithDates.length) * 100)
+      : 0;
 
-    if (delayedOrdersList.length > 0) {
-      const delays = delayedOrdersList.map((o) => {
-        const delayMs = now.getTime() - new Date(o.expectedDate).getTime();
-        const delayDays = Math.max(0, delayMs / (1000 * 60 * 60 * 24));
-        const originalMs = new Date(o.expectedDate).getTime() - new Date(o.orderDate).getTime();
-        const originalDays = originalMs / (1000 * 60 * 60 * 24);
-        return { delayDays, originalDays };
-      });
-      delayDetail.avgDelayDays = +(delays.reduce((s, d) => s + d.delayDays, 0) / delays.length).toFixed(1);
-      delayDetail.maxDelayDays = +(Math.max(...delays.map((d) => d.delayDays))).toFixed(1);
-      delayDetail.avgOriginalDays = +(delays.reduce((s, d) => s + d.originalDays, 0) / delays.length).toFixed(1);
-    }
+    // Avg lead time: days from orderDate to actualDate for completed orders
+    const completedWithLeadTime = orders.filter(
+      (o) => o.status === "COMPLETED" && o.actualDate && o.orderDate
+    );
+    const avgLeadTimeDays = completedWithLeadTime.length > 0
+      ? +(completedWithLeadTime.reduce((sum, o) => {
+          const days = (new Date(o.actualDate!).getTime() - new Date(o.orderDate).getTime()) / (1000 * 60 * 60 * 24);
+          return sum + days;
+        }, 0) / completedWithLeadTime.length).toFixed(1)
+      : 0;
+
+    // Previous period avg lead time for trend
+    const prevLeadTimeOrders = previousCompletedWithDates.filter((o) => o.actualDate && o.orderDate);
+    const prevAvgLeadTime = prevLeadTimeOrders.length > 0
+      ? +(prevLeadTimeOrders.reduce((sum, o) => {
+          const days = (new Date(o.actualDate!).getTime() - new Date(o.orderDate!).getTime()) / (1000 * 60 * 60 * 24);
+          return sum + days;
+        }, 0) / prevLeadTimeOrders.length).toFixed(1)
+      : 0;
 
     // Trends
     const recentOrders = orders.length;
@@ -134,6 +153,14 @@ export async function GET(request: NextRequest) {
       ? Math.round(((recentCompletedOrders - previousCompletedOrders) / previousCompletedOrders) * 100)
       : recentCompletedOrders > 0 ? 100 : 0;
 
+    const onTimeRateTrend = prevOnTimeRate > 0
+      ? onTimeRate - prevOnTimeRate
+      : onTimeRate > 0 ? onTimeRate : 0;
+
+    const leadTimeTrend = prevAvgLeadTime > 0
+      ? Math.round(((avgLeadTimeDays - prevAvgLeadTime) / prevAvgLeadTime) * 100)
+      : 0;
+
     // Generate sparkline data: split the period into 7 buckets
     const bucketCount = 7;
     const bucketMs = (to.getTime() - from!.getTime()) / bucketCount;
@@ -141,8 +168,6 @@ export async function GET(request: NextRequest) {
     const totalSparkline: number[] = Array(bucketCount).fill(0);
     const activeSparkline: number[] = Array(bucketCount).fill(0);
     const completedSparkline: number[] = Array(bucketCount).fill(0);
-    const delayedSparkline: number[] = Array(bucketCount).fill(0);
-    const disruptedSparkline: number[] = Array(bucketCount).fill(0);
 
     for (const order of orders) {
       const orderTime = new Date(order.orderDate).getTime();
@@ -152,10 +177,8 @@ export async function GET(request: NextRequest) {
       );
       if (bucket >= 0) {
         totalSparkline[bucket]++;
-        if (activeStatuses.includes(order.status)) activeSparkline[bucket]++;
+        if (pipelineStatuses.includes(order.status)) activeSparkline[bucket]++;
         if (order.status === "COMPLETED") completedSparkline[bucket]++;
-        if (order.status === "DELAYED") delayedSparkline[bucket]++;
-        if (order.status === "DISRUPTED") disruptedSparkline[bucket]++;
       }
     }
 
@@ -163,19 +186,18 @@ export async function GET(request: NextRequest) {
       totalOrders,
       activeOrders,
       completedOrders,
-      delayedOrders: delayedOrdersList.length,
-      disruptedOrders,
-      delayDetail,
+      onTimeRate,
+      avgLeadTimeDays,
       trends: {
         orders: ordersTrend,
         completion: completionTrend,
+        onTimeRate: onTimeRateTrend,
+        leadTime: leadTimeTrend,
       },
       sparklines: {
         total: totalSparkline,
         active: activeSparkline,
         completed: completedSparkline,
-        delayed: delayedSparkline,
-        disrupted: disruptedSparkline,
       },
       period: {
         from: from!.toISOString(),

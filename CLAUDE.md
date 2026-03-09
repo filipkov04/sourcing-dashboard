@@ -48,9 +48,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
 
-## Current Status (Session 27 — Mar 5, 2026)
+## Current Status (Session 28 — Mar 8, 2026)
 
-**Last completed:** Project Selector & Onboarding Flow (BL-1)
+**Last completed:** Tony Stark HUD Visual Enhancements + Factory Map Fix
+
+**Session 28 changes (Marco):**
+- **Tony Stark HUD Visual Enhancements** — Cohesive JARVIS-style command center aesthetic across dashboard:
+  - **Consistent Card Backgrounds:** Standardized all dashboard card containers to `dark:bg-[#0d0f13]` + `dark:border-zinc-800/60` + `rounded-xl` across 8 component files (alerts, activity, deliveries, quick actions, factory performance, orders-by-status, product portfolio, exchange rates, best sellers, reorder suggestions). Removed stray `shadow-sm`.
+  - **Enhanced card-hover-glow** (`globals.css`): Added `::before` pseudo-element with orange gradient top-border that fades in on hover. Light mode gets subtle 50% opacity; dark mode full intensity.
+  - **HUD Section Dividers** (`globals.css`): New `.hud-section-label` class with `::before` orange gradient dot + `::after` fading orange line. Applied to 4 section labels (Overview, Order Health, Product Intelligence, Market & Logistics).
+  - **Data Readout Tags:** Added 3-letter monospace tags to card headers matching stat cards' ORD/WIP/CMP pattern: Alerts→`ALT`, Activity→`LOG`, Deliveries→`DLV`, Quick Actions→`CMD`.
+  - **Corner Brackets** (`globals.css`): New `.hud-corners` class — L-shaped orange marks at top-left/bottom-right corners, brighten on hover. Light mode: subtle 20%→45% opacity. Dark mode: 40%→80%. Applied to Alerts, Activity, Deliveries, Factory Performance.
+  - **Orange Grid Tint** (`page.tsx`): Changed grid overlay from white lines to `rgba(255,77,21,0.3)` — barely visible warmth at `opacity-[0.02]`.
+  - **Light Mode Support:** All HUD effects (glow, corners, section dividers) work in light mode with reduced intensity for professional appearance.
+- **Factory Map Fix:** `app/api/dashboard/factory-locations/route.ts` — Factory locations query now includes factories with `projectId: null` (unassigned) alongside project-scoped factories. Previously `projectScope()` exact match excluded factories created before project system.
 
 **Session 27 changes (Marco):**
 - **Project Selector & Multi-Project Data Isolation** — Full implementation of Project layer between Organization and data:

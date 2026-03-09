@@ -1,35 +1,27 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Package, Activity, CheckCircle, AlertTriangle, AlertCircle, Calendar, RefreshCw } from "lucide-react";
+import { Package, Activity, CheckCircle, Target, Clock, Calendar, RefreshCw } from "lucide-react";
 import { useAutoRefresh, formatTimeAgo } from "@/lib/use-auto-refresh";
 import { AnimatedNumber } from "@/components/animated-number";
 import { motion } from "framer-motion";
-
-type DelayDetail = {
-  count: number;
-  avgDelayDays: number;
-  maxDelayDays: number;
-  avgOriginalDays: number;
-};
 
 type DashboardStats = {
   totalOrders: number;
   activeOrders: number;
   completedOrders: number;
-  delayedOrders: number;
-  disruptedOrders: number;
-  delayDetail: DelayDetail;
+  onTimeRate: number;
+  avgLeadTimeDays: number;
   trends: {
     orders: number;
     completion: number;
+    onTimeRate: number;
+    leadTime: number;
   };
   sparklines: {
     total: number[];
     active: number[];
     completed: number[];
-    delayed: number[];
-    disrupted: number[];
   };
   period: {
     from: string;
@@ -152,14 +144,6 @@ export function DashboardStatsCards() {
     }
   }
 
-  const delaySubtitle = stats?.delayDetail.count && stats.delayDetail.count > 0
-    ? `Avg ${stats.delayDetail.avgDelayDays}d late (vs ${Math.round(stats.delayDetail.avgOriginalDays)}d lead)`
-    : "On track";
-
-  const delaySubtitleColor = stats?.delayDetail.count && stats.delayDetail.count > 0
-    ? "text-[#FF4D15]"
-    : "text-green-600 dark:text-green-400";
-
   function sparklineTrend(data?: number[]): number | undefined {
     if (!data || data.length < 2) return undefined;
     const mid = Math.floor(data.length / 2);
@@ -168,6 +152,12 @@ export function DashboardStatsCards() {
     if (firstHalf === 0) return secondHalf > 0 ? 100 : 0;
     return Math.round(((secondHalf - firstHalf) / firstHalf) * 100);
   }
+
+  const onTimeColor = (stats?.onTimeRate ?? 0) >= 80
+    ? "#10b981"
+    : (stats?.onTimeRate ?? 0) >= 50
+      ? "#f59e0b"
+      : "#FF4D15";
 
   const statsCards = [
     {
@@ -180,13 +170,15 @@ export function DashboardStatsCards() {
       sparkColor: "#3b82f6",
     },
     {
-      label: "Active Orders",
-      tag: "ACT",
+      label: "In Progress",
+      tag: "WIP",
       value: stats?.activeOrders ?? 0,
       icon: Activity,
       trend: sparklineTrend(stats?.sparklines?.active),
       sparkline: stats?.sparklines?.active,
       sparkColor: "#8b5cf6",
+      subtitle: "Pending & in production",
+      subtitleColor: "text-zinc-500 dark:text-zinc-500",
     },
     {
       label: "Completed",
@@ -198,25 +190,37 @@ export function DashboardStatsCards() {
       sparkColor: "#10b981",
     },
     {
-      label: "Delayed",
-      tag: "DLY",
-      value: stats?.delayDetail.count ?? 0,
-      icon: AlertTriangle,
-      subtitle: delaySubtitle,
-      subtitleColor: delaySubtitleColor,
-      trend: sparklineTrend(stats?.sparklines?.delayed),
-      sparkline: stats?.sparklines?.delayed,
-      sparkColor: "#f59e0b",
+      label: "On-Time Rate",
+      tag: "OTR",
+      value: stats?.onTimeRate ?? 0,
+      suffix: "%",
+      icon: Target,
+      trend: stats?.trends.onTimeRate,
+      invertTrend: false,
+      sparkColor: onTimeColor,
+      highlight: (stats?.onTimeRate ?? 100) < 50,
+      subtitle: stats?.onTimeRate !== undefined
+        ? `${stats.onTimeRate >= 80 ? "Strong" : stats.onTimeRate >= 50 ? "Needs improvement" : "Critical"} delivery performance`
+        : undefined,
+      subtitleColor: (stats?.onTimeRate ?? 100) >= 80
+        ? "text-green-600 dark:text-green-400"
+        : (stats?.onTimeRate ?? 100) >= 50
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-[#FF4D15]",
     },
     {
-      label: "Disrupted",
-      tag: "DSR",
-      value: stats?.disruptedOrders ?? 0,
-      icon: AlertCircle,
-      highlight: (stats?.disruptedOrders ?? 0) > 0,
-      trend: sparklineTrend(stats?.sparklines?.disrupted),
-      sparkline: stats?.sparklines?.disrupted,
-      sparkColor: "#FF4D15",
+      label: "Avg Lead Time",
+      tag: "ALT",
+      value: stats?.avgLeadTimeDays ?? 0,
+      suffix: "d",
+      icon: Clock,
+      trend: stats?.trends.leadTime,
+      invertTrend: true,
+      sparkColor: "#6366f1",
+      subtitle: stats?.avgLeadTimeDays
+        ? "Order to completion"
+        : "No completed orders",
+      subtitleColor: "text-zinc-500 dark:text-zinc-500",
     },
   ];
 
@@ -227,7 +231,7 @@ export function DashboardStatsCards() {
       {/* Period Selector */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+          <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
             Overview
           </p>
           {timeAgoText && (
@@ -314,87 +318,102 @@ export function DashboardStatsCards() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {statsCards.map((stat, index) => (
-            <motion.div
-              key={index}
-              className={`group relative overflow-hidden rounded-xl border transition-all ${
-                stat.highlight
-                  ? "border-red-200/60 bg-white dark:border-red-900/30 dark:bg-zinc-900/80"
-                  : "border-gray-100 bg-white dark:border-zinc-800/60 dark:bg-zinc-900/80"
-              }`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: 0.05 + index * 0.06,
-                duration: 0.4,
-                ease: [0.33, 1, 0.68, 1],
-              }}
-            >
-              <HUDCardBorder />
+          {statsCards.map((stat, index) => {
+            // For inverted trends (like lead time), lower is better
+            const trendIsPositive = stat.invertTrend
+              ? (stat.trend ?? 0) < 0
+              : (stat.trend ?? 0) > 0;
+            const trendIsNegative = stat.invertTrend
+              ? (stat.trend ?? 0) > 0
+              : (stat.trend ?? 0) < 0;
 
-              {/* Header Zone */}
-              <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className={`font-mono text-[9px] uppercase tracking-[0.12em] ${
-                    stat.highlight ? "text-[#FF4D15]/70" : "text-zinc-500 dark:text-zinc-600"
-                  }`}>
-                    {stat.tag}
-                  </span>
-                  <p className={`text-[11px] font-semibold tracking-wide ${
-                    stat.highlight ? "text-[#FF4D15]" : "text-gray-400 dark:text-zinc-400"
-                  }`}>
-                    {stat.label}
-                  </p>
-                </div>
-                <stat.icon
-                  className={`h-3.5 w-3.5 ${stat.highlight ? "text-[#FF4D15]/50" : "text-gray-300 dark:text-zinc-700"}`}
-                  strokeWidth={1.5}
-                />
-              </div>
+            return (
+              <motion.div
+                key={index}
+                className={`group relative overflow-hidden rounded-xl border transition-all ${
+                  stat.highlight
+                    ? "border-red-200/60 bg-white dark:border-red-900/30 dark:bg-[#0d0f13]"
+                    : "border-gray-100 bg-white dark:border-zinc-800/60 dark:bg-[#0d0f13]"
+                }`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.05 + index * 0.06,
+                  duration: 0.4,
+                  ease: [0.33, 1, 0.68, 1],
+                }}
+              >
+                <HUDCardBorder />
 
-              {/* Divider */}
-              <div className={`mx-3 h-px ${
-                stat.highlight
-                  ? "bg-red-200/40 dark:bg-red-900/20"
-                  : "bg-gray-100 dark:bg-zinc-800/80"
-              }`} />
-
-              {/* Metric Zone */}
-              <div className="px-4 pt-3 pb-4">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className={`text-[32px] font-bold leading-none tracking-tight tabular-nums ${
-                      stat.highlight ? "text-[#FF4D15]" : "text-gray-900 dark:text-white"
+                {/* Header Zone */}
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono text-[9px] uppercase tracking-[0.12em] ${
+                      stat.highlight ? "text-[#FF4D15]/70" : "text-zinc-500 dark:text-zinc-600"
                     }`}>
-                      <AnimatedNumber value={stat.value} />
+                      {stat.tag}
+                    </span>
+                    <p className={`text-[11px] font-semibold tracking-wide ${
+                      stat.highlight ? "text-[#FF4D15]" : "text-gray-400 dark:text-zinc-400"
+                    }`}>
+                      {stat.label}
                     </p>
-                    {stat.trend !== undefined && stat.trend !== 0 && (
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <span
-                          className={`text-[10px] font-medium ${
-                            stat.trend > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                          }`}
-                        >
-                          {stat.trend > 0 ? "\u25B2" : "\u25BC"} {Math.abs(stat.trend)}%
-                        </span>
-                        <span className="text-[10px] text-gray-400 dark:text-zinc-600">
-                          vs prior
-                        </span>
-                      </div>
+                  </div>
+                  <stat.icon
+                    className={`h-3.5 w-3.5 ${stat.highlight ? "text-[#FF4D15]/50" : "text-gray-300 dark:text-zinc-700"}`}
+                    strokeWidth={1.5}
+                  />
+                </div>
+
+                {/* Divider */}
+                <div className={`mx-3 h-px ${
+                  stat.highlight
+                    ? "bg-red-200/40 dark:bg-red-900/20"
+                    : "bg-gray-100 dark:bg-zinc-800/80"
+                }`} />
+
+                {/* Metric Zone */}
+                <div className="px-4 pt-3 pb-4">
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className={`text-[32px] font-bold leading-none tracking-tight tabular-nums ${
+                        stat.highlight ? "text-[#FF4D15]" : "text-gray-900 dark:text-white"
+                      }`}>
+                        <AnimatedNumber value={stat.value} />
+                        {stat.suffix && (
+                          <span className="text-[20px] font-semibold text-gray-400 dark:text-zinc-500 ml-0.5">
+                            {stat.suffix}
+                          </span>
+                        )}
+                      </p>
+                      {stat.trend !== undefined && stat.trend !== 0 && (
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <span
+                            className={`text-[10px] font-medium ${
+                              trendIsPositive ? "text-green-600 dark:text-green-400" : trendIsNegative ? "text-red-600 dark:text-red-400" : ""
+                            }`}
+                          >
+                            {(stat.trend ?? 0) > 0 ? "\u25B2" : "\u25BC"} {Math.abs(stat.trend ?? 0)}{stat.suffix === "%" ? "pp" : "%"}
+                          </span>
+                          <span className="text-[10px] text-gray-400 dark:text-zinc-600">
+                            vs prior
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {stat.sparkline && (
+                      <Sparkline data={stat.sparkline} color={stat.sparkColor} />
                     )}
                   </div>
-                  {stat.sparkline && (
-                    <Sparkline data={stat.sparkline} color={stat.sparkColor} />
+                  {stat.subtitle && (
+                    <p className={`mt-1.5 text-[10px] font-medium ${stat.subtitleColor}`}>
+                      {stat.subtitle}
+                    </p>
                   )}
                 </div>
-                {stat.subtitle && (
-                  <p className={`mt-1.5 text-[10px] font-medium ${stat.subtitleColor}`}>
-                    {stat.subtitle}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, CheckCircle, Clock, ArrowRight } from "lucide-react";
+import { Package, CheckCircle, Clock, ArrowRight, Activity } from "lucide-react";
 import Link from "next/link";
 
-type Activity = {
+type ActivityItem = {
   id: string;
   type: "created" | "completed";
   orderNumber: string;
@@ -16,18 +16,18 @@ type Activity = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
-  IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  DELAYED: "bg-orange-50 text-[#FF4D15] dark:bg-orange-900/20 dark:text-[#FF4D15]",
-  DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
-  COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-  SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-  DELIVERED: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
-  CANCELLED: "bg-gray-50 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400",
+  PENDING: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
+  IN_PROGRESS: "bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20",
+  DELAYED: "bg-orange-500/10 text-[#FF4D15] ring-1 ring-orange-500/20",
+  DISRUPTED: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
+  COMPLETED: "bg-green-500/10 text-green-600 dark:text-green-400 ring-1 ring-green-500/20",
+  SHIPPED: "bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20",
+  DELIVERED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20",
+  CANCELLED: "bg-zinc-500/10 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/20",
 };
 
 export function RecentActivityFeed() {
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -49,16 +49,17 @@ export function RecentActivityFeed() {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+      <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-4 w-4 bg-gray-200 dark:bg-zinc-700 rounded" />
+          <div className="h-4 w-24 bg-gray-200 dark:bg-zinc-700 rounded" />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-start gap-3 animate-pulse">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-zinc-700 rounded-full" />
+            <div key={i} className="flex items-center gap-3 animate-pulse">
+              <div className="w-7 h-7 bg-gray-200 dark:bg-zinc-700 rounded-full" />
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-3/4 mb-2" />
+                <div className="h-3.5 bg-gray-200 dark:bg-zinc-700 rounded w-3/4 mb-1.5" />
                 <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-1/2" />
               </div>
             </div>
@@ -70,68 +71,78 @@ export function RecentActivityFeed() {
 
   if (activities.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
+      <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
+        <div className="flex items-center gap-2 mb-4">
+          <Activity className="h-4 w-4 text-zinc-400 dark:text-zinc-600" strokeWidth={1.5} />
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Activity</h2>
+        </div>
         <div className="text-center py-8">
-          <Clock className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-zinc-400">No recent activity</p>
+          <Clock className="mx-auto h-10 w-10 text-gray-300 dark:text-zinc-700 mb-2" />
+          <p className="text-xs text-gray-500 dark:text-zinc-500">No recent activity</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+    <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13] card-hover-glow hud-corners">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">LOG</span>
+          <Activity className="h-4 w-4 text-zinc-400 dark:text-zinc-600" strokeWidth={1.5} />
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Activity</h2>
+        </div>
         <Link
           href="/orders"
-          className="text-sm text-[#FF4D15] dark:text-[#FF4D15] hover:text-[#d4522a] dark:hover:text-[#f07040] font-medium flex items-center gap-1"
+          className="text-xs text-[#FF4D15] hover:text-[#d4522a] font-medium flex items-center gap-1 transition-colors"
         >
           View all
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-1">
         {activities.slice(0, 5).map((activity) => (
           <Link
             key={activity.id}
             href={`/orders/${activity.id}`}
-            className="flex items-start gap-3 group hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 -mx-3 px-3 py-2 rounded-lg transition-colors"
+            className="group flex items-center gap-3 -mx-2 px-2 py-2 rounded-lg hover:bg-gray-50/80 dark:hover:bg-zinc-800/50 transition-colors"
           >
             <div
-              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
                 activity.type === "completed"
-                  ? "bg-green-100 dark:bg-green-900/30"
-                  : "bg-blue-100 dark:bg-blue-900/30"
+                  ? "bg-green-500/10"
+                  : "bg-blue-500/10"
               }`}
             >
               {activity.type === "completed" ? (
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <CheckCircle className="h-3.5 w-3.5 text-green-500" />
               ) : (
-                <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <Package className="h-3.5 w-3.5 text-blue-500" />
               )}
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#FF4D15] dark:group-hover:text-[#FF4D15] transition-colors">
-                {activity.type === "completed" ? "Completed" : "New order"} #{activity.orderNumber}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-zinc-400 truncate">
-                {activity.productName} • {activity.factoryName}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#FF4D15] transition-colors truncate">
+                  #{activity.orderNumber}
+                </p>
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    statusColors[activity.status]
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                    statusColors[activity.status] || statusColors.PENDING
                   }`}
                 >
                   {activity.status.replace(/_/g, " ")}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-zinc-500">{activity.timeAgo}</span>
               </div>
+              <p className="text-xs text-gray-500 dark:text-zinc-500 truncate">
+                {activity.productName} · {activity.factoryName}
+              </p>
             </div>
+
+            <span className="flex-shrink-0 font-mono text-[10px] text-gray-400 dark:text-zinc-600">
+              {activity.timeAgo}
+            </span>
           </Link>
         ))}
       </div>

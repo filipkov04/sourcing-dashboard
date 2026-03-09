@@ -52,7 +52,7 @@ export function ReorderSuggestions() {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+      <div className="bg-white rounded-xl border border-gray-100 p-5 dark:bg-[#0d0f13] dark:border-zinc-800/60 card-hover-glow">
         <div className="flex items-center gap-2 mb-4">
           <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
@@ -74,7 +74,7 @@ export function ReorderSuggestions() {
 
   if (suggestions.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+      <div className="bg-white rounded-xl border border-gray-100 p-5 dark:bg-[#0d0f13] dark:border-zinc-800/60 card-hover-glow">
         <div className="flex items-center gap-2 mb-4">
           <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>
@@ -91,7 +91,7 @@ export function ReorderSuggestions() {
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 dark:bg-[#0d0f13] dark:border-zinc-800/60 card-hover-glow">
       <div className="flex items-center gap-2 mb-4">
         <RefreshCw className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Reorder Suggestions</h2>

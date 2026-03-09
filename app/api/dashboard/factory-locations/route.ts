@@ -26,8 +26,14 @@ export async function GET(request: NextRequest) {
       return api.unauthorized();
     }
 
+    const scope = api.projectScope(session);
     const factories = await prisma.factory.findMany({
-      where: { ...api.projectScope(session) },
+      where: {
+        organizationId: scope.organizationId,
+        ...("projectId" in scope
+          ? { OR: [{ projectId: scope.projectId }, { projectId: null }] }
+          : {}),
+      },
       select: {
         id: true,
         name: true,
