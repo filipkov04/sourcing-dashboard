@@ -1,8 +1,6 @@
 import type { MapFactory } from "./types";
 import {
-  DESTINATION_COORDS,
-  generateGreatCircleArc,
-  detectTransportMethod,
+  buildShippingRoute,
   getRouteColor,
   getRouteWidth,
 } from "./arc-utils";
@@ -60,7 +58,8 @@ export function getBounds(
 }
 
 /**
- * Generate GeoJSON LineStrings for shipping routes from factories to destination.
+ * Generate GeoJSON LineStrings for realistic multi-segment shipping routes.
+ * Each factory produces multiple features: truck segments + ship segment.
  */
 export function factoriesToRoutesGeoJSON(factories: MapFactory[]): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = [];
@@ -68,34 +67,35 @@ export function factoriesToRoutesGeoJSON(factories: MapFactory[]): GeoJSON.Featu
   for (const f of factories) {
     if (f.orderCount === 0) continue;
 
-    const start: [number, number] = [f.lng, f.lat];
-    const arc = generateGreatCircleArc(start, DESTINATION_COORDS);
-    const transportMethod = detectTransportMethod(f.lng, f.lat);
-    const routeColor = getRouteColor(f.worstOrderStatus);
+    const route = buildShippingRoute(f.lng, f.lat);
     const routeWidth = getRouteWidth(f.totalOrderQuantity);
 
-    features.push({
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: arc,
-      },
-      properties: {
-        factoryId: f.id,
-        routeStatus: f.worstOrderStatus ?? "PENDING",
-        routeColor,
-        routeWidth,
-        totalQuantity: f.totalOrderQuantity,
-        transportMethod,
-      },
-    });
+    for (const segment of route.segments) {
+      if (segment.coordinates.length < 2) continue;
+
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: segment.coordinates,
+        },
+        properties: {
+          factoryId: f.id,
+          routeStatus: f.worstOrderStatus ?? "PENDING",
+          routeWidth,
+          totalQuantity: f.totalOrderQuantity,
+          transportMethod: segment.transportMethod,
+        },
+      });
+    }
   }
 
   return { type: "FeatureCollection", features };
 }
 
 /**
- * Generate GeoJSON points at the midpoint of each shipping arc for transport icons.
+ * Generate GeoJSON points for transport method icons.
+ * Places ship icon at midpoint of sea segments, truck icon at start of truck-to-destination segments.
  */
 export function routeMidpointsGeoJSON(factories: MapFactory[]): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = [];
@@ -103,37 +103,29 @@ export function routeMidpointsGeoJSON(factories: MapFactory[]): GeoJSON.FeatureC
   for (const f of factories) {
     if (f.orderCount === 0) continue;
 
-    const start: [number, number] = [f.lng, f.lat];
-    const arc = generateGreatCircleArc(start, DESTINATION_COORDS);
-    const midIdx = Math.floor(arc.length / 2);
-    const midpoint = arc[midIdx];
-    const transportMethod = detectTransportMethod(f.lng, f.lat);
+    const route = buildShippingRoute(f.lng, f.lat);
 
-    let icon: string;
-    switch (transportMethod) {
-      case "sea":
-        icon = "🚢";
-        break;
-      case "air":
-        icon = "✈️";
-        break;
-      case "road":
-        icon = "🚛";
-        break;
+    for (const segment of route.segments) {
+      if (segment.coordinates.length < 2) continue;
+
+      const midIdx = Math.floor(segment.coordinates.length / 2);
+      const midpoint = segment.coordinates[midIdx];
+
+      const icon = segment.transportMethod === "ship" ? "🚢" : "🚛";
+
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: midpoint,
+        },
+        properties: {
+          factoryId: f.id,
+          transportMethod: segment.transportMethod,
+          icon,
+        },
+      });
     }
-
-    features.push({
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: midpoint,
-      },
-      properties: {
-        factoryId: f.id,
-        transportMethod,
-        icon,
-      },
-    });
   }
 
   return { type: "FeatureCollection", features };
