@@ -7,7 +7,7 @@ import { useTheme } from "@/components/theme-provider";
 import { AnimatedNumber } from "@/components/animated-number";
 import { MapControls } from "./map-controls";
 import { MapLegend } from "./map-legend";
-import { MapPopupCard } from "./map-popup-card";
+import { MapFactoryDrawer } from "./map-factory-drawer";
 import { MapSearch } from "./map-search";
 import type { MapFactory, MapStats } from "./types";
 import type { MapCanvasHandle } from "./map-canvas";
@@ -29,6 +29,7 @@ export function ManufacturerMap() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFactory, setSelectedFactory] = useState<MapFactory | null>(null);
+  const [routesEnabled, setRoutesEnabled] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
@@ -150,7 +151,13 @@ export function ManufacturerMap() {
             factories={filteredFactories}
             theme={mapTheme}
             clusteringEnabled={clusteringEnabled}
-            onSelectFactory={setSelectedFactory}
+            routesEnabled={routesEnabled}
+            onSelectFactory={(f) => {
+              setSelectedFactory(f);
+              if (f) {
+                mapRef.current?.easeTo(f.lng, f.lat);
+              }
+            }}
             selectedFactoryId={selectedFactory?.id ?? null}
           />
 
@@ -162,16 +169,16 @@ export function ManufacturerMap() {
             onToggleClustering={() => setClusteringEnabled((v) => !v)}
             verifiedOnly={verifiedOnly}
             onToggleVerifiedOnly={() => setVerifiedOnly((v) => !v)}
+            routesEnabled={routesEnabled}
+            onToggleRoutes={() => setRoutesEnabled((v) => !v)}
           />
 
           <MapLegend />
 
-          {selectedFactory && (
-            <MapPopupCard
-              factory={selectedFactory}
-              onClose={() => setSelectedFactory(null)}
-            />
-          )}
+          <MapFactoryDrawer
+            factory={selectedFactory}
+            onClose={() => setSelectedFactory(null)}
+          />
         </div>
       </div>
     </div>

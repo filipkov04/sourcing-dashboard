@@ -17,6 +17,25 @@ export type MapFactory = {
   riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   isPreferred: boolean;
   lastQcAt: string | null;
+  // Shipping route fields
+  worstOrderStatus: "PENDING" | "IN_PROGRESS" | "DELAYED" | "DISRUPTED" | null;
+  totalOrderQuantity: number;
+  // Contact fields
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+};
+
+export type FactoryOrder = {
+  id: string;
+  orderNumber: string;
+  productName: string;
+  status: string;
+  quantity: number;
+  unit: string;
+  overallProgress: number;
+  expectedDate: string;
+  priority: string;
 };
 
 export type MapStats = {

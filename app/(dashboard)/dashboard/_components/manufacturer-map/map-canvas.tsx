@@ -4,7 +4,8 @@ import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { getMapStyle } from "./map-style";
-import { factoriesToGeoJSON, getBounds } from "./map-utils";
+import { factoriesToGeoJSON, getBounds, factoriesToRoutesGeoJSON, routeMidpointsGeoJSON } from "./map-utils";
+import { DESTINATION_COORDS } from "./arc-utils";
 import type { MapFactory } from "./types";
 
 const VERIFICATION_COLORS: Record<string, string> = {
@@ -20,17 +21,24 @@ const RISK_STROKE_COLORS: Record<string, string> = {
   LOW: "transparent",
 };
 
+const ROUTE_SOURCE_ID = "shipping-routes";
+const MIDPOINTS_SOURCE_ID = "route-midpoints";
+const DESTINATION_SOURCE_ID = "destination";
+const ROUTE_LAYER_IDS = ["route-ok", "route-delayed", "route-disrupted", "route-midpoint-icons", "destination-circle", "destination-label"];
+
 export type MapCanvasHandle = {
   zoomIn: () => void;
   zoomOut: () => void;
   resetView: () => void;
   fitToMarkers: () => void;
+  easeTo: (lng: number, lat: number) => void;
 };
 
 type MapCanvasProps = {
   factories: MapFactory[];
   theme: "light" | "dark";
   clusteringEnabled: boolean;
+  routesEnabled: boolean;
   onSelectFactory: (factory: MapFactory | null) => void;
   selectedFactoryId: string | null;
 };
@@ -139,14 +147,162 @@ function addMapLayers(map: maplibregl.Map, clusteringEnabled: boolean) {
   });
 }
 
+function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
+  // Route lines source
+  map.addSource(ROUTE_SOURCE_ID, {
+    type: "geojson",
+    data: factoriesToRoutesGeoJSON(factories),
+  });
+
+  // Midpoints source
+  map.addSource(MIDPOINTS_SOURCE_ID, {
+    type: "geojson",
+    data: routeMidpointsGeoJSON(factories),
+  });
+
+  // Destination marker source
+  map.addSource(DESTINATION_SOURCE_ID, {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: DESTINATION_COORDS },
+          properties: { label: "HQ" },
+        },
+      ],
+    },
+  });
+
+  // Route line layers — one per status category, rendered BEFORE point layers
+  // We insert before unclustered-risk-ring so routes go underneath markers
+  const beforeLayer = map.getLayer("unclustered-risk-ring") ? "unclustered-risk-ring" : undefined;
+
+  map.addLayer(
+    {
+      id: "route-ok",
+      type: "line",
+      source: ROUTE_SOURCE_ID,
+      filter: ["any",
+        ["==", ["get", "routeStatus"], "PENDING"],
+        ["==", ["get", "routeStatus"], "IN_PROGRESS"],
+      ],
+      paint: {
+        "line-color": "#22c55e",
+        "line-width": ["get", "routeWidth"],
+        "line-dasharray": [2, 4],
+        "line-opacity": 0.7,
+      },
+      layout: {
+        "line-cap": "round",
+        "line-join": "round",
+      },
+    },
+    beforeLayer
+  );
+
+  map.addLayer(
+    {
+      id: "route-delayed",
+      type: "line",
+      source: ROUTE_SOURCE_ID,
+      filter: ["==", ["get", "routeStatus"], "DELAYED"],
+      paint: {
+        "line-color": "#f59e0b",
+        "line-width": ["get", "routeWidth"],
+        "line-dasharray": [2, 4],
+        "line-opacity": 0.7,
+      },
+      layout: {
+        "line-cap": "round",
+        "line-join": "round",
+      },
+    },
+    beforeLayer
+  );
+
+  map.addLayer(
+    {
+      id: "route-disrupted",
+      type: "line",
+      source: ROUTE_SOURCE_ID,
+      filter: ["==", ["get", "routeStatus"], "DISRUPTED"],
+      paint: {
+        "line-color": "#ef4444",
+        "line-width": ["get", "routeWidth"],
+        "line-dasharray": [2, 4],
+        "line-opacity": 0.7,
+      },
+      layout: {
+        "line-cap": "round",
+        "line-join": "round",
+      },
+    },
+    beforeLayer
+  );
+
+  // Transport method icons at arc midpoints
+  map.addLayer({
+    id: "route-midpoint-icons",
+    type: "symbol",
+    source: MIDPOINTS_SOURCE_ID,
+    layout: {
+      "text-field": ["get", "icon"],
+      "text-size": 14,
+      "text-allow-overlap": true,
+    },
+  });
+
+  // Destination circle
+  map.addLayer(
+    {
+      id: "destination-circle",
+      type: "circle",
+      source: DESTINATION_SOURCE_ID,
+      paint: {
+        "circle-radius": 8,
+        "circle-color": "#FF4D15",
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#ffffff",
+        "circle-opacity": 0.9,
+      },
+    }
+  );
+
+  // Destination label
+  map.addLayer({
+    id: "destination-label",
+    type: "symbol",
+    source: DESTINATION_SOURCE_ID,
+    layout: {
+      "text-field": "HQ",
+      "text-size": 9,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      "text-offset": [0, -1.5],
+    },
+    paint: {
+      "text-color": "#FF4D15",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1,
+    },
+  });
+}
+
+function removeRouteLayers(map: maplibregl.Map) {
+  for (const id of ROUTE_LAYER_IDS) {
+    if (map.getLayer(id)) map.removeLayer(id);
+  }
+  if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
+  if (map.getSource(MIDPOINTS_SOURCE_ID)) map.removeSource(MIDPOINTS_SOURCE_ID);
+  if (map.getSource(DESTINATION_SOURCE_ID)) map.removeSource(DESTINATION_SOURCE_ID);
+}
+
 function addSourceAndLayers(
   map: maplibregl.Map,
   factories: MapFactory[],
   clusteringEnabled: boolean
 ) {
-  if (map.getSource(SOURCE_ID)) {
-    removeSourceAndLayers(map);
-  }
   map.addSource(SOURCE_ID, {
     type: "geojson",
     data: factoriesToGeoJSON(factories),
@@ -166,13 +322,16 @@ function removeSourceAndLayers(map: maplibregl.Map) {
 }
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
-  function MapCanvas({ factories, theme, clusteringEnabled, onSelectFactory, selectedFactoryId }, ref) {
+  function MapCanvas({ factories, theme, clusteringEnabled, routesEnabled, onSelectFactory, selectedFactoryId }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const factoriesRef = useRef(factories);
     factoriesRef.current = factories;
     const clusteringRef = useRef(clusteringEnabled);
     clusteringRef.current = clusteringEnabled;
+    const routesRef = useRef(routesEnabled);
+    routesRef.current = routesEnabled;
+    const animFrameRef = useRef<number | null>(null);
 
     const fitToMarkers = useCallback(() => {
       const map = mapRef.current;
@@ -189,7 +348,59 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         mapRef.current?.flyTo({ center: [20, 20], zoom: 1.5, duration: 800 });
       },
       fitToMarkers,
+      easeTo: (lng: number, lat: number) => {
+        mapRef.current?.easeTo({
+          center: [lng - 0.02, lat], // offset left so marker isn't hidden by drawer
+          zoom: Math.max(mapRef.current.getZoom(), 8),
+          duration: 600,
+        });
+      },
     }));
+
+    // Dash animation for route lines
+    const startDashAnimation = useCallback(() => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      let dashOffset = 0;
+      const DASH_LENGTH = 2;
+      const GAP_LENGTH = 4;
+      const TOTAL = DASH_LENGTH + GAP_LENGTH;
+
+      function animate() {
+        if (!mapRef.current) return;
+        if (document.hidden) {
+          animFrameRef.current = requestAnimationFrame(animate);
+          return;
+        }
+
+        dashOffset = (dashOffset + 0.15) % TOTAL;
+
+        const dashArray = [
+          Math.max(DASH_LENGTH - dashOffset, 0),
+          GAP_LENGTH,
+          Math.min(dashOffset, DASH_LENGTH),
+          0,
+        ];
+
+        for (const layerId of ["route-ok", "route-delayed", "route-disrupted"]) {
+          if (mapRef.current.getLayer(layerId)) {
+            mapRef.current.setPaintProperty(layerId, "line-dasharray", dashArray);
+          }
+        }
+
+        animFrameRef.current = requestAnimationFrame(animate);
+      }
+
+      animFrameRef.current = requestAnimationFrame(animate);
+    }, []);
+
+    const stopDashAnimation = useCallback(() => {
+      if (animFrameRef.current != null) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+    }, []);
 
     // Initialize map
     useEffect(() => {
@@ -216,7 +427,12 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       mapRef.current = map;
 
       map.on("load", () => {
-        if (map.getSource(SOURCE_ID)) removeSourceAndLayers(map);
+        // Add routes BEFORE points so they render underneath
+        if (routesRef.current) {
+          addRouteLayers(map, factoriesRef.current);
+          startDashAnimation();
+        }
+
         addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
 
         // Fit to markers on initial load
@@ -268,6 +484,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       map.on("mouseleave", "unclustered-point", () => { map.getCanvas().style.cursor = ""; });
 
       return () => {
+        stopDashAnimation();
         mapRef.current = null;
         map.remove();
       };
@@ -279,28 +496,33 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       const map = mapRef.current;
       if (!map) return;
 
+      stopDashAnimation();
       map.setStyle(getMapStyle(theme));
       map.once("style.load", () => {
+        if (routesRef.current) {
+          addRouteLayers(map, factoriesRef.current);
+          startDashAnimation();
+        }
         addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
       });
-    }, [theme]);
+    }, [theme, startDashAnimation, stopDashAnimation]);
 
-    // Update data / clustering
+    // Update data / clustering / routes
     useEffect(() => {
       const map = mapRef.current;
-      if (!map) return;
+      if (!map || !map.isStyleLoaded()) return;
 
-      function update() {
-        removeSourceAndLayers(map);
-        addSourceAndLayers(map, factories, clusteringEnabled);
-      }
+      // Remove everything and re-add
+      stopDashAnimation();
+      removeRouteLayers(map);
+      removeSourceAndLayers(map);
 
-      if (map.isStyleLoaded()) {
-        update();
-      } else {
-        map.once("style.load", update);
+      if (routesEnabled) {
+        addRouteLayers(map, factories);
+        startDashAnimation();
       }
-    }, [factories, clusteringEnabled]);
+      addSourceAndLayers(map, factories, clusteringEnabled);
+    }, [factories, clusteringEnabled, routesEnabled, startDashAnimation, stopDashAnimation]);
 
     return (
       <div

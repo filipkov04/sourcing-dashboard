@@ -26,14 +26,8 @@ export async function GET(request: NextRequest) {
       return api.unauthorized();
     }
 
-    const scope = api.projectScope(session);
     const factories = await prisma.factory.findMany({
-      where: {
-        organizationId: scope.organizationId,
-        ...("projectId" in scope
-          ? { OR: [{ projectId: scope.projectId }, { projectId: null }] }
-          : {}),
-      },
+      where: { ...api.projectScope(session) },
       select: {
         id: true,
         name: true,
@@ -51,13 +45,16 @@ export async function GET(request: NextRequest) {
         isPreferred: true,
         displayPrecision: true,
         lastQcAt: true,
-        _count: {
+        contactName: true,
+        contactEmail: true,
+        contactPhone: true,
+        orders: {
+          where: {
+            status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
+          },
           select: {
-            orders: {
-              where: {
-                status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
-              },
-            },
+            status: true,
+            quantity: true,
           },
         },
       },
@@ -86,6 +83,25 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // Determine worst order status (priority: DISRUPTED > DELAYED > IN_PROGRESS > PENDING)
+        const statusPriority: Record<string, number> = {
+          DISRUPTED: 4,
+          DELAYED: 3,
+          IN_PROGRESS: 2,
+          PENDING: 1,
+        };
+        let worstOrderStatus: string | null = null;
+        let worstPriority = 0;
+        for (const order of f.orders) {
+          const p = statusPriority[order.status] ?? 0;
+          if (p > worstPriority) {
+            worstPriority = p;
+            worstOrderStatus = order.status;
+          }
+        }
+
+        const totalOrderQuantity = f.orders.reduce((sum, o) => sum + o.quantity, 0);
+
         return {
           id: f.id,
           name: f.name,
@@ -95,7 +111,7 @@ export async function GET(request: NextRequest) {
           city: parseCity(f.location),
           lat,
           lng,
-          orderCount: f._count.orders,
+          orderCount: f.orders.length,
           verificationStatus: f.verificationStatus,
           categories: f.categories,
           capabilities: f.capabilities,
@@ -105,6 +121,11 @@ export async function GET(request: NextRequest) {
           riskLevel: f.riskLevel,
           isPreferred: f.isPreferred,
           lastQcAt: f.lastQcAt,
+          worstOrderStatus,
+          totalOrderQuantity,
+          contactName: f.contactName,
+          contactEmail: f.contactEmail,
+          contactPhone: f.contactPhone,
         };
       })
       .filter(Boolean);

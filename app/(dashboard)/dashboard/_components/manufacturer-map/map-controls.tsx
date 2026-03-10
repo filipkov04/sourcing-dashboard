@@ -1,6 +1,6 @@
 "use client";
 
-import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Layers, ShieldCheck } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Layers, ShieldCheck, Route } from "lucide-react";
 import type { MapCanvasHandle } from "./map-canvas";
 
 type MapControlsProps = {
@@ -9,6 +9,8 @@ type MapControlsProps = {
   onToggleClustering: () => void;
   verifiedOnly: boolean;
   onToggleVerifiedOnly: () => void;
+  routesEnabled: boolean;
+  onToggleRoutes: () => void;
 };
 
 const btnClass =
@@ -20,6 +22,8 @@ export function MapControls({
   onToggleClustering,
   verifiedOnly,
   onToggleVerifiedOnly,
+  routesEnabled,
+  onToggleRoutes,
 }: MapControlsProps) {
   return (
     <div className="absolute top-3 right-3 z-10 flex flex-col gap-1">
@@ -65,6 +69,13 @@ export function MapControls({
         title={verifiedOnly ? "Show all factories" : "Show verified only"}
       >
         <ShieldCheck className={`h-3.5 w-3.5 ${verifiedOnly ? "text-green-500" : "text-gray-600 dark:text-zinc-400"}`} />
+      </button>
+      <button
+        onClick={onToggleRoutes}
+        className={`${btnClass} ${routesEnabled ? "ring-1 ring-orange-500/50" : ""}`}
+        title={routesEnabled ? "Hide shipping routes" : "Show shipping routes"}
+      >
+        <Route className={`h-3.5 w-3.5 ${routesEnabled ? "text-orange-500" : "text-gray-600 dark:text-zinc-400"}`} />
       </button>
     </div>
   );
