@@ -130,3 +130,44 @@ export function routeMidpointsGeoJSON(factories: MapFactory[]): GeoJSON.FeatureC
 
   return { type: "FeatureCollection", features };
 }
+
+/**
+ * Generate GeoJSON points for route stops (factory, port, strait, canal, harbor, hub, destination).
+ * Each stop has a name, description, type, and icon for popup display.
+ */
+export function routeStopsGeoJSON(factories: MapFactory[]): GeoJSON.FeatureCollection {
+  const features: GeoJSON.Feature[] = [];
+  const seen = new Set<string>();
+
+  for (const f of factories) {
+    if (f.orderCount === 0) continue;
+
+    const route = buildShippingRoute(f.lng, f.lat);
+
+    for (const stop of route.stops) {
+      const key = stop.type === "factory"
+        ? `${f.id}-${stop.coords[0]}-${stop.coords[1]}`
+        : `${stop.coords[0]}-${stop.coords[1]}`;
+
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: stop.coords,
+        },
+        properties: {
+          name: stop.name,
+          description: stop.description,
+          stopType: stop.type,
+          icon: stop.icon,
+          factoryId: f.id,
+        },
+      });
+    }
+  }
+
+  return { type: "FeatureCollection", features };
+}

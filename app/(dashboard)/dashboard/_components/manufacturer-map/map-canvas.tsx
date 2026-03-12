@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { getMapStyle } from "./map-style";
-import { factoriesToGeoJSON, getBounds, factoriesToRoutesGeoJSON, routeMidpointsGeoJSON } from "./map-utils";
+import { factoriesToGeoJSON, getBounds, factoriesToRoutesGeoJSON, routeMidpointsGeoJSON, routeStopsGeoJSON } from "./map-utils";
 import { DESTINATION_COORDS } from "./arc-utils";
 import type { MapFactory } from "./types";
 
@@ -24,10 +24,12 @@ const RISK_STROKE_COLORS: Record<string, string> = {
 const ROUTE_SOURCE_ID = "shipping-routes";
 const MIDPOINTS_SOURCE_ID = "route-midpoints";
 const DESTINATION_SOURCE_ID = "destination";
+const STOPS_SOURCE_ID = "route-stops";
 const ROUTE_LAYER_IDS = [
   "route-ship-ok", "route-ship-delayed", "route-ship-disrupted",
   "route-truck-ok", "route-truck-delayed", "route-truck-disrupted",
   "route-midpoint-icons", "destination-circle", "destination-label",
+  "route-stop-circles", "route-stop-icons",
 ];
 
 export type MapCanvasHandle = {
@@ -179,6 +181,9 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
     if (map.getSource(DESTINATION_SOURCE_ID)) {
       (map.getSource(DESTINATION_SOURCE_ID) as maplibregl.GeoJSONSource).setData(destData);
     }
+    if (map.getSource(STOPS_SOURCE_ID)) {
+      (map.getSource(STOPS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(routeStopsGeoJSON(factories));
+    }
     return;
   }
 
@@ -294,6 +299,59 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
       "text-halo-width": 1,
     },
   });
+
+  // ─── Route stop markers ─────────────────────────────────────────────────
+  const stopsData = routeStopsGeoJSON(factories);
+
+  map.addSource(STOPS_SOURCE_ID, {
+    type: "geojson",
+    data: stopsData,
+  });
+
+  // Stop circles (small, semi-transparent)
+  map.addLayer({
+    id: "route-stop-circles",
+    type: "circle",
+    source: STOPS_SOURCE_ID,
+    paint: {
+      "circle-radius": [
+        "match", ["get", "stopType"],
+        "factory", 5,
+        "port", 5,
+        "harbor", 5,
+        "destination", 5,
+        4,
+      ],
+      "circle-color": [
+        "match", ["get", "stopType"],
+        "factory", "#8b5cf6",     // purple
+        "port", "#3b82f6",        // blue
+        "strait", "#06b6d4",      // cyan
+        "canal", "#f59e0b",       // amber
+        "harbor", "#22c55e",      // green
+        "customs", "#ef4444",     // red
+        "hub", "#f97316",         // orange
+        "destination", "#FF4D15", // brand orange
+        "#6b7280",
+      ],
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "#ffffff",
+      "circle-opacity": 0.9,
+    },
+  });
+
+  // Stop icon labels
+  map.addLayer({
+    id: "route-stop-icons",
+    type: "symbol",
+    source: STOPS_SOURCE_ID,
+    layout: {
+      "text-field": ["get", "icon"],
+      "text-size": 14,
+      "text-offset": [0, -1.3],
+      "text-allow-overlap": true,
+    },
+  });
 }
 
 function removeRouteLayers(map: maplibregl.Map) {
@@ -303,6 +361,7 @@ function removeRouteLayers(map: maplibregl.Map) {
   if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
   if (map.getSource(MIDPOINTS_SOURCE_ID)) map.removeSource(MIDPOINTS_SOURCE_ID);
   if (map.getSource(DESTINATION_SOURCE_ID)) map.removeSource(DESTINATION_SOURCE_ID);
+  if (map.getSource(STOPS_SOURCE_ID)) map.removeSource(STOPS_SOURCE_ID);
 }
 
 function addSourceAndLayers(
@@ -342,6 +401,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
   function MapCanvas({ factories, theme, clusteringEnabled, routesEnabled, onSelectFactory, selectedFactoryId }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
+    const stopPopupRef = useRef<maplibregl.Popup | null>(null);
     const factoriesRef = useRef(factories);
     factoriesRef.current = factories;
     const clusteringRef = useRef(clusteringEnabled);
@@ -447,13 +507,53 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       });
 
+      // Click stop marker → show popup with description
+      map.on("click", "route-stop-circles", (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ["route-stop-circles"] });
+        if (!features.length) return;
+
+        const props = features[0].properties;
+        const geometry = features[0].geometry;
+        if (geometry.type !== "Point") return;
+
+        // Close any existing stop popup
+        stopPopupRef.current?.remove();
+
+        const popup = new maplibregl.Popup({
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: "280px",
+          className: "route-stop-popup",
+        })
+          .setLngLat(geometry.coordinates as [number, number])
+          .setHTML(
+            `<div style="font-family:system-ui,sans-serif;padding:4px 0;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <span style="font-size:18px;">${props.icon}</span>
+                <strong style="font-size:13px;">${props.name}</strong>
+              </div>
+              <p style="font-size:12px;line-height:1.5;color:#a1a1aa;margin:0;">${props.description}</p>
+              <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;background:rgba(255,255,255,0.1);color:#d4d4d8;">${props.stopType}</div>
+            </div>`
+          )
+          .addTo(map);
+
+        stopPopupRef.current = popup;
+
+        // Don't propagate to background click handler
+        e.originalEvent.stopPropagation();
+      });
+
       // Cursor changes
       map.on("mouseenter", "clusters", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "clusters", () => { map.getCanvas().style.cursor = ""; });
       map.on("mouseenter", "unclustered-point", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "unclustered-point", () => { map.getCanvas().style.cursor = ""; });
+      map.on("mouseenter", "route-stop-circles", () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "route-stop-circles", () => { map.getCanvas().style.cursor = ""; });
 
       return () => {
+        stopPopupRef.current?.remove();
         mapRef.current = null;
         map.remove();
       };

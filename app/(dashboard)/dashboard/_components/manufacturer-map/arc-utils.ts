@@ -127,10 +127,61 @@ export type RouteSegment = {
   transportMethod: "truck" | "ship";
 };
 
+export type RouteStop = {
+  coords: [number, number];
+  name: string;
+  description: string;
+  type: "factory" | "port" | "strait" | "canal" | "harbor" | "customs" | "hub" | "destination";
+  icon: string;
+};
+
 export type ShippingRoute = {
   segments: RouteSegment[];
+  stops: RouteStop[];
   departurePort: string | null;
   arrivalPort: string | null;
+};
+
+// ─── Common stops ──────────────────────────────────────────────────────────
+
+const MALACCA_STOP: RouteStop = {
+  coords: [103.5, 1.3],
+  name: "Strait of Malacca",
+  description: "Container vessel transits the Strait of Malacca — one of the world's busiest shipping lanes connecting the Indian Ocean to the Pacific.",
+  type: "strait",
+  icon: "⚓",
+};
+
+const SUEZ_STOP: RouteStop = {
+  coords: [32.35, 30.6],
+  name: "Suez Canal",
+  description: "Ship enters the Suez Canal. Containers pass through the 193km canal connecting the Red Sea to the Mediterranean, avoiding the route around Africa.",
+  type: "canal",
+  icon: "🚢",
+};
+
+const KOPER_STOP: RouteStop = {
+  coords: [13.73, 45.55],
+  name: "Port of Koper, Slovenia",
+  description: "Container unloaded at Koper — the closest major EU port to Central Europe. Goods are cleared through EU customs, inspected, and transferred to truck for overland delivery.",
+  type: "harbor",
+  icon: "🏗️",
+};
+
+const VIENNA_HUB_STOP: RouteStop = {
+  coords: [16.37, 48.21],
+  name: "Vienna Logistics Hub",
+  description: "Shipment arrives at the Vienna distribution center. Cargo is sorted, consolidated, and transferred to last-mile delivery carrier (DPD/GLS) for final delivery to Slovakia.",
+  type: "hub",
+  icon: "📦",
+};
+
+const DESTINATION_STOP: RouteStop = {
+  coords: DESTINATION_COORDS,
+  name: "Chorvatský Grob, Bratislava",
+  description: "Final delivery — last-mile carrier delivers the order to the warehouse at Suché Miesto 20, Chorvatský Grob. Order received, inspected, and checked into inventory.",
+  type: "destination",
+  icon: "🏁",
 };
 
 // ─── Haversine helper ──────────────────────────────────────────────────────
@@ -168,7 +219,6 @@ function buildChinaRoute(factoryCoords: [number, number]): ShippingRoute {
   const port = closestPort(factoryCoords, ["shanghai", "shenzhen"]);
   const isNorth = port.name === "Shanghai";
 
-  // Sea route depends on which port
   const seaWaypoints: [number, number][] = isNorth
     ? [port.coords, [120, 25], ...SOUTH_CHINA_SEA, ...MALACCA_STRAIT, ...INDIAN_OCEAN, ...ARABIAN_SEA_TO_SUEZ, ...MEDITERRANEAN_TO_KOPER]
     : [port.coords, ...SOUTH_CHINA_SEA, ...MALACCA_STRAIT, ...INDIAN_OCEAN, ...ARABIAN_SEA_TO_SUEZ, ...MEDITERRANEAN_TO_KOPER];
@@ -179,6 +229,15 @@ function buildChinaRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: seaWaypoints, transportMethod: "ship" },
       { coordinates: KOPER_TO_BRATISLAVA, transportMethod: "truck" },
     ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed into shipping containers at the factory. Quality inspection completed, export paperwork filed.", type: "factory", icon: "🏭" },
+      { coords: port.coords, name: `Port of ${port.name}`, description: `Containers loaded onto cargo vessel at ${port.name} port. Ship departs for Europe via the southern sea route.`, type: "port", icon: "🚢" },
+      MALACCA_STOP,
+      SUEZ_STOP,
+      KOPER_STOP,
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
+    ],
     departurePort: port.name,
     arrivalPort: "Koper",
   };
@@ -188,7 +247,7 @@ function buildBangladeshRoute(factoryCoords: [number, number]): ShippingRoute {
   const port = PORTS.chittagong;
   const seaWaypoints: [number, number][] = [
     port.coords,
-    [88, 15],    // Bay of Bengal
+    [88, 15],
     ...INDIAN_OCEAN,
     ...ARABIAN_SEA_TO_SUEZ,
     ...MEDITERRANEAN_TO_KOPER,
@@ -200,6 +259,14 @@ function buildBangladeshRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: seaWaypoints, transportMethod: "ship" },
       { coordinates: KOPER_TO_BRATISLAVA, transportMethod: "truck" },
     ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed into containers. Export clearance processed at Dhaka customs.", type: "factory", icon: "🏭" },
+      { coords: port.coords, name: "Port of Chittagong", description: "Containers loaded onto cargo vessel at Chittagong — Bangladesh's largest seaport. Ship departs across the Bay of Bengal.", type: "port", icon: "🚢" },
+      SUEZ_STOP,
+      KOPER_STOP,
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
+    ],
     departurePort: port.name,
     arrivalPort: "Koper",
   };
@@ -209,7 +276,7 @@ function buildIndiaRoute(factoryCoords: [number, number]): ShippingRoute {
   const port = PORTS.mumbai;
   const seaWaypoints: [number, number][] = [
     port.coords,
-    [68, 17],    // off Mumbai
+    [68, 17],
     [65, 13],
     ...ARABIAN_SEA_TO_SUEZ,
     ...MEDITERRANEAN_TO_KOPER,
@@ -220,6 +287,14 @@ function buildIndiaRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: [factoryCoords, port.coords], transportMethod: "truck" },
       { coordinates: seaWaypoints, transportMethod: "ship" },
       { coordinates: KOPER_TO_BRATISLAVA, transportMethod: "truck" },
+    ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed and sealed in containers. Export documentation filed with Indian customs.", type: "factory", icon: "🏭" },
+      { coords: port.coords, name: "Port of Mumbai (JNPT)", description: "Containers loaded onto vessel at Jawaharlal Nehru Port — India's busiest container port. Ship heads west across the Arabian Sea.", type: "port", icon: "🚢" },
+      SUEZ_STOP,
+      KOPER_STOP,
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
     ],
     departurePort: port.name,
     arrivalPort: "Koper",
@@ -242,6 +317,15 @@ function buildVietnamRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: [factoryCoords, port.coords], transportMethod: "truck" },
       { coordinates: seaWaypoints, transportMethod: "ship" },
       { coordinates: KOPER_TO_BRATISLAVA, transportMethod: "truck" },
+    ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed into containers at the factory. Vietnamese customs export clearance completed.", type: "factory", icon: "🏭" },
+      { coords: port.coords, name: "Cat Lai Port, HCMC", description: "Containers loaded onto cargo vessel at Cat Lai — Vietnam's largest container terminal. Ship departs south through the South China Sea.", type: "port", icon: "🚢" },
+      MALACCA_STOP,
+      SUEZ_STOP,
+      KOPER_STOP,
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
     ],
     departurePort: port.name,
     arrivalPort: "Koper",
@@ -266,6 +350,15 @@ function buildThailandRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: seaWaypoints, transportMethod: "ship" },
       { coordinates: KOPER_TO_BRATISLAVA, transportMethod: "truck" },
     ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed into containers. Thai customs export clearance completed.", type: "factory", icon: "🏭" },
+      { coords: port.coords, name: "Laem Chabang Port", description: "Containers loaded onto vessel at Laem Chabang — Thailand's largest deep-sea port. Ship heads south through the Gulf of Thailand.", type: "port", icon: "🚢" },
+      MALACCA_STOP,
+      SUEZ_STOP,
+      KOPER_STOP,
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
+    ],
     departurePort: port.name,
     arrivalPort: "Koper",
   };
@@ -289,6 +382,15 @@ function buildIndonesiaRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: seaWaypoints, transportMethod: "ship" },
       { coordinates: KOPER_TO_BRATISLAVA, transportMethod: "truck" },
     ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed into containers. Indonesian customs export clearance completed.", type: "factory", icon: "🏭" },
+      { coords: port.coords, name: "Tanjung Priok Port, Jakarta", description: "Containers loaded onto cargo vessel at Jakarta's main port. Ship heads north through the Java Sea toward Singapore.", type: "port", icon: "🚢" },
+      MALACCA_STOP,
+      SUEZ_STOP,
+      KOPER_STOP,
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
+    ],
     departurePort: port.name,
     arrivalPort: "Koper",
   };
@@ -301,6 +403,14 @@ function buildTurkeyRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: [factoryCoords, ISTANBUL_TO_BRATISLAVA[0]], transportMethod: "truck" },
       { coordinates: ISTANBUL_TO_BRATISLAVA, transportMethod: "truck" },
     ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed and loaded onto truck. Turkish customs export documentation prepared.", type: "factory", icon: "🏭" },
+      { coords: [29.01, 41.01], name: "Istanbul", description: "Truck departs Istanbul heading west through Thrace. Crosses the Turkey-Bulgaria border at Kapıkule/Kapitan Andreevo checkpoint.", type: "customs", icon: "🛃" },
+      { coords: [20.46, 44.82], name: "Belgrade, Serbia", description: "Truck passes through Belgrade — major transit hub on the E75 highway corridor. Brief rest stop and fuel.", type: "hub", icon: "📦" },
+      { coords: [19.04, 47.50], name: "Budapest, Hungary", description: "Truck crosses into the EU at the Hungarian border. EU customs clearance completed. Continues north on the M1 motorway.", type: "customs", icon: "🛃" },
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
+    ],
     departurePort: null,
     arrivalPort: null,
   };
@@ -311,6 +421,14 @@ function buildItalyRoute(factoryCoords: [number, number]): ShippingRoute {
     segments: [
       { coordinates: [factoryCoords, PRATO_TO_BRATISLAVA[0]], transportMethod: "truck" },
       { coordinates: PRATO_TO_BRATISLAVA, transportMethod: "truck" },
+    ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed and loaded onto truck. Italian domestic shipping documents prepared.", type: "factory", icon: "🏭" },
+      { coords: [11.10, 43.88], name: "Prato, Tuscany", description: "Truck departs from Prato — Italy's largest textile manufacturing district. Heads north on the A1 Autostrada.", type: "hub", icon: "📦" },
+      { coords: [11.35, 44.49], name: "Bologna", description: "Truck passes through Bologna interchange. Switches to A13 heading northeast toward Venice and Austria.", type: "hub", icon: "📦" },
+      { coords: [15.44, 47.07], name: "Graz, Austria", description: "Truck crosses the Alps via Villach-Klagenfurt and arrives in Graz. EU internal transit — no customs stop.", type: "hub", icon: "📦" },
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
     ],
     departurePort: null,
     arrivalPort: null,
@@ -323,6 +441,16 @@ function buildPortugalRoute(factoryCoords: [number, number]): ShippingRoute {
       { coordinates: [factoryCoords, PORTO_TO_BRATISLAVA[0]], transportMethod: "truck" },
       { coordinates: PORTO_TO_BRATISLAVA, transportMethod: "truck" },
     ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed and loaded onto truck. Portuguese domestic shipping documents prepared.", type: "factory", icon: "🏭" },
+      { coords: [-8.61, 41.15], name: "Porto, Portugal", description: "Truck departs from Porto — Portugal's textile and footwear manufacturing hub. Heads east across the Iberian Peninsula.", type: "hub", icon: "📦" },
+      { coords: [-3.70, 40.42], name: "Madrid, Spain", description: "Truck passes through Madrid logistics ring. Refuels and continues east on the E-90 toward the Mediterranean coast.", type: "hub", icon: "📦" },
+      { coords: [2.17, 41.39], name: "Barcelona, Spain", description: "Truck reaches Barcelona. Turns north along the Mediterranean coast toward France.", type: "hub", icon: "📦" },
+      { coords: [8.95, 44.41], name: "Genoa, Italy", description: "Truck enters Italy via the Côte d'Azur. Passes through Genoa heading east toward the Po Valley.", type: "hub", icon: "📦" },
+      { coords: [15.44, 47.07], name: "Graz, Austria", description: "Truck crosses the Alps and reaches Graz. Continues north on the A2 motorway toward Vienna.", type: "hub", icon: "📦" },
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
+    ],
     departurePort: null,
     arrivalPort: null,
   };
@@ -334,6 +462,11 @@ function buildEuropeTruckRoute(factoryCoords: [number, number]): ShippingRoute {
   return {
     segments: [
       { coordinates: [factoryCoords, DESTINATION_COORDS], transportMethod: "truck" },
+    ],
+    stops: [
+      { coords: factoryCoords, name: "Factory", description: "Order packed and loaded onto truck for direct overland delivery within Europe.", type: "factory", icon: "🏭" },
+      VIENNA_HUB_STOP,
+      DESTINATION_STOP,
     ],
     departurePort: null,
     arrivalPort: null,
