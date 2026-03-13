@@ -538,11 +538,11 @@ export function buildShippingRoute(
 export function getRouteColor(worstStatus: string | null): string {
   switch (worstStatus) {
     case "DISRUPTED":
-      return "#ef4444";
+      return "#dc2626";
     case "DELAYED":
-      return "#f59e0b";
+      return "#d97706";
     default:
-      return "#22c55e";
+      return "#94a3b8";
   }
 }
 

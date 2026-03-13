@@ -1,4 +1,4 @@
-import type { MapFactory } from "./types";
+import type { MapFactory, LiveShipment } from "./types";
 import {
   buildShippingRoute,
   getRouteColor,
@@ -170,4 +170,31 @@ export function routeStopsGeoJSON(factories: MapFactory[]): GeoJSON.FeatureColle
   }
 
   return { type: "FeatureCollection", features };
+}
+
+/**
+ * Generate GeoJSON points for live tracked shipments.
+ * Each shipment is a point at the current GPS position.
+ */
+export function liveShipmentsGeoJSON(shipments: LiveShipment[]): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: shipments.map((s) => ({
+      type: "Feature" as const,
+      geometry: {
+        type: "Point" as const,
+        coordinates: [s.currentLng, s.currentLat],
+      },
+      properties: {
+        orderId: s.orderId,
+        orderNumber: s.orderNumber,
+        trackingNumber: s.trackingNumber,
+        carrier: s.carrier ?? "",
+        currentLocation: s.currentLocation ?? "",
+        trackingStatus: s.trackingStatus ?? "IN_TRANSIT",
+        estimatedArrival: s.estimatedArrival ?? "",
+        factoryId: s.factoryId,
+      },
+    })),
+  };
 }

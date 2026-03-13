@@ -79,6 +79,7 @@ import { StageAdminPanel } from "@/components/stage-admin-panel";
 import { OrderAttachments } from "@/components/order-attachments";
 import { OrderComments } from "@/components/order-comments";
 import { RequestDeleteDialog } from "@/components/request-delete-dialog";
+import { TrackingCard } from "@/components/tracking-card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -145,6 +146,8 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
   SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  IN_TRANSIT: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400",
+  CUSTOMS: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   DELIVERED: "bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300",
   CANCELLED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
 };
@@ -1284,6 +1287,9 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Shipping & Tracking */}
+      <TrackingCard orderId={order.id} />
 
       {/* Recurrence Settings (admin edit) */}
       {isAdminOrOwner && (

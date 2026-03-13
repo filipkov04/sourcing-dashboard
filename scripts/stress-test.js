@@ -79,6 +79,9 @@ const tests = [
   // Notification Settings
   { name: 'Settings Page', path: '/settings', expectedStatus: [200, 302, 307] },
   { name: 'Notification Prefs API', path: '/api/settings/notifications', expectedStatus: [200, 307, 401] },
+
+  // Carrier Tracking
+  { name: 'Shipments In Transit API', path: '/api/dashboard/shipments-in-transit', expectedStatus: [200, 307, 401] },
 ];
 
 /**

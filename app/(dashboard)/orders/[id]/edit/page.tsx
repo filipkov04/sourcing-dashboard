@@ -78,6 +78,10 @@ export default function EditOrderPage() {
   const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // Tracking state
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [shippingMethod, setShippingMethod] = useState("");
+
   // Recurrence state
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
   const [recurrenceInterval, setRecurrenceInterval] = useState("60");
@@ -138,6 +142,9 @@ export default function EditOrderPage() {
               status: s.status,
             }))
           );
+          // Populate tracking fields
+          setTrackingNumber(order.trackingNumber || "");
+          setShippingMethod(order.shippingMethod || "");
           // Populate recurrence fields
           setRecurrenceEnabled(order.recurrenceEnabled || false);
           if (order.recurrenceIntervalDays) {
@@ -320,6 +327,8 @@ export default function EditOrderPage() {
             progress: s.progress,
             status: s.status,
           })),
+          trackingNumber: trackingNumber.trim() || null,
+          shippingMethod: shippingMethod || null,
           recurrenceEnabled,
           recurrenceIntervalDays: recurrenceEnabled
             ? parseInt(recurrenceInterval === "custom" ? recurrenceCustomDays : recurrenceInterval) || null
@@ -706,6 +715,53 @@ export default function EditOrderPage() {
                 Separate multiple tags with commas
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Shipping & Tracking */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-cyan-500" />
+              Shipping & Tracking
+            </CardTitle>
+            <CardDescription>Manual override — tracking number is usually auto-populated from factory integrations</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="trackingNumber">Tracking Number</Label>
+                <Input
+                  id="trackingNumber"
+                  placeholder="e.g. MAEU1234567"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="shippingMethod">Shipping Method</Label>
+                <Select
+                  value={shippingMethod}
+                  onValueChange={setShippingMethod}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="shippingMethod">
+                    <SelectValue placeholder="Auto-detect" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="OCEAN">Ocean</SelectItem>
+                    <SelectItem value="AIR">Air</SelectItem>
+                    <SelectItem value="ROAD">Road</SelectItem>
+                    <SelectItem value="RAIL">Rail</SelectItem>
+                    <SelectItem value="MULTIMODAL">Multimodal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-zinc-400">
+              Carrier is auto-detected from tracking number via 17Track
+            </p>
           </CardContent>
         </Card>
 

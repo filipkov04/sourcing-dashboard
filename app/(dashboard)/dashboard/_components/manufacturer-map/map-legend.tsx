@@ -8,20 +8,20 @@ export function MapLegend() {
       </p>
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500 border border-green-600" />
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-500 border border-slate-600" />
           <span className="text-[11px] text-gray-600 dark:text-zinc-300">Verified</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 border border-amber-600" />
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-500" />
           <span className="text-[11px] text-gray-600 dark:text-zinc-300">Pending</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-gray-500 border border-gray-600" />
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-300 border border-slate-400" />
           <span className="text-[11px] text-gray-600 dark:text-zinc-300">Unverified</span>
         </div>
         <div className="h-px bg-gray-200 dark:bg-zinc-700 my-1" />
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full border-2 border-red-500 bg-transparent" />
+          <span className="w-2.5 h-2.5 rounded-full border-2 border-red-600 bg-transparent" />
           <span className="text-[11px] text-gray-600 dark:text-zinc-300">Critical risk</span>
         </div>
         <div className="flex items-center gap-2">

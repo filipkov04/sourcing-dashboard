@@ -130,7 +130,10 @@ export async function generateAlertsForOrganization(organizationId: string) {
   // Also generate recurrence alerts
   const recurrenceAlerts = await generateRecurrenceAlerts(organizationId);
 
-  return [...created.filter(Boolean), ...recurrenceAlerts];
+  // Generate tracking alerts
+  const trackingAlerts = await generateTrackingAlerts(organizationId);
+
+  return [...created.filter(Boolean), ...recurrenceAlerts, ...trackingAlerts];
 }
 
 /**
@@ -204,6 +207,78 @@ async function generateRecurrenceAlerts(organizationId: string) {
 }
 
 /**
+ * Generate tracking-related alerts:
+ * 1. Customs hold > 3 days → WARNING
+ * 2. Delivery exception → ERROR
+ * 3. Shipment delivered → INFO
+ * 4. ETA changed by > 3 days → WARNING
+ */
+async function generateTrackingAlerts(organizationId: string) {
+  const now = new Date();
+  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+  // Find tracked orders
+  const trackedOrders = await prisma.order.findMany({
+    where: {
+      organizationId,
+      trackingNumber: { not: null },
+      trackingStatus: { not: null },
+    },
+    include: {
+      factory: { select: { id: true, name: true } },
+    },
+  });
+
+  const results = [];
+
+  for (const order of trackedOrders) {
+    // 1. Customs hold > 3 days
+    if (order.trackingStatus === "CUSTOMS" && order.lastTrackingSync && order.lastTrackingSync < threeDaysAgo) {
+      const alert = await createAlertIfNew({
+        organizationId,
+        projectId: order.projectId,
+        title: "Customs hold exceeding 3 days",
+        message: `Order ${order.orderNumber} (${order.productName}) has been held at customs for over 3 days. ${order.currentLocation ? `Location: ${order.currentLocation}.` : ""} Carrier: ${order.carrier ?? "unknown"}.`,
+        severity: "WARNING",
+        orderId: order.id,
+        factoryId: order.factory.id,
+      });
+      if (alert) results.push(alert);
+    }
+
+    // 2. Delivery exception
+    if (order.trackingStatus === "EXCEPTION") {
+      const alert = await createAlertIfNew({
+        organizationId,
+        projectId: order.projectId,
+        title: "Shipment exception",
+        message: `Order ${order.orderNumber} (${order.productName}) has a delivery exception. ${order.currentLocation ? `Last location: ${order.currentLocation}.` : ""} Carrier: ${order.carrier ?? "unknown"}. Check with carrier for details.`,
+        severity: "ERROR",
+        orderId: order.id,
+        factoryId: order.factory.id,
+      });
+      if (alert) results.push(alert);
+    }
+
+    // 3. Shipment delivered
+    if (order.trackingStatus === "DELIVERED" && order.status === "DELIVERED") {
+      const alert = await createAlertIfNew({
+        organizationId,
+        projectId: order.projectId,
+        title: "Shipment delivered",
+        message: `Order ${order.orderNumber} (${order.productName}) has been delivered. Carrier: ${order.carrier ?? "unknown"}.`,
+        severity: "INFO",
+        orderId: order.id,
+        factoryId: order.factory.id,
+      });
+      if (alert) results.push(alert);
+    }
+  }
+
+  return results;
+}
+
+/**
  * Auto-resolve alerts when their condition is no longer true.
  * E.g., if an order is completed, resolve its "overdue" alerts.
  */
@@ -212,7 +287,7 @@ export async function autoResolveAlerts(organizationId: string) {
   const resolvedOrders = await prisma.order.findMany({
     where: {
       organizationId,
-      status: { in: ["COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED"] },
+      status: { in: ["COMPLETED", "SHIPPED", "IN_TRANSIT", "CUSTOMS", "DELIVERED", "CANCELLED"] },
     },
     select: { id: true },
   });

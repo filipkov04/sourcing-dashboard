@@ -19,6 +19,7 @@ export type FieldMap = {
   stageNameField?: string;
   stageProgressField?: string;
   stageStatusField?: string;
+  trackingNumber?: string;
 };
 
 export type TransformedStage = {
@@ -32,6 +33,7 @@ export type TransformedOrder = {
   status?: OrderStatus;
   progress?: number;
   stages?: TransformedStage[];
+  trackingNumber?: string;
 };
 
 // ─── Status mappers ───────────────────────────────────────────────────────────
@@ -58,7 +60,11 @@ const ORDER_STATUS_MAP: Record<string, OrderStatus> = {
   complete: OrderStatus.COMPLETED,
   shipped: OrderStatus.SHIPPED,
   dispatched: OrderStatus.SHIPPED,
-  intransit: OrderStatus.SHIPPED,
+  intransit: OrderStatus.IN_TRANSIT,
+  in_transit: OrderStatus.IN_TRANSIT,
+  customs: OrderStatus.CUSTOMS,
+  clearance: OrderStatus.CUSTOMS,
+  held: OrderStatus.CUSTOMS,
   delivered: OrderStatus.DELIVERED,
   received: OrderStatus.DELIVERED,
   cancelled: OrderStatus.CANCELLED,
@@ -119,6 +125,11 @@ export function transformRecord(
     if (!isNaN(p) && p >= 0 && p <= 100) result.progress = Math.round(p);
   }
 
+  if (fieldMap.trackingNumber) {
+    const tn = String(record[fieldMap.trackingNumber] ?? "").trim();
+    if (tn) result.trackingNumber = tn;
+  }
+
   if (fieldMap.stages && Array.isArray(record[fieldMap.stages])) {
     const rawStages = record[fieldMap.stages] as FactoryRecord[];
     result.stages = rawStages.map((s, i) => {
@@ -152,7 +163,7 @@ export function transformRecords(
 // ─── DB writer ────────────────────────────────────────────────────────────────
 
 // Terminal statuses set manually — never overwrite with factory data
-const PROTECTED_STATUSES: string[] = ["SHIPPED", "DELIVERED", "CANCELLED"];
+const PROTECTED_STATUSES: string[] = ["SHIPPED", "IN_TRANSIT", "CUSTOMS", "DELIVERED", "CANCELLED"];
 
 /**
  * Applies transformed orders to the database.
@@ -184,6 +195,9 @@ export async function applyToDb(
     }
     if (transformed.progress !== undefined) {
       updates.overallProgress = transformed.progress;
+    }
+    if (transformed.trackingNumber && transformed.trackingNumber !== order.trackingNumber) {
+      updates.trackingNumber = transformed.trackingNumber;
     }
 
     if (Object.keys(updates).length > 0) {

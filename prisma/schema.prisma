@@ -197,6 +197,7 @@ enum IntegrationType {
   SFTP
   WEBHOOK
   MANUAL
+  CARRIER_TRACKING
 }
 
 enum IntegrationStatus {
@@ -267,6 +268,18 @@ model Order {
   priority Priority  @default(NORMAL)
   tags     String[]  // ["urgent", "sample", "production"]
 
+  // Carrier tracking
+  trackingNumber    String?
+  carrier           String?           // "DHL", "Maersk", "CMA CGM" (auto-detected or manual)
+  carrierCode       String?           // 17Track carrier code (e.g. "2151")
+  shippingMethod    ShippingMethod?
+  currentLat        Float?
+  currentLng        Float?
+  currentLocation   String?           // "Port of Shanghai, CN"
+  estimatedArrival  DateTime?
+  lastTrackingSync  DateTime?
+  trackingStatus    TrackingStatus?
+
   // Relations
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -282,6 +295,7 @@ model Order {
   alerts         Alert[]
   conversations  Conversation[]
   request        Request?
+  trackingEvents TrackingEvent[]
 
   // Recurrence
   recurrenceEnabled      Boolean   @default(false)
@@ -307,6 +321,8 @@ enum OrderStatus {
   DISRUPTED   // Production blocked (one or more stages blocked)
   COMPLETED   // Production complete
   SHIPPED     // Shipped to brand
+  IN_TRANSIT  // Carrier confirms movement
+  CUSTOMS     // Held at customs
   DELIVERED   // Received by brand
   CANCELLED   // Order cancelled
 }
@@ -316,6 +332,24 @@ enum Priority {
   NORMAL
   HIGH
   URGENT
+}
+
+enum ShippingMethod {
+  OCEAN
+  AIR
+  ROAD
+  RAIL
+  MULTIMODAL
+}
+
+enum TrackingStatus {
+  NOT_FOUND
+  INFO_RECEIVED
+  IN_TRANSIT
+  CUSTOMS
+  EXCEPTION
+  DELIVERED
+  EXPIRED
 }
 
 enum VerificationStatus {
@@ -370,6 +404,29 @@ enum StageStatus {
   SKIPPED
   DELAYED      // Stage is behind schedule (yellow)
   BLOCKED      // Stage is completely disrupted/stopped (red)
+}
+
+// ============================================
+// CARRIER TRACKING EVENTS
+// ============================================
+
+model TrackingEvent {
+  id              String          @id @default(cuid())
+  orderId         String
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  timestamp       DateTime        // carrier event time
+  location        String?         // "Shanghai, CN"
+  latitude        Float?
+  longitude       Float?
+  description     String          // "Departed port of origin"
+  statusCode      String?         // raw carrier status code
+  trackingStatus  TrackingStatus
+  source          String          @default("17track")
+  rawData         Json?
+  createdAt       DateTime        @default(now())
+
+  @@index([orderId, timestamp])
+  @@index([orderId])
 }
 
 // ============================================

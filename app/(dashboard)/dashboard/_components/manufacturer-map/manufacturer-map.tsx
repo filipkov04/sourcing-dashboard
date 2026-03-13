@@ -9,7 +9,7 @@ import { MapControls } from "./map-controls";
 import { MapLegend } from "./map-legend";
 import { MapFactoryDrawer } from "./map-factory-drawer";
 import { MapSearch } from "./map-search";
-import type { MapFactory, MapStats } from "./types";
+import type { MapFactory, MapStats, LiveShipment } from "./types";
 import type { MapCanvasHandle } from "./map-canvas";
 
 const MapCanvas = dynamic(
@@ -30,14 +30,22 @@ export function ManufacturerMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFactory, setSelectedFactory] = useState<MapFactory | null>(null);
   const [routesEnabled, setRoutesEnabled] = useState(true);
+  const [liveShipments, setLiveShipments] = useState<LiveShipment[]>([]);
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch("/api/dashboard/factory-locations");
-      const data = await res.json();
-      if (data.success) {
-        setFactories(data.data.factories);
-        setStats(data.data.stats);
+      const [locRes, shipRes] = await Promise.all([
+        fetch("/api/dashboard/factory-locations"),
+        fetch("/api/dashboard/shipments-in-transit"),
+      ]);
+      const locData = await locRes.json();
+      if (locData.success) {
+        setFactories(locData.data.factories);
+        setStats(locData.data.stats);
+      }
+      const shipData = await shipRes.json();
+      if (shipData.success) {
+        setLiveShipments(shipData.data);
       }
     } catch (error) {
       console.error("Failed to fetch factory locations:", error);
@@ -152,6 +160,7 @@ export function ManufacturerMap() {
             theme={mapTheme}
             clusteringEnabled={clusteringEnabled}
             routesEnabled={routesEnabled}
+            liveShipments={liveShipments}
             onSelectFactory={(f) => {
               setSelectedFactory(f);
               if (f) {

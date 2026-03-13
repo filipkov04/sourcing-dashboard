@@ -38,6 +38,21 @@ export type FactoryOrder = {
   priority: string;
 };
 
+export type LiveShipment = {
+  orderId: string;
+  orderNumber: string;
+  trackingNumber: string;
+  carrier: string | null;
+  currentLat: number;
+  currentLng: number;
+  currentLocation: string | null;
+  trackingStatus: string | null;
+  estimatedArrival: string | null;
+  factoryId: string;
+  factoryLat: number | null;
+  factoryLng: number | null;
+};
+
 export type MapStats = {
   totalManufacturers: number;
   countriesCovered: number;

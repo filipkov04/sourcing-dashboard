@@ -4,20 +4,20 @@ import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { getMapStyle } from "./map-style";
-import { factoriesToGeoJSON, getBounds, factoriesToRoutesGeoJSON, routeMidpointsGeoJSON, routeStopsGeoJSON } from "./map-utils";
+import { factoriesToGeoJSON, getBounds, factoriesToRoutesGeoJSON, routeMidpointsGeoJSON, routeStopsGeoJSON, liveShipmentsGeoJSON } from "./map-utils";
 import { DESTINATION_COORDS } from "./arc-utils";
-import type { MapFactory } from "./types";
+import type { MapFactory, LiveShipment } from "./types";
 
 const VERIFICATION_COLORS: Record<string, string> = {
-  VERIFIED: "#22c55e",
-  PENDING: "#f59e0b",
-  UNVERIFIED: "#6b7280",
+  VERIFIED: "#64748b",   // slate-500 — subtle, professional
+  PENDING: "#94a3b8",    // slate-400
+  UNVERIFIED: "#cbd5e1", // slate-300
 };
 
 const RISK_STROKE_COLORS: Record<string, string> = {
-  CRITICAL: "#ef4444",
-  HIGH: "#f97316",
-  MEDIUM: "#f59e0b",
+  CRITICAL: "#f87171",   // red-400 (softer)
+  HIGH: "#fb923c",       // orange-400 (softer)
+  MEDIUM: "#fbbf24",     // amber-400
   LOW: "transparent",
 };
 
@@ -25,11 +25,15 @@ const ROUTE_SOURCE_ID = "shipping-routes";
 const MIDPOINTS_SOURCE_ID = "route-midpoints";
 const DESTINATION_SOURCE_ID = "destination";
 const STOPS_SOURCE_ID = "route-stops";
+const LIVE_SHIPMENTS_SOURCE_ID = "live-shipments";
 const ROUTE_LAYER_IDS = [
   "route-ship-ok", "route-ship-delayed", "route-ship-disrupted",
   "route-truck-ok", "route-truck-delayed", "route-truck-disrupted",
   "route-midpoint-icons", "destination-circle", "destination-label",
   "route-stop-circles", "route-stop-icons",
+];
+const LIVE_SHIPMENT_LAYER_IDS = [
+  "live-shipment-pulse", "live-shipment-markers", "live-shipment-labels",
 ];
 
 export type MapCanvasHandle = {
@@ -45,6 +49,7 @@ type MapCanvasProps = {
   theme: "light" | "dark";
   clusteringEnabled: boolean;
   routesEnabled: boolean;
+  liveShipments?: LiveShipment[];
   onSelectFactory: (factory: MapFactory | null) => void;
   selectedFactoryId: string | null;
 };
@@ -63,18 +68,18 @@ function addMapLayers(map: maplibregl.Map, clusteringEnabled: boolean) {
       source: SOURCE_ID,
       filter: ["has", "point_count"],
       paint: {
-        "circle-color": "#FF4D15",
+        "circle-color": "#475569",   // slate-600
         "circle-radius": [
           "step",
           ["get", "point_count"],
-          16, 5,
-          22, 10,
-          28, 25,
-          34,
+          14, 5,
+          18, 10,
+          22, 25,
+          26,
         ],
-        "circle-opacity": 0.85,
+        "circle-opacity": 0.9,
         "circle-stroke-width": 2,
-        "circle-stroke-color": "rgba(255, 77, 21, 0.3)",
+        "circle-stroke-color": "rgba(71, 85, 105, 0.3)",
       },
     });
 
@@ -145,13 +150,7 @@ function addMapLayers(map: maplibregl.Map, clusteringEnabled: boolean) {
         VERIFICATION_COLORS.UNVERIFIED,
       ],
       "circle-stroke-width": 1.5,
-      "circle-stroke-color": [
-        "match",
-        ["get", "verificationStatus"],
-        "VERIFIED", "#16a34a",
-        "PENDING", "#d97706",
-        "#4b5563",
-      ],
+      "circle-stroke-color": "#ffffff",
     },
   });
 }
@@ -213,9 +212,9 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
   const beforeLayer = map.getLayer("unclustered-risk-ring") ? "unclustered-risk-ring" : undefined;
 
   const statusConfigs: Array<{ suffix: string; filter: any; color: string }> = [
-    { suffix: "ok",       filter: ["any", ["==", ["get", "routeStatus"], "PENDING"], ["==", ["get", "routeStatus"], "IN_PROGRESS"]], color: "#22c55e" },
-    { suffix: "delayed",  filter: ["==", ["get", "routeStatus"], "DELAYED"],   color: "#f59e0b" },
-    { suffix: "disrupted",filter: ["==", ["get", "routeStatus"], "DISRUPTED"], color: "#ef4444" },
+    { suffix: "ok",       filter: ["any", ["==", ["get", "routeStatus"], "PENDING"], ["==", ["get", "routeStatus"], "IN_PROGRESS"]], color: "#94a3b8" },
+    { suffix: "delayed",  filter: ["==", ["get", "routeStatus"], "DELAYED"],   color: "#d97706" },
+    { suffix: "disrupted",filter: ["==", ["get", "routeStatus"], "DISRUPTED"], color: "#dc2626" },
   ];
 
   for (const { suffix, filter, color } of statusConfigs) {
@@ -261,7 +260,7 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
     source: MIDPOINTS_SOURCE_ID,
     layout: {
       "text-field": ["get", "icon"],
-      "text-size": 14,
+      "text-size": 11,
       "text-allow-overlap": true,
     },
   });
@@ -273,8 +272,8 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
       type: "circle",
       source: DESTINATION_SOURCE_ID,
       paint: {
-        "circle-radius": 8,
-        "circle-color": "#FF4D15",
+        "circle-radius": 7,
+        "circle-color": "#334155",
         "circle-stroke-width": 2,
         "circle-stroke-color": "#ffffff",
         "circle-opacity": 0.9,
@@ -294,7 +293,7 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
       "text-offset": [0, -1.5],
     },
     paint: {
-      "text-color": "#FF4D15",
+      "text-color": "#334155",
       "text-halo-color": "#ffffff",
       "text-halo-width": 1,
     },
@@ -324,15 +323,15 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
       ],
       "circle-color": [
         "match", ["get", "stopType"],
-        "factory", "#8b5cf6",     // purple
-        "port", "#3b82f6",        // blue
-        "strait", "#06b6d4",      // cyan
-        "canal", "#f59e0b",       // amber
-        "harbor", "#22c55e",      // green
-        "customs", "#ef4444",     // red
-        "hub", "#f97316",         // orange
-        "destination", "#FF4D15", // brand orange
-        "#6b7280",
+        "factory", "#64748b",     // slate-500
+        "port", "#64748b",        // slate-500
+        "strait", "#94a3b8",     // slate-400
+        "canal", "#94a3b8",      // slate-400
+        "harbor", "#475569",     // slate-600
+        "customs", "#475569",    // slate-600
+        "hub", "#94a3b8",        // slate-400
+        "destination", "#475569", // slate-600
+        "#94a3b8",
       ],
       "circle-stroke-width": 1.5,
       "circle-stroke-color": "#ffffff",
@@ -347,11 +346,87 @@ function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
     source: STOPS_SOURCE_ID,
     layout: {
       "text-field": ["get", "icon"],
-      "text-size": 14,
+      "text-size": 11,
       "text-offset": [0, -1.3],
       "text-allow-overlap": true,
     },
   });
+}
+
+function addLiveShipmentLayers(map: maplibregl.Map, shipments: LiveShipment[]) {
+  const data = liveShipmentsGeoJSON(shipments);
+
+  if (map.getSource(LIVE_SHIPMENTS_SOURCE_ID)) {
+    (map.getSource(LIVE_SHIPMENTS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(data);
+    return;
+  }
+
+  removeLiveShipmentLayers(map);
+
+  map.addSource(LIVE_SHIPMENTS_SOURCE_ID, { type: "geojson", data });
+
+  // Pulsing outer ring
+  map.addLayer({
+    id: "live-shipment-pulse",
+    type: "circle",
+    source: LIVE_SHIPMENTS_SOURCE_ID,
+    paint: {
+      "circle-radius": 12,
+      "circle-color": [
+        "match", ["get", "trackingStatus"],
+        "CUSTOMS", "#d97706",
+        "EXCEPTION", "#dc2626",
+        "#3b82f6", // blue for in-transit
+      ],
+      "circle-opacity": 0.2,
+      "circle-stroke-width": 0,
+    },
+  });
+
+  // Solid marker dot
+  map.addLayer({
+    id: "live-shipment-markers",
+    type: "circle",
+    source: LIVE_SHIPMENTS_SOURCE_ID,
+    paint: {
+      "circle-radius": 6,
+      "circle-color": [
+        "match", ["get", "trackingStatus"],
+        "CUSTOMS", "#d97706",
+        "EXCEPTION", "#dc2626",
+        "#3b82f6",
+      ],
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "#ffffff",
+      "circle-opacity": 0.95,
+    },
+  });
+
+  // Order number label
+  map.addLayer({
+    id: "live-shipment-labels",
+    type: "symbol",
+    source: LIVE_SHIPMENTS_SOURCE_ID,
+    layout: {
+      "text-field": ["get", "orderNumber"],
+      "text-size": 10,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      "text-offset": [0, -1.5],
+      "text-allow-overlap": false,
+    },
+    paint: {
+      "text-color": "#3b82f6",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1,
+    },
+  });
+}
+
+function removeLiveShipmentLayers(map: maplibregl.Map) {
+  for (const id of LIVE_SHIPMENT_LAYER_IDS) {
+    if (map.getLayer(id)) map.removeLayer(id);
+  }
+  if (map.getSource(LIVE_SHIPMENTS_SOURCE_ID)) map.removeSource(LIVE_SHIPMENTS_SOURCE_ID);
 }
 
 function removeRouteLayers(map: maplibregl.Map) {
@@ -398,7 +473,7 @@ function removeSourceAndLayers(map: maplibregl.Map) {
 }
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
-  function MapCanvas({ factories, theme, clusteringEnabled, routesEnabled, onSelectFactory, selectedFactoryId }, ref) {
+  function MapCanvas({ factories, theme, clusteringEnabled, routesEnabled, liveShipments = [], onSelectFactory, selectedFactoryId }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const stopPopupRef = useRef<maplibregl.Popup | null>(null);
@@ -408,6 +483,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     clusteringRef.current = clusteringEnabled;
     const routesRef = useRef(routesEnabled);
     routesRef.current = routesEnabled;
+    const liveShipmentsRef = useRef(liveShipments);
+    liveShipmentsRef.current = liveShipments;
     const fitToMarkers = useCallback(() => {
       const map = mapRef.current;
       if (!map) return;
@@ -464,6 +541,11 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
 
         addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
+
+        // Live shipment markers on top
+        if (liveShipmentsRef.current.length > 0) {
+          addLiveShipmentLayers(map, liveShipmentsRef.current);
+        }
 
         // Fit to markers on initial load
         const bounds = getBounds(factoriesRef.current);
@@ -544,6 +626,49 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         e.originalEvent.stopPropagation();
       });
 
+      // Click live shipment marker → show popup
+      map.on("click", "live-shipment-markers", (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ["live-shipment-markers"] });
+        if (!features.length) return;
+
+        const props = features[0].properties;
+        const geometry = features[0].geometry;
+        if (geometry.type !== "Point") return;
+
+        stopPopupRef.current?.remove();
+
+        const eta = props.estimatedArrival
+          ? new Date(props.estimatedArrival).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          : "—";
+
+        const popup = new maplibregl.Popup({
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: "280px",
+          className: "route-stop-popup",
+        })
+          .setLngLat(geometry.coordinates as [number, number])
+          .setHTML(
+            `<div style="font-family:system-ui,sans-serif;padding:4px 0;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <span style="font-size:16px;">📦</span>
+                <strong style="font-size:13px;">${props.orderNumber}</strong>
+              </div>
+              <div style="font-size:12px;line-height:1.6;color:#a1a1aa;">
+                ${props.carrier ? `<div>Carrier: <span style="color:#d4d4d8;">${props.carrier}</span></div>` : ""}
+                <div>Tracking: <span style="color:#d4d4d8;font-family:monospace;">${props.trackingNumber}</span></div>
+                ${props.currentLocation ? `<div>Location: <span style="color:#d4d4d8;">${props.currentLocation}</span></div>` : ""}
+                <div>ETA: <span style="color:#d4d4d8;">${eta}</span></div>
+              </div>
+              <a href="/orders/${props.orderId}" style="display:inline-block;margin-top:8px;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;background:#06b6d4;color:white;text-decoration:none;">View Order</a>
+            </div>`
+          )
+          .addTo(map);
+
+        stopPopupRef.current = popup;
+        e.originalEvent.stopPropagation();
+      });
+
       // Cursor changes
       map.on("mouseenter", "clusters", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "clusters", () => { map.getCanvas().style.cursor = ""; });
@@ -551,6 +676,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       map.on("mouseleave", "unclustered-point", () => { map.getCanvas().style.cursor = ""; });
       map.on("mouseenter", "route-stop-circles", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "route-stop-circles", () => { map.getCanvas().style.cursor = ""; });
+      map.on("mouseenter", "live-shipment-markers", () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "live-shipment-markers", () => { map.getCanvas().style.cursor = ""; });
 
       return () => {
         stopPopupRef.current?.remove();
@@ -569,9 +696,11 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       map.once("style.load", () => {
         if (routesRef.current) {
           addRouteLayers(map, factoriesRef.current);
-
         }
         addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
+        if (liveShipmentsRef.current.length > 0) {
+          addLiveShipmentLayers(map, liveShipmentsRef.current);
+        }
       });
     }, [theme]);
 
@@ -581,6 +710,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       if (!map || !map.isStyleLoaded()) return;
 
       // Remove everything and re-add
+      removeLiveShipmentLayers(map);
       removeRouteLayers(map);
       removeSourceAndLayers(map);
 
@@ -588,7 +718,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         addRouteLayers(map, factories);
       }
       addSourceAndLayers(map, factories, clusteringEnabled);
-    }, [factories, clusteringEnabled, routesEnabled]);
+      if (liveShipments.length > 0) {
+        addLiveShipmentLayers(map, liveShipments);
+      }
+    }, [factories, clusteringEnabled, routesEnabled, liveShipments]);
 
     return (
       <div

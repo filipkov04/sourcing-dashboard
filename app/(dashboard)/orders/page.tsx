@@ -48,6 +48,9 @@ type Order = {
     name: string;
     location: string;
   };
+  trackingNumber?: string | null;
+  carrier?: string | null;
+  trackingStatus?: string | null;
   _count: {
     stages: number;
   };
@@ -69,6 +72,8 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
   SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  IN_TRANSIT: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400",
+  CUSTOMS: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   DELIVERED: "bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300",
   CANCELLED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
 };
@@ -571,6 +576,7 @@ export default function OrdersPage() {
                 <TableHead>Factory</TableHead>
                 <TableHead>Quantity</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Tracking</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Progress</TableHead>
                 <TableHead>Expected</TableHead>
@@ -642,6 +648,24 @@ export default function OrdersPage() {
                     <Badge className={statusColors[order.status] || ""}>
                       {order.status.replaceAll("_", " ")}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {order.trackingNumber ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                          order.trackingStatus === "IN_TRANSIT" ? "bg-green-500" :
+                          order.trackingStatus === "CUSTOMS" ? "bg-amber-500" :
+                          order.trackingStatus === "EXCEPTION" ? "bg-red-500" :
+                          order.trackingStatus === "DELIVERED" ? "bg-gray-400" :
+                          "bg-blue-400"
+                        }`} />
+                        <span className="text-xs font-mono text-gray-600 dark:text-zinc-400 truncate max-w-[100px]" title={order.trackingNumber}>
+                          {order.carrier ? `${order.carrier} ` : ""}{order.trackingNumber.slice(-8)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-300 dark:text-zinc-600">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
