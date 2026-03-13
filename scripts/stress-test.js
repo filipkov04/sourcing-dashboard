@@ -82,6 +82,7 @@ const tests = [
 
   // Carrier Tracking
   { name: 'Shipments In Transit API', path: '/api/dashboard/shipments-in-transit', expectedStatus: [200, 307, 401] },
+  { name: 'Map Vehicles API', path: '/api/dashboard/map-vehicles', expectedStatus: [200, 307, 401] },
 ];
 
 /**

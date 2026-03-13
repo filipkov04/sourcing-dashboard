@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Map, RefreshCw, Globe, Factory, MapPin, ShieldCheck, Activity } from "lucide-react";
+import { Map, RefreshCw, Globe, Factory, ShieldCheck, Ship } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { AnimatedNumber } from "@/components/animated-number";
 import { MapControls } from "./map-controls";
 import { MapLegend } from "./map-legend";
-import { MapFactoryDrawer } from "./map-factory-drawer";
+import { ShipmentPanel } from "./shipment-panel";
 import { MapSearch } from "./map-search";
-import type { MapFactory, MapStats, LiveShipment } from "./types";
+import { ordersToVehicles } from "./vehicle-utils";
+import type { MapFactory, MapStats, MapVehicle } from "./types";
 import type { MapCanvasHandle } from "./map-canvas";
 
 const MapCanvas = dynamic(
@@ -23,32 +24,29 @@ export function ManufacturerMap() {
   const mapRef = useRef<MapCanvasHandle | null>(null);
 
   const [factories, setFactories] = useState<MapFactory[]>([]);
+  const [vehicles, setVehicles] = useState<MapVehicle[]>([]);
   const [stats, setStats] = useState<MapStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [clusteringEnabled, setClusteringEnabled] = useState(true);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFactory, setSelectedFactory] = useState<MapFactory | null>(null);
-  const [routesEnabled, setRoutesEnabled] = useState(true);
-  const [liveShipments, setLiveShipments] = useState<LiveShipment[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<MapVehicle | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [locRes, shipRes] = await Promise.all([
+      const [locRes, vehRes] = await Promise.all([
         fetch("/api/dashboard/factory-locations"),
-        fetch("/api/dashboard/shipments-in-transit"),
+        fetch("/api/dashboard/map-vehicles"),
       ]);
       const locData = await locRes.json();
       if (locData.success) {
         setFactories(locData.data.factories);
         setStats(locData.data.stats);
       }
-      const shipData = await shipRes.json();
-      if (shipData.success) {
-        setLiveShipments(shipData.data);
+      const vehData = await vehRes.json();
+      if (vehData.success) {
+        setVehicles(ordersToVehicles(vehData.data));
       }
     } catch (error) {
-      console.error("Failed to fetch factory locations:", error);
+      console.error("Failed to fetch map data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -58,29 +56,17 @@ export function ManufacturerMap() {
     fetchData();
   }, [fetchData]);
 
-  const filteredFactories = useMemo(() => {
-    let result = factories;
-    if (verifiedOnly) {
-      result = result.filter((f) => f.verificationStatus === "VERIFIED");
-    }
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (f) =>
-          f.name.toLowerCase().includes(q) ||
-          f.city.toLowerCase().includes(q) ||
-          f.country.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [factories, verifiedOnly, searchQuery]);
-
-  // Auto-fit when search changes
-  useEffect(() => {
-    if (searchQuery && filteredFactories.length > 0) {
-      setTimeout(() => mapRef.current?.fitToMarkers(), 100);
-    }
-  }, [searchQuery, filteredFactories]);
+  const filteredVehicles = useMemo(() => {
+    if (!searchQuery) return vehicles;
+    const q = searchQuery.toLowerCase();
+    return vehicles.filter(
+      (v) =>
+        v.orderNumber.toLowerCase().includes(q) ||
+        v.productName.toLowerCase().includes(q) ||
+        v.factoryName.toLowerCase().includes(q) ||
+        (v.carrier ?? "").toLowerCase().includes(q)
+    );
+  }, [vehicles, searchQuery]);
 
   if (isLoading) {
     return (
@@ -122,9 +108,9 @@ export function ManufacturerMap() {
               value={stats?.countriesCovered ?? 0}
             />
             <StatItem
-              icon={<Activity className="h-3.5 w-3.5" />}
-              label="Active Productions"
-              value={stats?.activeProductions ?? 0}
+              icon={<Ship className="h-3.5 w-3.5" />}
+              label="Active Shipments"
+              value={vehicles.length}
             />
             <StatItem
               icon={<ShieldCheck className="h-3.5 w-3.5" />}
@@ -156,37 +142,27 @@ export function ManufacturerMap() {
         <div className="flex-1 relative min-h-[420px]">
           <MapCanvas
             ref={mapRef}
-            factories={filteredFactories}
+            vehicles={filteredVehicles}
+            factories={factories}
             theme={mapTheme}
-            clusteringEnabled={clusteringEnabled}
-            routesEnabled={routesEnabled}
-            liveShipments={liveShipments}
-            onSelectFactory={(f) => {
-              setSelectedFactory(f);
-              if (f) {
-                mapRef.current?.easeTo(f.lng, f.lat);
+            selectedVehicleId={selectedVehicle?.orderId ?? null}
+            onSelectVehicle={(v) => {
+              setSelectedVehicle(v);
+              if (v) {
+                mapRef.current?.easeTo(v.lng, v.lat);
               }
             }}
-            selectedFactoryId={selectedFactory?.id ?? null}
           />
 
           <MapSearch value={searchQuery} onChange={setSearchQuery} />
 
-          <MapControls
-            mapRef={mapRef}
-            clusteringEnabled={clusteringEnabled}
-            onToggleClustering={() => setClusteringEnabled((v) => !v)}
-            verifiedOnly={verifiedOnly}
-            onToggleVerifiedOnly={() => setVerifiedOnly((v) => !v)}
-            routesEnabled={routesEnabled}
-            onToggleRoutes={() => setRoutesEnabled((v) => !v)}
-          />
+          <MapControls mapRef={mapRef} />
 
           <MapLegend />
 
-          <MapFactoryDrawer
-            factory={selectedFactory}
-            onClose={() => setSelectedFactory(null)}
+          <ShipmentPanel
+            vehicle={selectedVehicle}
+            onClose={() => setSelectedVehicle(null)}
           />
         </div>
       </div>

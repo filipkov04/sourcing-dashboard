@@ -60,3 +60,53 @@ export type MapStats = {
   verifiedPercent: number;
   lastUpdated: string;
 };
+
+export type MapVehicle = {
+  orderId: string;
+  orderNumber: string;
+  productName: string;
+  status: string;
+  quantity: number;
+  unit: string;
+  trackingNumber: string | null;
+  carrier: string | null;
+  shippingMethod: string | null;
+  trackingStatus: string | null;
+  estimatedArrival: string | null;
+  lastTrackingSync: string | null;
+  orderDate: string;
+  expectedDate: string | null;
+  currentLocation: string | null;
+  lat: number;
+  lng: number;
+  bearing: number;
+  vehicleType: "ship" | "plane" | "truck";
+  factoryId: string;
+  factoryName: string;
+  factoryLat: number;
+  factoryLng: number;
+  factoryLocation: string;
+  factoryContact: {
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  trackingEvents: Array<{
+    id: string;
+    timestamp: string;
+    location: string | null;
+    description: string;
+    trackingStatus: string;
+  }>;
+  routeStops: Array<{
+    name: string;
+    coords: [number, number];
+    type: string;
+    description: string;
+    icon: string;
+  }>;
+  routeSegments: Array<{
+    coordinates: [number, number][];
+    transportMethod: "ship" | "truck";
+  }>;
+};

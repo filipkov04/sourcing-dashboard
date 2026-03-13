@@ -1,40 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
+import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { getMapStyle } from "./map-style";
-import { factoriesToGeoJSON, getBounds, factoriesToRoutesGeoJSON, routeMidpointsGeoJSON, routeStopsGeoJSON, liveShipmentsGeoJSON } from "./map-utils";
-import { DESTINATION_COORDS } from "./arc-utils";
-import type { MapFactory, LiveShipment } from "./types";
+import { vehiclesToGeoJSON, selectedRouteGeoJSON, getBounds } from "./map-utils";
+import { registerVehicleIcons } from "./vehicle-icons";
+import type { MapFactory, MapVehicle } from "./types";
 
-const VERIFICATION_COLORS: Record<string, string> = {
-  VERIFIED: "#64748b",   // slate-500 — subtle, professional
-  PENDING: "#94a3b8",    // slate-400
-  UNVERIFIED: "#cbd5e1", // slate-300
-};
-
-const RISK_STROKE_COLORS: Record<string, string> = {
-  CRITICAL: "#f87171",   // red-400 (softer)
-  HIGH: "#fb923c",       // orange-400 (softer)
-  MEDIUM: "#fbbf24",     // amber-400
-  LOW: "transparent",
-};
-
-const ROUTE_SOURCE_ID = "shipping-routes";
-const MIDPOINTS_SOURCE_ID = "route-midpoints";
-const DESTINATION_SOURCE_ID = "destination";
-const STOPS_SOURCE_ID = "route-stops";
-const LIVE_SHIPMENTS_SOURCE_ID = "live-shipments";
-const ROUTE_LAYER_IDS = [
-  "route-ship-ok", "route-ship-delayed", "route-ship-disrupted",
-  "route-truck-ok", "route-truck-delayed", "route-truck-disrupted",
-  "route-midpoint-icons", "destination-circle", "destination-label",
-  "route-stop-circles", "route-stop-icons",
-];
-const LIVE_SHIPMENT_LAYER_IDS = [
-  "live-shipment-pulse", "live-shipment-markers", "live-shipment-labels",
-];
+// ─── Source & layer IDs ──────────────────────────────────────────────────────
+const VEHICLES_SOURCE = "vehicles";
+const VEHICLE_LAYER = "vehicle-icons";
+const VEHICLE_LABELS = "vehicle-labels";
+const SELECTED_ROUTE_SOURCE = "selected-route";
+const SELECTED_STOPS_SOURCE = "selected-stops";
+const SELECTED_ROUTE_LAYER = "selected-route-line";
+const SELECTED_ROUTE_DASH = "selected-route-dash";
+const SELECTED_STOPS_LAYER = "selected-stop-circles";
+const SELECTED_STOPS_ICONS = "selected-stop-icons";
+const USER_LOCATION_SOURCE = "user-location";
+const USER_PULSE_LAYER = "user-location-pulse";
+const USER_DOT_LAYER = "user-location-dot";
 
 export type MapCanvasHandle = {
   zoomIn: () => void;
@@ -45,453 +31,29 @@ export type MapCanvasHandle = {
 };
 
 type MapCanvasProps = {
+  vehicles: MapVehicle[];
   factories: MapFactory[];
   theme: "light" | "dark";
-  clusteringEnabled: boolean;
-  routesEnabled: boolean;
-  liveShipments?: LiveShipment[];
-  onSelectFactory: (factory: MapFactory | null) => void;
-  selectedFactoryId: string | null;
+  selectedVehicleId: string | null;
+  onSelectVehicle: (vehicle: MapVehicle | null) => void;
 };
 
-const SOURCE_ID = "factories";
-
-function addMapLayers(map: maplibregl.Map, clusteringEnabled: boolean) {
-  // Guard: if layers already exist, skip — prevents duplicate layer errors
-  if (map.getLayer("unclustered-point")) return;
-
-  // Clustered circle layer
-  if (clusteringEnabled) {
-    map.addLayer({
-      id: "clusters",
-      type: "circle",
-      source: SOURCE_ID,
-      filter: ["has", "point_count"],
-      paint: {
-        "circle-color": "#475569",   // slate-600
-        "circle-radius": [
-          "step",
-          ["get", "point_count"],
-          14, 5,
-          18, 10,
-          22, 25,
-          26,
-        ],
-        "circle-opacity": 0.9,
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "rgba(71, 85, 105, 0.3)",
-      },
-    });
-
-    map.addLayer({
-      id: "cluster-count",
-      type: "symbol",
-      source: SOURCE_ID,
-      filter: ["has", "point_count"],
-      layout: {
-        "text-field": "{point_count_abbreviated}",
-        "text-size": 12,
-        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      },
-      paint: {
-        "text-color": "#ffffff",
-      },
-    });
-  }
-
-  // Unclustered points — risk ring (outer circle)
-  map.addLayer({
-    id: "unclustered-risk-ring",
-    type: "circle",
-    source: SOURCE_ID,
-    filter: clusteringEnabled ? ["!", ["has", "point_count"]] : ["all"],
-    paint: {
-      "circle-radius": [
-        "case",
-        ["get", "isPreferred"], 12,
-        10,
-      ],
-      "circle-color": "transparent",
-      "circle-stroke-width": [
-        "match",
-        ["get", "riskLevel"],
-        "CRITICAL", 3,
-        "HIGH", 2,
-        0,
-      ],
-      "circle-stroke-color": [
-        "match",
-        ["get", "riskLevel"],
-        "CRITICAL", RISK_STROKE_COLORS.CRITICAL,
-        "HIGH", RISK_STROKE_COLORS.HIGH,
-        "MEDIUM", RISK_STROKE_COLORS.MEDIUM,
-        "transparent",
-      ],
-    },
-  });
-
-  // Unclustered points — main dot
-  map.addLayer({
-    id: "unclustered-point",
-    type: "circle",
-    source: SOURCE_ID,
-    filter: clusteringEnabled ? ["!", ["has", "point_count"]] : ["all"],
-    paint: {
-      "circle-radius": [
-        "case",
-        ["get", "isPreferred"], 8,
-        6,
-      ],
-      "circle-color": [
-        "match",
-        ["get", "verificationStatus"],
-        "VERIFIED", VERIFICATION_COLORS.VERIFIED,
-        "PENDING", VERIFICATION_COLORS.PENDING,
-        VERIFICATION_COLORS.UNVERIFIED,
-      ],
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#ffffff",
-    },
-  });
-}
-
-function addRouteLayers(map: maplibregl.Map, factories: MapFactory[]) {
-  // Idempotent: if sources already exist, just update their data and bail out.
-  // This prevents "Source already exists" errors from concurrent callers
-  // (e.g. style.load callback racing with the data/routes useEffect).
-  const routeData = factoriesToRoutesGeoJSON(factories);
-  const midpointData = routeMidpointsGeoJSON(factories);
-  const destData: GeoJSON.FeatureCollection = {
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: { type: "Point", coordinates: DESTINATION_COORDS },
-        properties: { label: "HQ" },
-      },
-    ],
-  };
-
-  if (map.getSource(ROUTE_SOURCE_ID)) {
-    (map.getSource(ROUTE_SOURCE_ID) as maplibregl.GeoJSONSource).setData(routeData);
-    if (map.getSource(MIDPOINTS_SOURCE_ID)) {
-      (map.getSource(MIDPOINTS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(midpointData);
-    }
-    if (map.getSource(DESTINATION_SOURCE_ID)) {
-      (map.getSource(DESTINATION_SOURCE_ID) as maplibregl.GeoJSONSource).setData(destData);
-    }
-    if (map.getSource(STOPS_SOURCE_ID)) {
-      (map.getSource(STOPS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(routeStopsGeoJSON(factories));
-    }
-    return;
-  }
-
-  // Clean slate: remove any leftover layers (source gone but layers lingering is unlikely
-  // but defensive). Then add sources + layers fresh.
-  removeRouteLayers(map);
-
-  // Route lines source
-  map.addSource(ROUTE_SOURCE_ID, {
-    type: "geojson",
-    data: routeData,
-  });
-
-  // Midpoints source
-  map.addSource(MIDPOINTS_SOURCE_ID, {
-    type: "geojson",
-    data: midpointData,
-  });
-
-  // Destination marker source
-  map.addSource(DESTINATION_SOURCE_ID, {
-    type: "geojson",
-    data: destData,
-  });
-
-  // Route line layers — ship and truck per status, rendered BEFORE point layers
-  const beforeLayer = map.getLayer("unclustered-risk-ring") ? "unclustered-risk-ring" : undefined;
-
-  const statusConfigs: Array<{ suffix: string; filter: any; color: string }> = [
-    { suffix: "ok",       filter: ["any", ["==", ["get", "routeStatus"], "PENDING"], ["==", ["get", "routeStatus"], "IN_PROGRESS"]], color: "#94a3b8" },
-    { suffix: "delayed",  filter: ["==", ["get", "routeStatus"], "DELAYED"],   color: "#d97706" },
-    { suffix: "disrupted",filter: ["==", ["get", "routeStatus"], "DISRUPTED"], color: "#dc2626" },
-  ];
-
-  for (const { suffix, filter, color } of statusConfigs) {
-    // Ship lines — thicker, solid
-    map.addLayer(
-      {
-        id: `route-ship-${suffix}`,
-        type: "line",
-        source: ROUTE_SOURCE_ID,
-        filter: ["all", filter, ["==", ["get", "transportMethod"], "ship"]],
-        paint: {
-          "line-color": color,
-          "line-width": ["+", ["get", "routeWidth"], 0.5],
-          "line-opacity": 0.75,
-        },
-        layout: { "line-cap": "round", "line-join": "round" },
-      },
-      beforeLayer
-    );
-
-    // Truck lines — thinner, slightly transparent
-    map.addLayer(
-      {
-        id: `route-truck-${suffix}`,
-        type: "line",
-        source: ROUTE_SOURCE_ID,
-        filter: ["all", filter, ["==", ["get", "transportMethod"], "truck"]],
-        paint: {
-          "line-color": color,
-          "line-width": ["max", ["-", ["get", "routeWidth"], 0.5], 1],
-          "line-opacity": 0.55,
-        },
-        layout: { "line-cap": "round", "line-join": "round" },
-      },
-      beforeLayer
-    );
-  }
-
-  // Transport method icons at arc midpoints
-  map.addLayer({
-    id: "route-midpoint-icons",
-    type: "symbol",
-    source: MIDPOINTS_SOURCE_ID,
-    layout: {
-      "text-field": ["get", "icon"],
-      "text-size": 11,
-      "text-allow-overlap": true,
-    },
-  });
-
-  // Destination circle
-  map.addLayer(
-    {
-      id: "destination-circle",
-      type: "circle",
-      source: DESTINATION_SOURCE_ID,
-      paint: {
-        "circle-radius": 7,
-        "circle-color": "#334155",
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-        "circle-opacity": 0.9,
-      },
-    }
-  );
-
-  // Destination label
-  map.addLayer({
-    id: "destination-label",
-    type: "symbol",
-    source: DESTINATION_SOURCE_ID,
-    layout: {
-      "text-field": "HQ",
-      "text-size": 9,
-      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, -1.5],
-    },
-    paint: {
-      "text-color": "#334155",
-      "text-halo-color": "#ffffff",
-      "text-halo-width": 1,
-    },
-  });
-
-  // ─── Route stop markers ─────────────────────────────────────────────────
-  const stopsData = routeStopsGeoJSON(factories);
-
-  map.addSource(STOPS_SOURCE_ID, {
-    type: "geojson",
-    data: stopsData,
-  });
-
-  // Stop circles (small, semi-transparent)
-  map.addLayer({
-    id: "route-stop-circles",
-    type: "circle",
-    source: STOPS_SOURCE_ID,
-    paint: {
-      "circle-radius": [
-        "match", ["get", "stopType"],
-        "factory", 5,
-        "port", 5,
-        "harbor", 5,
-        "destination", 5,
-        4,
-      ],
-      "circle-color": [
-        "match", ["get", "stopType"],
-        "factory", "#64748b",     // slate-500
-        "port", "#64748b",        // slate-500
-        "strait", "#94a3b8",     // slate-400
-        "canal", "#94a3b8",      // slate-400
-        "harbor", "#475569",     // slate-600
-        "customs", "#475569",    // slate-600
-        "hub", "#94a3b8",        // slate-400
-        "destination", "#475569", // slate-600
-        "#94a3b8",
-      ],
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#ffffff",
-      "circle-opacity": 0.9,
-    },
-  });
-
-  // Stop icon labels
-  map.addLayer({
-    id: "route-stop-icons",
-    type: "symbol",
-    source: STOPS_SOURCE_ID,
-    layout: {
-      "text-field": ["get", "icon"],
-      "text-size": 11,
-      "text-offset": [0, -1.3],
-      "text-allow-overlap": true,
-    },
-  });
-}
-
-function addLiveShipmentLayers(map: maplibregl.Map, shipments: LiveShipment[]) {
-  const data = liveShipmentsGeoJSON(shipments);
-
-  if (map.getSource(LIVE_SHIPMENTS_SOURCE_ID)) {
-    (map.getSource(LIVE_SHIPMENTS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(data);
-    return;
-  }
-
-  removeLiveShipmentLayers(map);
-
-  map.addSource(LIVE_SHIPMENTS_SOURCE_ID, { type: "geojson", data });
-
-  // Pulsing outer ring
-  map.addLayer({
-    id: "live-shipment-pulse",
-    type: "circle",
-    source: LIVE_SHIPMENTS_SOURCE_ID,
-    paint: {
-      "circle-radius": 12,
-      "circle-color": [
-        "match", ["get", "trackingStatus"],
-        "CUSTOMS", "#d97706",
-        "EXCEPTION", "#dc2626",
-        "#3b82f6", // blue for in-transit
-      ],
-      "circle-opacity": 0.2,
-      "circle-stroke-width": 0,
-    },
-  });
-
-  // Solid marker dot
-  map.addLayer({
-    id: "live-shipment-markers",
-    type: "circle",
-    source: LIVE_SHIPMENTS_SOURCE_ID,
-    paint: {
-      "circle-radius": 6,
-      "circle-color": [
-        "match", ["get", "trackingStatus"],
-        "CUSTOMS", "#d97706",
-        "EXCEPTION", "#dc2626",
-        "#3b82f6",
-      ],
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#ffffff",
-      "circle-opacity": 0.95,
-    },
-  });
-
-  // Order number label
-  map.addLayer({
-    id: "live-shipment-labels",
-    type: "symbol",
-    source: LIVE_SHIPMENTS_SOURCE_ID,
-    layout: {
-      "text-field": ["get", "orderNumber"],
-      "text-size": 10,
-      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, -1.5],
-      "text-allow-overlap": false,
-    },
-    paint: {
-      "text-color": "#3b82f6",
-      "text-halo-color": "#ffffff",
-      "text-halo-width": 1,
-    },
-  });
-}
-
-function removeLiveShipmentLayers(map: maplibregl.Map) {
-  for (const id of LIVE_SHIPMENT_LAYER_IDS) {
-    if (map.getLayer(id)) map.removeLayer(id);
-  }
-  if (map.getSource(LIVE_SHIPMENTS_SOURCE_ID)) map.removeSource(LIVE_SHIPMENTS_SOURCE_ID);
-}
-
-function removeRouteLayers(map: maplibregl.Map) {
-  for (const id of ROUTE_LAYER_IDS) {
-    if (map.getLayer(id)) map.removeLayer(id);
-  }
-  if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
-  if (map.getSource(MIDPOINTS_SOURCE_ID)) map.removeSource(MIDPOINTS_SOURCE_ID);
-  if (map.getSource(DESTINATION_SOURCE_ID)) map.removeSource(DESTINATION_SOURCE_ID);
-  if (map.getSource(STOPS_SOURCE_ID)) map.removeSource(STOPS_SOURCE_ID);
-}
-
-function addSourceAndLayers(
-  map: maplibregl.Map,
-  factories: MapFactory[],
-  clusteringEnabled: boolean
-) {
-  // Idempotent: if the source already exists, update its data and bail out.
-  // Clustering config can't change on an existing source, so if that changed
-  // we need a full remove+re-add (handled by the caller doing removeSourceAndLayers first).
-  if (map.getSource(SOURCE_ID)) {
-    (map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource).setData(
-      factoriesToGeoJSON(factories)
-    );
-    return;
-  }
-
-  map.addSource(SOURCE_ID, {
-    type: "geojson",
-    data: factoriesToGeoJSON(factories),
-    cluster: clusteringEnabled,
-    clusterMaxZoom: 14,
-    clusterRadius: 50,
-  });
-  addMapLayers(map, clusteringEnabled);
-}
-
-function removeSourceAndLayers(map: maplibregl.Map) {
-  const layerIds = ["cluster-count", "clusters", "unclustered-point", "unclustered-risk-ring"];
-  for (const id of layerIds) {
-    if (map.getLayer(id)) map.removeLayer(id);
-  }
-  if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
-}
-
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
-  function MapCanvas({ factories, theme, clusteringEnabled, routesEnabled, liveShipments = [], onSelectFactory, selectedFactoryId }, ref) {
+  function MapCanvas({ vehicles, factories, theme, selectedVehicleId, onSelectVehicle }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
-    const stopPopupRef = useRef<maplibregl.Popup | null>(null);
-    const factoriesRef = useRef(factories);
-    factoriesRef.current = factories;
-    const clusteringRef = useRef(clusteringEnabled);
-    clusteringRef.current = clusteringEnabled;
-    const routesRef = useRef(routesEnabled);
-    routesRef.current = routesEnabled;
-    const liveShipmentsRef = useRef(liveShipments);
-    liveShipmentsRef.current = liveShipments;
+    const vehiclesRef = useRef(vehicles);
+    vehiclesRef.current = vehicles;
+    const selectedRef = useRef(selectedVehicleId);
+    selectedRef.current = selectedVehicleId;
+
     const fitToMarkers = useCallback(() => {
       const map = mapRef.current;
-      if (!map) return;
-      const bounds = getBounds(factoriesRef.current);
+      if (!map || vehicles.length === 0) return;
+      const bounds = getBounds(factories);
       if (!bounds) return;
       map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 800 });
-    }, []);
+    }, [factories, vehicles]);
 
     useImperativeHandle(ref, () => ({
       zoomIn: () => mapRef.current?.zoomIn({ duration: 300 }),
@@ -502,14 +64,229 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       fitToMarkers,
       easeTo: (lng: number, lat: number) => {
         mapRef.current?.easeTo({
-          center: [lng - 0.02, lat], // offset left so marker isn't hidden by drawer
-          zoom: Math.max(mapRef.current.getZoom(), 8),
+          center: [lng, lat],
+          zoom: Math.max(mapRef.current.getZoom(), 5),
           duration: 600,
         });
       },
     }));
 
-    // Initialize map
+    // ─── Add vehicle layers ──────────────────────────────────────────────
+    function addVehicleLayers(map: maplibregl.Map, vehicleData: MapVehicle[]) {
+      const data = vehiclesToGeoJSON(vehicleData);
+
+      if (map.getSource(VEHICLES_SOURCE)) {
+        (map.getSource(VEHICLES_SOURCE) as maplibregl.GeoJSONSource).setData(data);
+        return;
+      }
+
+      map.addSource(VEHICLES_SOURCE, { type: "geojson", data });
+
+      // Vehicle icon symbols
+      map.addLayer({
+        id: VEHICLE_LAYER,
+        type: "symbol",
+        source: VEHICLES_SOURCE,
+        layout: {
+          "icon-image": [
+            "case",
+            ["==", ["get", "orderId"], selectedRef.current ?? ""],
+            ["concat", "vehicle-", ["get", "vehicleType"], "-selected"],
+            ["concat", "vehicle-", ["get", "vehicleType"], "-default"],
+          ],
+          "icon-size": 0.9,
+          "icon-rotate": ["get", "bearing"],
+          "icon-rotation-alignment": "map",
+          "icon-allow-overlap": true,
+          "icon-padding": 2,
+        },
+      });
+
+      // Order number labels
+      map.addLayer({
+        id: VEHICLE_LABELS,
+        type: "symbol",
+        source: VEHICLES_SOURCE,
+        layout: {
+          "text-field": ["get", "orderNumber"],
+          "text-size": 9,
+          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-offset": [0, 1.8],
+          "text-allow-overlap": false,
+        },
+        paint: {
+          "text-color": "#475569",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1,
+        },
+      });
+    }
+
+    // ─── Show selected vehicle route ─────────────────────────────────────
+    function showSelectedRoute(map: maplibregl.Map, vehicle: MapVehicle) {
+      const { lines, stops } = selectedRouteGeoJSON(vehicle);
+
+      // Route lines
+      if (map.getSource(SELECTED_ROUTE_SOURCE)) {
+        (map.getSource(SELECTED_ROUTE_SOURCE) as maplibregl.GeoJSONSource).setData(lines);
+      } else {
+        map.addSource(SELECTED_ROUTE_SOURCE, { type: "geojson", data: lines });
+      }
+
+      // Stop dots
+      if (map.getSource(SELECTED_STOPS_SOURCE)) {
+        (map.getSource(SELECTED_STOPS_SOURCE) as maplibregl.GeoJSONSource).setData(stops);
+      } else {
+        map.addSource(SELECTED_STOPS_SOURCE, { type: "geojson", data: stops });
+      }
+
+      // Magenta route line (solid base)
+      if (!map.getLayer(SELECTED_ROUTE_LAYER)) {
+        map.addLayer({
+          id: SELECTED_ROUTE_LAYER,
+          type: "line",
+          source: SELECTED_ROUTE_SOURCE,
+          paint: {
+            "line-color": "#e11d9b",
+            "line-width": 2.5,
+            "line-opacity": 0.7,
+          },
+          layout: { "line-cap": "round", "line-join": "round" },
+        }, VEHICLE_LAYER); // render below vehicles
+      }
+
+      // Animated dash overlay
+      if (!map.getLayer(SELECTED_ROUTE_DASH)) {
+        map.addLayer({
+          id: SELECTED_ROUTE_DASH,
+          type: "line",
+          source: SELECTED_ROUTE_SOURCE,
+          paint: {
+            "line-color": "#f472b6",
+            "line-width": 2,
+            "line-dasharray": [0, 4, 3],
+            "line-opacity": 0.9,
+          },
+          layout: { "line-cap": "round", "line-join": "round" },
+        }, VEHICLE_LAYER);
+      }
+
+      // Blue stop circles
+      if (!map.getLayer(SELECTED_STOPS_LAYER)) {
+        map.addLayer({
+          id: SELECTED_STOPS_LAYER,
+          type: "circle",
+          source: SELECTED_STOPS_SOURCE,
+          paint: {
+            "circle-radius": 5,
+            "circle-color": "#3b82f6",
+            "circle-stroke-width": 1.5,
+            "circle-stroke-color": "#ffffff",
+            "circle-opacity": 0.9,
+          },
+        });
+      }
+
+      // Stop type labels (small, above dot)
+      if (!map.getLayer(SELECTED_STOPS_ICONS)) {
+        map.addLayer({
+          id: SELECTED_STOPS_ICONS,
+          type: "symbol",
+          source: SELECTED_STOPS_SOURCE,
+          layout: {
+            "text-field": ["get", "icon"],
+            "text-size": 10,
+            "text-offset": [0, -1.3],
+            "text-allow-overlap": true,
+          },
+        });
+      }
+    }
+
+    // ─── Hide selected route ─────────────────────────────────────────────
+    function hideSelectedRoute(map: maplibregl.Map) {
+      for (const id of [SELECTED_ROUTE_LAYER, SELECTED_ROUTE_DASH, SELECTED_STOPS_LAYER, SELECTED_STOPS_ICONS]) {
+        if (map.getLayer(id)) map.removeLayer(id);
+      }
+      if (map.getSource(SELECTED_ROUTE_SOURCE)) map.removeSource(SELECTED_ROUTE_SOURCE);
+      if (map.getSource(SELECTED_STOPS_SOURCE)) map.removeSource(SELECTED_STOPS_SOURCE);
+    }
+
+    // ─── User geolocation ────────────────────────────────────────────────
+    function addUserLocation(map: maplibregl.Map) {
+      if (!navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { longitude, latitude } = pos.coords;
+          const data: GeoJSON.FeatureCollection = {
+            type: "FeatureCollection",
+            features: [{
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [longitude, latitude] },
+              properties: {},
+            }],
+          };
+
+          if (map.getSource(USER_LOCATION_SOURCE)) {
+            (map.getSource(USER_LOCATION_SOURCE) as maplibregl.GeoJSONSource).setData(data);
+            return;
+          }
+
+          map.addSource(USER_LOCATION_SOURCE, { type: "geojson", data });
+
+          // Pulsing ring
+          map.addLayer({
+            id: USER_PULSE_LAYER,
+            type: "circle",
+            source: USER_LOCATION_SOURCE,
+            paint: {
+              "circle-radius": 14,
+              "circle-color": "#3b82f6",
+              "circle-opacity": 0.15,
+              "circle-stroke-width": 0,
+            },
+          });
+
+          // Solid dot
+          map.addLayer({
+            id: USER_DOT_LAYER,
+            type: "circle",
+            source: USER_LOCATION_SOURCE,
+            paint: {
+              "circle-radius": 5,
+              "circle-color": "#3b82f6",
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "#ffffff",
+            },
+          });
+        },
+        () => {
+          // Permission denied or error — silently skip
+        },
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+
+    // ─── Remove all custom layers ────────────────────────────────────────
+    function removeAllLayers(map: maplibregl.Map) {
+      const allLayers = [
+        VEHICLE_LAYER, VEHICLE_LABELS,
+        SELECTED_ROUTE_LAYER, SELECTED_ROUTE_DASH, SELECTED_STOPS_LAYER, SELECTED_STOPS_ICONS,
+        USER_PULSE_LAYER, USER_DOT_LAYER,
+      ];
+      for (const id of allLayers) {
+        if (map.getLayer(id)) map.removeLayer(id);
+      }
+      const allSources = [
+        VEHICLES_SOURCE, SELECTED_ROUTE_SOURCE, SELECTED_STOPS_SOURCE, USER_LOCATION_SOURCE,
+      ];
+      for (const id of allSources) {
+        if (map.getSource(id)) map.removeSource(id);
+      }
+    }
+
+    // ─── Initialize map ──────────────────────────────────────────────────
     useEffect(() => {
       if (!containerRef.current) return;
 
@@ -523,7 +300,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           attributionControl: false,
         });
       } catch {
-        // WebGL not available
         if (containerRef.current) {
           containerRef.current.innerHTML =
             '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#71717a;font-size:13px;">Map requires WebGL support</div>';
@@ -533,203 +309,184 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       mapRef.current = map;
 
-      map.on("load", () => {
-        // Add routes BEFORE points so they render underneath
-        if (routesRef.current) {
-          addRouteLayers(map, factoriesRef.current);
+      map.on("load", async () => {
+        await registerVehicleIcons(map);
+        addVehicleLayers(map, vehiclesRef.current);
+        addUserLocation(map);
 
-        }
-
-        addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
-
-        // Live shipment markers on top
-        if (liveShipmentsRef.current.length > 0) {
-          addLiveShipmentLayers(map, liveShipmentsRef.current);
-        }
-
-        // Fit to markers on initial load
-        const bounds = getBounds(factoriesRef.current);
-        if (bounds) {
+        // Fit to vehicle positions
+        if (vehiclesRef.current.length > 0) {
+          const coords = vehiclesRef.current.map((v) => [v.lng, v.lat] as [number, number]);
+          const bounds = new maplibregl.LngLatBounds(coords[0], coords[0]);
+          coords.forEach((c) => bounds.extend(c));
           map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 });
+        } else {
+          const bounds = getBounds(factories);
+          if (bounds) map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 });
         }
       });
 
-      // Click cluster → zoom in
-      map.on("click", "clusters", (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+      // Click vehicle → select
+      map.on("click", VEHICLE_LAYER, (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: [VEHICLE_LAYER] });
         if (!features.length) return;
-        const clusterId = features[0].properties.cluster_id;
-        const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource;
-        source.getClusterExpansionZoom(clusterId).then((zoom) => {
-          const geometry = features[0].geometry;
-          if (geometry.type === "Point") {
-            map.easeTo({
-              center: geometry.coordinates as [number, number],
-              zoom: zoom,
-            });
-          }
-        });
+
+        const orderId = features[0].properties.orderId;
+        const vehicle = vehiclesRef.current.find((v) => v.orderId === orderId);
+        if (vehicle) {
+          onSelectVehicle(vehicle);
+        }
+
+        e.originalEvent.stopPropagation();
       });
 
-      // Click marker → select factory
-      map.on("click", "unclustered-point", (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ["unclustered-point"] });
-        if (!features.length) return;
-        const props = features[0].properties;
-        const factory = factoriesRef.current.find((f) => f.id === props.id);
-        if (factory) onSelectFactory(factory);
-      });
-
-      // Click map background → deselect
+      // Click background → deselect
       map.on("click", (e) => {
-        const clusters = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-        const points = map.queryRenderedFeatures(e.point, { layers: ["unclustered-point"] });
-        if (clusters.length === 0 && points.length === 0) {
-          onSelectFactory(null);
+        const vehicleHits = map.queryRenderedFeatures(e.point, { layers: [VEHICLE_LAYER] });
+        const stopHits = map.getLayer(SELECTED_STOPS_LAYER)
+          ? map.queryRenderedFeatures(e.point, { layers: [SELECTED_STOPS_LAYER] })
+          : [];
+        if (vehicleHits.length === 0 && stopHits.length === 0) {
+          onSelectVehicle(null);
         }
-      });
-
-      // Click stop marker → show popup with description
-      map.on("click", "route-stop-circles", (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ["route-stop-circles"] });
-        if (!features.length) return;
-
-        const props = features[0].properties;
-        const geometry = features[0].geometry;
-        if (geometry.type !== "Point") return;
-
-        // Close any existing stop popup
-        stopPopupRef.current?.remove();
-
-        const popup = new maplibregl.Popup({
-          closeButton: true,
-          closeOnClick: true,
-          maxWidth: "280px",
-          className: "route-stop-popup",
-        })
-          .setLngLat(geometry.coordinates as [number, number])
-          .setHTML(
-            `<div style="font-family:system-ui,sans-serif;padding:4px 0;">
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                <span style="font-size:18px;">${props.icon}</span>
-                <strong style="font-size:13px;">${props.name}</strong>
-              </div>
-              <p style="font-size:12px;line-height:1.5;color:#a1a1aa;margin:0;">${props.description}</p>
-              <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;background:rgba(255,255,255,0.1);color:#d4d4d8;">${props.stopType}</div>
-            </div>`
-          )
-          .addTo(map);
-
-        stopPopupRef.current = popup;
-
-        // Don't propagate to background click handler
-        e.originalEvent.stopPropagation();
-      });
-
-      // Click live shipment marker → show popup
-      map.on("click", "live-shipment-markers", (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ["live-shipment-markers"] });
-        if (!features.length) return;
-
-        const props = features[0].properties;
-        const geometry = features[0].geometry;
-        if (geometry.type !== "Point") return;
-
-        stopPopupRef.current?.remove();
-
-        const eta = props.estimatedArrival
-          ? new Date(props.estimatedArrival).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          : "—";
-
-        const popup = new maplibregl.Popup({
-          closeButton: true,
-          closeOnClick: true,
-          maxWidth: "280px",
-          className: "route-stop-popup",
-        })
-          .setLngLat(geometry.coordinates as [number, number])
-          .setHTML(
-            `<div style="font-family:system-ui,sans-serif;padding:4px 0;">
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                <span style="font-size:16px;">📦</span>
-                <strong style="font-size:13px;">${props.orderNumber}</strong>
-              </div>
-              <div style="font-size:12px;line-height:1.6;color:#a1a1aa;">
-                ${props.carrier ? `<div>Carrier: <span style="color:#d4d4d8;">${props.carrier}</span></div>` : ""}
-                <div>Tracking: <span style="color:#d4d4d8;font-family:monospace;">${props.trackingNumber}</span></div>
-                ${props.currentLocation ? `<div>Location: <span style="color:#d4d4d8;">${props.currentLocation}</span></div>` : ""}
-                <div>ETA: <span style="color:#d4d4d8;">${eta}</span></div>
-              </div>
-              <a href="/orders/${props.orderId}" style="display:inline-block;margin-top:8px;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;background:#06b6d4;color:white;text-decoration:none;">View Order</a>
-            </div>`
-          )
-          .addTo(map);
-
-        stopPopupRef.current = popup;
-        e.originalEvent.stopPropagation();
       });
 
       // Cursor changes
-      map.on("mouseenter", "clusters", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "clusters", () => { map.getCanvas().style.cursor = ""; });
-      map.on("mouseenter", "unclustered-point", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "unclustered-point", () => { map.getCanvas().style.cursor = ""; });
-      map.on("mouseenter", "route-stop-circles", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "route-stop-circles", () => { map.getCanvas().style.cursor = ""; });
-      map.on("mouseenter", "live-shipment-markers", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "live-shipment-markers", () => { map.getCanvas().style.cursor = ""; });
+      map.on("mouseenter", VEHICLE_LAYER, () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", VEHICLE_LAYER, () => { map.getCanvas().style.cursor = ""; });
+
+      // Click stop dot → show rich popup
+      map.on("click", SELECTED_STOPS_LAYER, (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: [SELECTED_STOPS_LAYER] });
+        if (!features.length) return;
+
+        const props = features[0].properties;
+        const geometry = features[0].geometry;
+        if (geometry.type !== "Point") return;
+
+        const [lng, lat] = geometry.coordinates;
+        const selectedV = vehiclesRef.current.find((v) => v.orderId === selectedRef.current);
+
+        new maplibregl.Popup({
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: "320px",
+          className: "route-stop-popup",
+        })
+          .setLngLat([lng, lat])
+          .setHTML(`
+            <div style="font-family:system-ui,sans-serif;padding:6px 2px;">
+              <div style="font-size:14px;font-weight:600;color:#f1f5f9;margin-bottom:4px;">${props.name}</div>
+              <p style="font-size:11px;line-height:1.5;color:#94a3b8;margin:0 0 8px;">${props.description}</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;margin-bottom:6px;">
+                <div style="color:#64748b;">Type</div>
+                <div style="color:#cbd5e1;text-transform:uppercase;font-weight:600;">${props.type}</div>
+                <div style="color:#64748b;">Coordinates</div>
+                <div style="color:#cbd5e1;font-family:monospace;">${lat.toFixed(2)}°, ${lng.toFixed(2)}°</div>
+                ${selectedV?.trackingNumber ? `
+                <div style="color:#64748b;">Tracking</div>
+                <div style="color:#cbd5e1;font-family:monospace;font-size:9px;">${selectedV.trackingNumber}</div>
+                ` : ""}
+                ${selectedV?.carrier ? `
+                <div style="color:#64748b;">Carrier</div>
+                <div style="color:#cbd5e1;">${selectedV.carrier}</div>
+                ` : ""}
+                ${selectedV?.estimatedArrival ? `
+                <div style="color:#64748b;">ETA</div>
+                <div style="color:#cbd5e1;">${new Date(selectedV.estimatedArrival).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
+                ` : ""}
+              </div>
+            </div>
+          `)
+          .addTo(map);
+
+        e.originalEvent.stopPropagation();
+      });
+
+      map.on("mouseenter", SELECTED_STOPS_LAYER, () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", SELECTED_STOPS_LAYER, () => { map.getCanvas().style.cursor = ""; });
+
+      // Animate the dash offset for flowing dots effect
+      let dashStep = 0;
+      let animationId: number;
+      function animateDash() {
+        if (!mapRef.current) return;
+        dashStep = (dashStep + 1) % 24;
+        if (map.getLayer(SELECTED_ROUTE_DASH)) {
+          const t = dashStep / 24;
+          map.setPaintProperty(SELECTED_ROUTE_DASH, "line-dasharray", [0, 4 + t * 3, 3 - t * 3 > 0 ? 3 - t * 3 : 0.1]);
+        }
+        animationId = requestAnimationFrame(animateDash);
+      }
+      animationId = requestAnimationFrame(animateDash);
 
       return () => {
-        stopPopupRef.current?.remove();
+        cancelAnimationFrame(animationId);
         mapRef.current = null;
         map.remove();
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Update theme
+    // ─── Theme changes ───────────────────────────────────────────────────
     useEffect(() => {
       const map = mapRef.current;
       if (!map) return;
 
-      const applyStyle = () => {
-        map.setStyle(getMapStyle(theme));
-        map.once("style.load", () => {
-          if (routesRef.current) {
-            addRouteLayers(map, factoriesRef.current);
-          }
-          addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
-          if (liveShipmentsRef.current.length > 0) {
-            addLiveShipmentLayers(map, liveShipmentsRef.current);
-          }
-        });
-      };
+      map.setStyle(getMapStyle(theme));
+      map.once("style.load", async () => {
+        await registerVehicleIcons(map);
+        addVehicleLayers(map, vehiclesRef.current);
+        addUserLocation(map);
 
-      if (map.isStyleLoaded()) {
-        applyStyle();
-      } else {
-        map.once("style.load", applyStyle);
-      }
+        if (selectedRef.current) {
+          const v = vehiclesRef.current.find((v) => v.orderId === selectedRef.current);
+          if (v) showSelectedRoute(map, v);
+        }
+      });
     }, [theme]);
 
-    // Update data / clustering / routes
+    // ─── Update vehicles data ────────────────────────────────────────────
     useEffect(() => {
       const map = mapRef.current;
       if (!map || !map.isStyleLoaded()) return;
 
-      // Remove everything and re-add
-      removeLiveShipmentLayers(map);
-      removeRouteLayers(map);
-      removeSourceAndLayers(map);
+      const data = vehiclesToGeoJSON(vehicles);
+      if (map.getSource(VEHICLES_SOURCE)) {
+        (map.getSource(VEHICLES_SOURCE) as maplibregl.GeoJSONSource).setData(data);
+      }
 
-      if (routesEnabled) {
-        addRouteLayers(map, factories);
+      // Update icon expressions for selection state
+      if (map.getLayer(VEHICLE_LAYER)) {
+        map.setLayoutProperty(VEHICLE_LAYER, "icon-image", [
+          "case",
+          ["==", ["get", "orderId"], selectedVehicleId ?? ""],
+          ["concat", "vehicle-", ["get", "vehicleType"], "-selected"],
+          ["concat", "vehicle-", ["get", "vehicleType"], "-default"],
+        ]);
       }
-      addSourceAndLayers(map, factories, clusteringEnabled);
-      if (liveShipments.length > 0) {
-        addLiveShipmentLayers(map, liveShipments);
+    }, [vehicles, selectedVehicleId]);
+
+    // ─── Show/hide route on selection change ─────────────────────────────
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !map.isStyleLoaded()) return;
+
+      hideSelectedRoute(map);
+
+      if (selectedVehicleId) {
+        const vehicle = vehicles.find((v) => v.orderId === selectedVehicleId);
+        if (vehicle) {
+          showSelectedRoute(map, vehicle);
+          // Pan to vehicle
+          map.easeTo({
+            center: [vehicle.lng, vehicle.lat],
+            zoom: Math.max(map.getZoom(), 4),
+            duration: 600,
+          });
+        }
       }
-    }, [factories, clusteringEnabled, routesEnabled, liveShipments]);
+    }, [selectedVehicleId, vehicles]);
 
     return (
       <div

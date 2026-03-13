@@ -1,4 +1,4 @@
-import type { MapFactory, LiveShipment } from "./types";
+import type { MapFactory, LiveShipment, MapVehicle } from "./types";
 import {
   buildShippingRoute,
   getRouteColor,
@@ -196,5 +196,68 @@ export function liveShipmentsGeoJSON(shipments: LiveShipment[]): GeoJSON.Feature
         factoryId: s.factoryId,
       },
     })),
+  };
+}
+
+/**
+ * Generate GeoJSON points for vehicle markers (FlightRadar style).
+ */
+export function vehiclesToGeoJSON(vehicles: MapVehicle[]): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: vehicles.map((v) => ({
+      type: "Feature" as const,
+      geometry: {
+        type: "Point" as const,
+        coordinates: [v.lng, v.lat],
+      },
+      properties: {
+        orderId: v.orderId,
+        orderNumber: v.orderNumber,
+        vehicleType: v.vehicleType,
+        bearing: v.bearing,
+        status: v.status,
+        carrier: v.carrier ?? "",
+        trackingNumber: v.trackingNumber ?? "",
+      },
+    })),
+  };
+}
+
+/**
+ * Generate GeoJSON for a selected vehicle's route (magenta line + blue stop dots).
+ */
+export function selectedRouteGeoJSON(vehicle: MapVehicle): {
+  lines: GeoJSON.FeatureCollection;
+  stops: GeoJSON.FeatureCollection;
+} {
+  const lineFeatures: GeoJSON.Feature[] = vehicle.routeSegments.map((seg) => ({
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: seg.coordinates,
+    },
+    properties: {
+      transportMethod: seg.transportMethod,
+    },
+  }));
+
+  const stopFeatures: GeoJSON.Feature[] = vehicle.routeStops.map((stop) => ({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: stop.coords,
+    },
+    properties: {
+      name: stop.name,
+      type: stop.type,
+      description: stop.description,
+      icon: stop.icon,
+    },
+  }));
+
+  return {
+    lines: { type: "FeatureCollection", features: lineFeatures },
+    stops: { type: "FeatureCollection", features: stopFeatures },
   };
 }
