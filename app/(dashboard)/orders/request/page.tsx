@@ -60,6 +60,7 @@ function OrderRequestForm() {
   ]);
 
   // Form state
+  const [orderNumber, setOrderNumber] = useState("");
   const [productName, setProductName] = useState("");
   const [productSKU, setProductSKU] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -132,6 +133,7 @@ function OrderRequestForm() {
         body: JSON.stringify({
           type: "ORDER_REQUEST",
           data: {
+            orderNumber: orderNumber.trim() || undefined,
             productName: productName.trim(),
             productSKU: productSKU.trim() || undefined,
             quantity: parseInt(quantity),
@@ -218,14 +220,24 @@ function OrderRequestForm() {
             <CardDescription>Describe the order you&apos;d like to place</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="productName">Product Name *</Label>
+              <Input
+                id="productName"
+                placeholder="Summer T-Shirt Collection"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="productName">Product Name *</Label>
+                <Label htmlFor="orderNumber">Order Number</Label>
                 <Input
-                  id="productName"
-                  placeholder="Summer T-Shirt Collection"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
+                  id="orderNumber"
+                  placeholder="PO-2026-0042"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -309,7 +321,7 @@ function OrderRequestForm() {
         <Card>
           <CardHeader>
             <CardTitle>Timeline</CardTitle>
-            <CardDescription>Preferred dates (admin may adjust)</CardDescription>
+            <CardDescription>Preferred dates (can be adjusted)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">

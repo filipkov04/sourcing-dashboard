@@ -32,6 +32,14 @@ export async function GET() {
         factory: {
           select: { name: true },
         },
+        stages: {
+          select: {
+            status: true,
+            expectedStartDate: true,
+            expectedEndDate: true,
+          },
+          orderBy: { sequence: "asc" },
+        },
       },
       orderBy: { expectedDate: "asc" },
       take: 8,
@@ -42,9 +50,26 @@ export async function GET() {
       const diffMs = expectedMs - now.getTime();
       const daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
+      // Check if any stage is overdue or already marked delayed/blocked
+      const hasOverdueStage = order.stages.some((s) => {
+        if (s.status === "DELAYED" || s.status === "BLOCKED") return true;
+        if (s.status === "NOT_STARTED") {
+          const ref = s.expectedStartDate ?? s.expectedEndDate;
+          return ref && new Date(ref) < now;
+        }
+        if (s.status === "IN_PROGRESS" && s.expectedEndDate) {
+          return new Date(s.expectedEndDate) < now;
+        }
+        return false;
+      });
+
+      const isOrderDelayed = order.status === "DELAYED" || order.status === "DISRUPTED";
+
       let urgency: "overdue" | "critical" | "soon" | "on-track";
       if (daysRemaining < 0) {
         urgency = "overdue";
+      } else if (hasOverdueStage || isOrderDelayed) {
+        urgency = "critical";
       } else if (daysRemaining <= 3) {
         urgency = "critical";
       } else if (daysRemaining <= 7) {

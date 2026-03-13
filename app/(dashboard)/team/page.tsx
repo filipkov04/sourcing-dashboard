@@ -406,7 +406,7 @@ export default function TeamPage() {
       )}
 
       {/* Team Stats */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         Overview
       </p>
       <div className="grid gap-4 sm:grid-cols-4">
@@ -470,7 +470,7 @@ export default function TeamPage() {
       </div>
 
       {/* Team Members Table */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         Roster
       </p>
       <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">

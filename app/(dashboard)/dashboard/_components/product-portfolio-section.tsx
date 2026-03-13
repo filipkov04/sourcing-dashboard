@@ -37,7 +37,6 @@ export function ProductPortfolioSection() {
     fetchPortfolio();
   }, []);
 
-  const totalProducts = portfolioData.length;
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-5 dark:bg-[#0d0f13] dark:border-zinc-800/60 card-hover-glow">
@@ -73,9 +72,6 @@ export function ProductPortfolioSection() {
               )}
             </AnimatedChartContainer>
           </div>
-          <p className="mt-3 text-[11px] text-gray-400 dark:text-zinc-500 text-center">
-            Total Products: {totalProducts}
-          </p>
         </>
       ) : (
         <div className="h-[140px] flex items-center justify-center text-xs text-gray-500 dark:text-zinc-400">

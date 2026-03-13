@@ -231,7 +231,7 @@ export function DashboardStatsCards() {
       {/* Period Selector */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+          <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
             Overview
           </p>
           {timeAgoText && (

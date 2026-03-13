@@ -212,13 +212,15 @@ export function useConversationDetail(id: string | null) {
 export async function sendMessage(
   conversationId: string,
   content: string,
-  files?: File[]
+  files?: File[],
+  messageType?: "TEXT" | "REQUEST"
 ) {
   let res: Response;
 
   if (files && files.length > 0) {
     const formData = new FormData();
     formData.append("content", content);
+    if (messageType) formData.append("messageType", messageType);
     for (const file of files) {
       formData.append("files", file);
     }
@@ -230,7 +232,7 @@ export async function sendMessage(
     res = await fetch(`/api/conversations/${conversationId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, ...(messageType ? { messageType } : {}) }),
     });
   }
 

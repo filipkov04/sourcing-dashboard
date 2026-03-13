@@ -17,8 +17,8 @@ export function OrdersByStatusChart({ data }: { data: OrdersByStatusData }) {
   return (
     <div className="flex items-center gap-6">
       {/* Donut Chart */}
-      <div className="w-[160px] h-[160px] flex-shrink-0">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="flex-shrink-0">
+        <ResponsiveContainer width={160} height={160}>
           <PieChart>
             <Pie
               data={data}

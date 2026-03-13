@@ -254,8 +254,8 @@
 
   .hud-section-label::before {
     content: "";
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: linear-gradient(135deg, #94a3b8, #cbd5e1);
     flex-shrink: 0;

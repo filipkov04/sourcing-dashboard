@@ -168,7 +168,7 @@ export default function TimelinePage() {
       {/* Stats Strip */}
       {!isLoading && orders.length > 0 && (
         <>
-        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
           Overview
         </p>
         <div className="flex gap-3 flex-wrap">
@@ -219,7 +219,7 @@ export default function TimelinePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select name="timeline-status-filter" value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -237,7 +237,7 @@ export default function TimelinePage() {
           </Select>
 
           {/* Factory Filter */}
-          <Select value={factoryFilter} onValueChange={setFactoryFilter}>
+          <Select name="timeline-factory-filter" value={factoryFilter} onValueChange={setFactoryFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Factory" />
             </SelectTrigger>
@@ -252,7 +252,7 @@ export default function TimelinePage() {
           </Select>
 
           {/* Priority Filter */}
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <Select name="timeline-priority-filter" value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
@@ -267,8 +267,10 @@ export default function TimelinePage() {
 
           {/* Date Range: From */}
           <div>
-            <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">From</label>
+            <label htmlFor="timeline-date-from" className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">From</label>
             <Input
+              id="timeline-date-from"
+              name="timeline-date-from"
               type="month"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
@@ -278,8 +280,10 @@ export default function TimelinePage() {
 
           {/* Date Range: To */}
           <div>
-            <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">To</label>
+            <label htmlFor="timeline-date-to" className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">To</label>
             <Input
+              id="timeline-date-to"
+              name="timeline-date-to"
               type="month"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
@@ -291,7 +295,7 @@ export default function TimelinePage() {
       </div>
 
       {/* Gantt Chart */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         Gantt View
       </p>
       <div className="bg-white dark:bg-[#0d0f13] rounded-xl border border-gray-100 dark:border-zinc-800/60 p-4 overflow-hidden card-hover-glow hud-corners">

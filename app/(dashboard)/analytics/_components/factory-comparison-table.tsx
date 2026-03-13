@@ -15,21 +15,23 @@ type FactoryLeadTime = {
   variance: number;
 };
 
-type FactoryBreakdown = {
+type FactoryDelayStats = {
   factoryId: string;
   factoryName: string;
-  totalAvgDuration: number;
-  stages: Array<{ stageName: string; avgDuration: number }>;
+  totalOrders: number;
+  delayedCount: number;
+  delayRate: number;
+  avgDaysLate: number;
 };
 
 interface FactoryComparisonTableProps {
   leadTimeData: FactoryLeadTime[];
-  stageData: FactoryBreakdown[];
+  delayData: FactoryDelayStats[];
 }
 
-type SortKey = "name" | "leadTime" | "variance" | "orders" | "stageDuration";
+type SortKey = "name" | "leadTime" | "variance" | "orders" | "delayRate" | "avgLate";
 
-export function FactoryComparisonTable({ leadTimeData, stageData }: FactoryComparisonTableProps) {
+export function FactoryComparisonTable({ leadTimeData, delayData }: FactoryComparisonTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("leadTime");
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -41,13 +43,17 @@ export function FactoryComparisonTable({ leadTimeData, stageData }: FactoryCompa
     );
   }
 
-  // Merge lead time + stage duration data
-  const stageDurationMap = new Map(stageData.map((s) => [s.factoryId, s.totalAvgDuration]));
+  // Merge lead time + delay data
+  const delayMap = new Map(delayData.map((d) => [d.factoryId, d]));
 
-  const merged = leadTimeData.map((lt) => ({
-    ...lt,
-    totalStageDuration: stageDurationMap.get(lt.factoryId) || 0,
-  }));
+  const merged = leadTimeData.map((lt) => {
+    const delay = delayMap.get(lt.factoryId);
+    return {
+      ...lt,
+      delayRate: delay?.delayRate ?? 0,
+      avgDaysLate: delay?.avgDaysLate ?? 0,
+    };
+  });
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -65,7 +71,8 @@ export function FactoryComparisonTable({ leadTimeData, stageData }: FactoryCompa
       case "leadTime": diff = a.avgLeadTime - b.avgLeadTime; break;
       case "variance": diff = a.variance - b.variance; break;
       case "orders": diff = a.orderCount - b.orderCount; break;
-      case "stageDuration": diff = a.totalStageDuration - b.totalStageDuration; break;
+      case "delayRate": diff = a.delayRate - b.delayRate; break;
+      case "avgLate": diff = a.avgDaysLate - b.avgDaysLate; break;
     }
     return sortAsc ? diff : -diff;
   });
@@ -93,7 +100,8 @@ export function FactoryComparisonTable({ leadTimeData, stageData }: FactoryCompa
               <SortHeader label="Avg Lead Time" sk="leadTime" />
               <th className="text-left py-2.5 px-3 font-medium text-gray-500 dark:text-zinc-400">Range</th>
               <SortHeader label="Variance" sk="variance" />
-              <SortHeader label="Stage Duration" sk="stageDuration" />
+              <SortHeader label="Delay Rate" sk="delayRate" />
+              <SortHeader label="Avg Late" sk="avgLate" />
               <SortHeader label="Orders" sk="orders" />
             </tr>
           </thead>
@@ -117,7 +125,21 @@ export function FactoryComparisonTable({ leadTimeData, stageData }: FactoryCompa
                     {row.variance > 0 ? "+" : ""}{row.variance}d
                   </Badge>
                 </td>
-                <td className="py-2.5 px-3 tabular-nums text-gray-700 dark:text-zinc-300">{row.totalStageDuration}d</td>
+                <td className="py-2.5 px-3">
+                  <Badge
+                    variant="outline"
+                    className={
+                      row.delayRate > 15
+                        ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
+                        : row.delayRate > 5
+                        ? "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+                        : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800"
+                    }
+                  >
+                    {row.delayRate}%
+                  </Badge>
+                </td>
+                <td className="py-2.5 px-3 tabular-nums text-gray-700 dark:text-zinc-300">{row.avgDaysLate}d</td>
                 <td className="py-2.5 px-3 tabular-nums text-gray-500 dark:text-zinc-400">{row.orderCount}</td>
               </tr>
             ))}

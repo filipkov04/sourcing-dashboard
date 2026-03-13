@@ -22,6 +22,7 @@ import { MessageInput } from "./message-input";
 import { ThreadPanel } from "./thread-panel";
 import { ConversationSearchBar, GlobalSearchPanel } from "./search-panel";
 import { ForwardDialog } from "./forward-dialog";
+import type { RequestCardData } from "./request-card";
 import { NewDMDialog } from "./new-dm-dialog";
 import { MediaLightbox } from "./media-lightbox";
 import { VoiceRecorderUI } from "./voice-recorder-ui";
@@ -47,6 +48,7 @@ export function MessagesPage() {
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [mobileView, setMobileView] = useState<"sidebar" | "chat">("sidebar");
+  const [attachedRequest, setAttachedRequest] = useState<RequestCardData | null>(null);
 
   // Typing state
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,6 +86,28 @@ export function MessagesPage() {
       setSelectedConversationId(cid);
       setMobileView("chat");
     }
+  }, [searchParams]);
+
+  // Deep link: read ?rid= to attach a request to the message input
+  useEffect(() => {
+    const rid = searchParams.get("rid");
+    if (!rid) return;
+    fetch(`/api/requests/${rid}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.data) {
+          setAttachedRequest({
+            id: json.data.id,
+            type: json.data.type,
+            status: json.data.status,
+            data: json.data.data,
+            requester: json.data.requester,
+            targetOrder: json.data.targetOrder ?? null,
+            targetFactory: json.data.targetFactory ?? null,
+          });
+        }
+      })
+      .catch(() => {});
   }, [searchParams]);
 
   // Poll typing status when in active chat
@@ -145,10 +169,19 @@ export function MessagesPage() {
     setMobileView("chat");
   }, []);
 
-  const handleSendMessage = useCallback(async (content: string, files: File[]) => {
+  const handleSendMessage = useCallback(async (content: string, files: File[], requestAttachment?: RequestCardData) => {
     if (!selectedConversationId) return;
     try {
-      await sendMessage(selectedConversationId, content, files.length > 0 ? files : undefined);
+      let msgContent = content;
+      let msgType: "TEXT" | "REQUEST" = "TEXT";
+
+      if (requestAttachment) {
+        msgContent = JSON.stringify({ _requestCard: requestAttachment, text: content || null });
+        msgType = "REQUEST";
+      }
+
+      await sendMessage(selectedConversationId, msgContent, files.length > 0 ? files : undefined, msgType);
+      setAttachedRequest(null);
       await refreshChat();
       refreshConversations();
     } catch (err) {
@@ -324,6 +357,8 @@ export function MessagesPage() {
                   editingMessage={editingMessage}
                   onEditCancel={() => setEditingMessage(null)}
                   onEditSave={handleEditSave}
+                  attachedRequest={attachedRequest}
+                  onDismissRequest={() => setAttachedRequest(null)}
                 />
               )}
             </div>

@@ -389,6 +389,8 @@ export default function OrdersPage() {
           <div className="lg:col-span-2 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
             <Input
+              id="order-search"
+              name="order-search"
               placeholder="Search orders..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -398,7 +400,7 @@ export default function OrdersPage() {
 
           {/* Status Filter */}
           {mounted ? (
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select name="order-status-filter" value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -420,7 +422,7 @@ export default function OrdersPage() {
 
           {/* Factory Filter */}
           {mounted ? (
-            <Select value={factoryFilter} onValueChange={setFactoryFilter}>
+            <Select name="order-factory-filter" value={factoryFilter} onValueChange={setFactoryFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Factory" />
               </SelectTrigger>
@@ -439,7 +441,7 @@ export default function OrdersPage() {
 
           {/* Priority Filter */}
           {mounted ? (
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <Select name="order-priority-filter" value={priorityFilter} onValueChange={setPriorityFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
@@ -486,7 +488,7 @@ export default function OrdersPage() {
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
             {selectedIds.size} order{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
-          <Select value={bulkStatus} onValueChange={setBulkStatus}>
+          <Select name="order-bulk-status" value={bulkStatus} onValueChange={setBulkStatus}>
             <SelectTrigger className="w-44 h-8 text-sm">
               <SelectValue placeholder="Set status..." />
             </SelectTrigger>
@@ -519,7 +521,7 @@ export default function OrdersPage() {
       )}
 
       {/* Orders Table */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         Order Registry
       </p>
       <div className="bg-white dark:bg-[#0d0f13] rounded-xl border border-gray-100 dark:border-zinc-800/60 overflow-x-auto card-hover-glow">

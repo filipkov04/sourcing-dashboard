@@ -8,7 +8,8 @@ import { AnimatedNumber } from "@/components/animated-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LeadTimeChart } from "./_components/lead-time-chart";
-import { StageDurationChart } from "./_components/stage-duration-chart";
+import { DelayAnalysisChart } from "./_components/delay-analysis-chart";
+import { HistoricalDelayChart } from "./_components/historical-delay-chart";
 import { FactoryComparisonTable } from "./_components/factory-comparison-table";
 import { ForecastTimeline } from "./_components/forecast-timeline";
 import { CustomChartsTab } from "./_components/custom-charts-tab";
@@ -20,10 +21,59 @@ type LeadTimeData = {
   byProduct: any[];
 };
 
-type StageDurationData = {
-  overall: any[];
-  bottleneck: string | null;
-  byFactory: any[];
+type DelayAnalysisData = {
+  summary: { totalOrders: number; delayedOrders: number; delayRate: number; avgDaysLate: number };
+  byFactory: Array<{
+    factoryId: string;
+    factoryName: string;
+    totalOrders: number;
+    delayedCount: number;
+    delayRate: number;
+    avgDaysLate: number;
+  }>;
+  byStage: Array<{
+    stageName: string;
+    delayedCount: number;
+    blockedCount: number;
+    totalIncidents: number;
+    orders: Array<{ orderId: string; orderNumber: string; productName: string; factoryName: string; status: string }>;
+  }>;
+  trend: Array<{ month: string; totalOrders: number; delayedOrders: number; delayRate: number }>;
+};
+
+type HistoricalDelayData = {
+  summary: {
+    totalCompletedOrders: number;
+    lateOrders: number;
+    lateRate: number;
+    avgDaysLate: number;
+    avgResolutionDays: number;
+  };
+  byFactory: Array<{
+    factoryId: string;
+    factoryName: string;
+    completedOrders: number;
+    lateOrders: number;
+    lateRate: number;
+    avgDaysLate: number;
+  }>;
+  byStage: Array<{
+    stageName: string;
+    delayIncidents: number;
+    avgResolutionDays: number;
+    reasons: Array<{ content: string; orderId: string; orderNumber: string; factoryName: string }>;
+    orders: Array<{ orderId: string; orderNumber: string; productName: string; factoryName: string; delayType: string; incidentCount: number }>;
+  }>;
+  recentLateOrders: Array<{
+    orderId: string;
+    orderNumber: string;
+    productName: string;
+    factoryName: string;
+    expectedDate: string;
+    actualDate: string;
+    daysLate: number;
+    delayedStages: Array<{ stageName: string; reason: string | null; delayDays: number }>;
+  }>;
 };
 
 type ForecastData = {
@@ -42,7 +92,8 @@ type DailyStat = {
 export default function AnalyticsPage() {
   const { data: session } = useSession();
   const [leadTime, setLeadTime] = useState<LeadTimeData | null>(null);
-  const [stageDuration, setStageDuration] = useState<StageDurationData | null>(null);
+  const [delayAnalysis, setDelayAnalysis] = useState<DelayAnalysisData | null>(null);
+  const [historicalDelays, setHistoricalDelays] = useState<HistoricalDelayData | null>(null);
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,22 +101,25 @@ export default function AnalyticsPage() {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [ltRes, sdRes, fcRes, dsRes] = await Promise.all([
+        const [ltRes, sdRes, hdRes, fcRes, dsRes] = await Promise.all([
           fetch("/api/dashboard/lead-time"),
-          fetch("/api/dashboard/stage-duration"),
+          fetch("/api/dashboard/delay-analysis"),
+          fetch("/api/dashboard/historical-delays"),
           fetch("/api/dashboard/forecasting"),
           fetch("/api/dashboard/daily-stats"),
         ]);
 
-        const [ltData, sdData, fcData, dsData] = await Promise.all([
+        const [ltData, sdData, hdData, fcData, dsData] = await Promise.all([
           ltRes.json(),
           sdRes.json(),
+          hdRes.json(),
           fcRes.json(),
           dsRes.json(),
         ]);
 
         if (ltData.success) setLeadTime(ltData.data);
-        if (sdData.success) setStageDuration(sdData.data);
+        if (sdData.success) setDelayAnalysis(sdData.data);
+        if (hdData.success) setHistoricalDelays(hdData.data);
         if (fcData.success) setForecast(fcData.data);
         if (dsData.success) setDailyStats(dsData.data);
       } catch (error) {
@@ -155,7 +209,7 @@ export default function AnalyticsPage() {
 
             {/* Lead Time Analysis */}
             <ScrollReveal>
-              <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+              <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
                 Lead Time
               </p>
               <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
@@ -167,19 +221,29 @@ export default function AnalyticsPage() {
               </Card>
             </ScrollReveal>
 
-            {/* Stage Duration */}
+            {/* Delay Analysis */}
             <ScrollReveal>
-              <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
-                Stage Duration
+              <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
+                Delay Analysis
               </p>
               <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
                 <CardContent className="pt-6">
-                  {stageDuration && (
-                    <StageDurationChart
-                      overall={stageDuration.overall}
-                      bottleneck={stageDuration.bottleneck}
-                      byFactory={stageDuration.byFactory}
-                    />
+                  {delayAnalysis && (
+                    <DelayAnalysisChart data={delayAnalysis} />
+                  )}
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+
+            {/* Historical Delays */}
+            <ScrollReveal>
+              <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
+                Historical Delays
+              </p>
+              <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
+                <CardContent className="pt-6">
+                  {historicalDelays && (
+                    <HistoricalDelayChart data={historicalDelays} />
                   )}
                 </CardContent>
               </Card>
@@ -187,15 +251,15 @@ export default function AnalyticsPage() {
 
             {/* Factory Comparison Table */}
             <ScrollReveal>
-              <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+              <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
                 Factory Comparison
               </p>
               <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
                 <CardContent className="pt-6">
-                  {leadTime && stageDuration && (
+                  {leadTime && delayAnalysis && (
                     <FactoryComparisonTable
                       leadTimeData={leadTime.byFactory}
-                      stageData={stageDuration.byFactory}
+                      delayData={delayAnalysis.byFactory}
                     />
                   )}
                 </CardContent>
@@ -204,7 +268,7 @@ export default function AnalyticsPage() {
 
             {/* Production Forecast */}
             <ScrollReveal>
-              <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+              <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
                 Forecast
               </p>
               <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
@@ -218,7 +282,7 @@ export default function AnalyticsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="custom" forceMount className="data-[state=inactive]:hidden mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 dark:ring-offset-zinc-950 dark:focus-visible:ring-zinc-300">
+        <TabsContent value="custom">
           <CustomChartsTab userId={session?.user?.id || ""} />
         </TabsContent>
       </Tabs>
@@ -273,8 +337,8 @@ function SummaryCard({
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">{subtitle}</p>
         </div>
         {sparklineData && sparklineData.length > 0 && (
-          <div className="w-20 h-10 opacity-60">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="opacity-60">
+            <ResponsiveContainer width={80} height={40}>
               <AreaChart data={sparklineData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                 <defs>
                   <linearGradient id={`spark-${label.replace(/\s/g, "")}`} x1="0" y1="0" x2="0" y2="1">

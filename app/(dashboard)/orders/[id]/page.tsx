@@ -459,6 +459,13 @@ export default function OrderDetailPage() {
   // Expanded stages (for viewing notes/delay info)
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set());
 
+  // Delay reason state
+  const [delayReasons, setDelayReasons] = useState<Record<string, Array<{ id: string; content: string; authorId: string; authorName: string | null; createdAt: string }>>>({});
+  const [delayReasonInput, setDelayReasonInput] = useState<Record<string, string>>({});
+  const [isSavingDelayReason, setIsSavingDelayReason] = useState(false);
+  const [editingDelayReasonId, setEditingDelayReasonId] = useState<string | null>(null);
+  const [editingDelayReasonContent, setEditingDelayReasonContent] = useState("");
+
   // Timeline refresh trigger — increment to refetch timeline events
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
@@ -541,6 +548,117 @@ export default function OrderDetailPage() {
       fetchAdminNotes();
     }
   }, [params.id]);
+
+  // Fetch delay reasons for DELAYED/BLOCKED stages
+  useEffect(() => {
+    async function fetchDelayReasons() {
+      if (!order) return;
+      const delayedStages = order.stages.filter(
+        (s) => s.status === "DELAYED" || s.status === "BLOCKED"
+      );
+      if (delayedStages.length === 0) return;
+
+      const results: Record<string, Array<{ id: string; content: string; authorId: string; authorName: string | null; createdAt: string }>> = {};
+      await Promise.all(
+        delayedStages.map(async (stage) => {
+          try {
+            const res = await fetch(`/api/orders/${order.id}/stages/${stage.id}/delay-reason`);
+            const data = await res.json();
+            if (data.success) {
+              results[stage.id] = data.data;
+            }
+          } catch {
+            // Silently fail
+          }
+        })
+      );
+      setDelayReasons(results);
+    }
+    fetchDelayReasons();
+  }, [order?.id, order?.stages]);
+
+  // Delay reason error feedback
+  const [delayReasonError, setDelayReasonError] = useState<string | null>(null);
+
+  async function submitDelayReason(stageId: string) {
+    const content = delayReasonInput[stageId]?.trim();
+    if (!content || !order) return;
+
+    setIsSavingDelayReason(true);
+    setDelayReasonError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/stages/${stageId}/delay-reason`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDelayReasons((prev) => ({
+          ...prev,
+          [stageId]: [data.data, ...(prev[stageId] || [])],
+        }));
+        setDelayReasonInput((prev) => ({ ...prev, [stageId]: "" }));
+      } else {
+        console.error("Delay reason API error:", data);
+        setDelayReasonError(data.error || "Failed to submit delay reason");
+      }
+    } catch (err) {
+      console.error("Failed to submit delay reason:", err);
+      setDelayReasonError("Network error — failed to submit");
+    } finally {
+      setIsSavingDelayReason(false);
+    }
+  }
+
+  async function updateDelayReason(stageId: string, noteId: string) {
+    const content = editingDelayReasonContent.trim();
+    if (!content || !order) return;
+
+    setIsSavingDelayReason(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/stages/${stageId}/delay-reason`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteId, content }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDelayReasons((prev) => ({
+          ...prev,
+          [stageId]: prev[stageId].map((r) => r.id === noteId ? { ...r, content } : r),
+        }));
+        setEditingDelayReasonId(null);
+        setEditingDelayReasonContent("");
+      }
+    } catch {
+      console.error("Failed to update delay reason");
+    } finally {
+      setIsSavingDelayReason(false);
+    }
+  }
+
+  async function deleteDelayReason(stageId: string, noteId: string) {
+    if (!order) return;
+
+    setIsSavingDelayReason(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/stages/${stageId}/delay-reason?noteId=${noteId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDelayReasons((prev) => ({
+          ...prev,
+          [stageId]: prev[stageId].filter((r) => r.id !== noteId),
+        }));
+      }
+    } catch {
+      console.error("Failed to delete delay reason");
+    } finally {
+      setIsSavingDelayReason(false);
+    }
+  }
 
   // Drag-and-drop for metadata field reordering (hooks must be before early returns)
   const metadataSensors = useSensors(
@@ -754,12 +872,17 @@ export default function OrderDetailPage() {
 
     setIsSavingStage(true);
     try {
+      // When setting 100%, explicitly mark as COMPLETED so it works
+      // even if the stage was previously DELAYED/BLOCKED
+      const payload: Record<string, unknown> = { progress };
+      if (progress === 100) payload.status = "COMPLETED";
+
       const response = await fetch(
         `/api/orders/${order.id}/stages/${stageId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ progress }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -1104,7 +1227,7 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         Details
       </p>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1339,7 +1462,7 @@ export default function OrderDetailPage() {
       {/* Production Pipeline */}
       {order.stages && order.stages.length > 0 && (
         <>
-        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
           Production
         </p>
         <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
@@ -1560,7 +1683,15 @@ export default function OrderDetailPage() {
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => setEditingProgress(val)}
+                              onClick={() => {
+                                setEditingProgress(val);
+                                // Auto-sync status with progress for non-problem states
+                                if (editingStatus !== "DELAYED" && editingStatus !== "BLOCKED") {
+                                  if (val === 0) setEditingStatus("NOT_STARTED");
+                                  else if (val === 100) setEditingStatus("COMPLETED");
+                                  else setEditingStatus("IN_PROGRESS");
+                                }
+                              }}
                               className={`h-6 px-2 text-xs ${
                                 editingProgress === val
                                   ? "bg-blue-900/50 border-blue-500"
@@ -1797,6 +1928,172 @@ export default function OrderDetailPage() {
                             </button>
                           )}
 
+                        {/* Delay Reason Section — visible to MEMBER+ on DELAYED/BLOCKED stages */}
+                        {(stage.status === "DELAYED" || stage.status === "BLOCKED") && (
+                          <div
+                            className={`p-4 rounded-lg mb-3 ${
+                              stage.status === "DELAYED"
+                                ? "bg-orange-50 dark:bg-orange-950/30 border-2 border-orange-300 dark:border-orange-700/60"
+                                : "bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <AlertTriangle className={`h-4.5 w-4.5 ${stage.status === "DELAYED" ? "text-orange-600 dark:text-orange-400" : "text-red-600 dark:text-red-400"}`} />
+                              <span className={`text-sm font-semibold ${stage.status === "DELAYED" ? "text-orange-800 dark:text-orange-300" : "text-red-800 dark:text-red-300"}`}>
+                                {stage.status === "DELAYED" ? "Delay" : "Blocker"} Reasons
+                              </span>
+                            </div>
+
+                            {/* Existing delay reasons */}
+                            {delayReasons[stage.id]?.length > 0 ? (
+                              <div className="space-y-2.5 mb-3">
+                                {delayReasons[stage.id].map((reason) => {
+                                  const isOwn = reason.authorId === session?.user?.id;
+                                  const canModify = isOwn || isAdminOrOwner;
+                                  const isEditing = editingDelayReasonId === reason.id;
+
+                                  return (
+                                    <div
+                                      key={reason.id}
+                                      className={`group/reason flex items-start gap-2.5 p-2.5 rounded-md ${
+                                        stage.status === "DELAYED"
+                                          ? "bg-orange-100/60 dark:bg-orange-900/20"
+                                          : "bg-red-100/60 dark:bg-red-900/20"
+                                      }`}
+                                    >
+                                      <div className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                        stage.status === "DELAYED"
+                                          ? "bg-orange-200 dark:bg-orange-800/40"
+                                          : "bg-red-200 dark:bg-red-800/40"
+                                      }`}>
+                                        <User className={`h-3.5 w-3.5 ${
+                                          stage.status === "DELAYED"
+                                            ? "text-orange-700 dark:text-orange-300"
+                                            : "text-red-700 dark:text-red-300"
+                                        }`} />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        {isEditing ? (
+                                          <div className="space-y-2">
+                                            <Textarea
+                                              value={editingDelayReasonContent}
+                                              onChange={(e) => setEditingDelayReasonContent(e.target.value)}
+                                              className="text-sm min-h-[50px] resize-none bg-white dark:bg-zinc-900/60"
+                                              rows={2}
+                                              autoFocus
+                                            />
+                                            <div className="flex items-center gap-1.5">
+                                              <Button
+                                                size="sm"
+                                                onClick={() => updateDelayReason(stage.id, reason.id)}
+                                                disabled={isSavingDelayReason || !editingDelayReasonContent.trim()}
+                                                className="h-7 px-3 text-xs"
+                                              >
+                                                {isSavingDelayReason ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => { setEditingDelayReasonId(null); setEditingDelayReasonContent(""); }}
+                                                className="h-7 px-2 text-xs"
+                                              >
+                                                Cancel
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <p className="text-sm text-gray-900 dark:text-zinc-100 leading-snug">{reason.content}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                                                {reason.authorName || "Team"} &middot;{" "}
+                                                {new Date(reason.createdAt).toLocaleDateString("en-US", {
+                                                  month: "short",
+                                                  day: "numeric",
+                                                  hour: "numeric",
+                                                  minute: "2-digit",
+                                                })}
+                                              </p>
+                                              {canModify && (
+                                                <div className="flex items-center gap-0.5 opacity-0 group-hover/reason:opacity-100 transition-opacity">
+                                                  <button
+                                                    onClick={() => {
+                                                      setEditingDelayReasonId(reason.id);
+                                                      setEditingDelayReasonContent(reason.content);
+                                                    }}
+                                                    className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                                                    title="Edit"
+                                                  >
+                                                    <Pencil className="h-3 w-3" />
+                                                  </button>
+                                                  <button
+                                                    onClick={() => deleteDelayReason(stage.id, reason.id)}
+                                                    className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-gray-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400"
+                                                    title="Delete"
+                                                  >
+                                                    <Trash2 className="h-3 w-3" />
+                                                  </button>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className={`text-sm mb-3 ${
+                                stage.status === "DELAYED"
+                                  ? "text-orange-700 dark:text-orange-300/80"
+                                  : "text-red-700 dark:text-red-300/80"
+                              }`}>
+                                This stage was flagged as {stage.status === "DELAYED" ? "delayed" : "blocked"}. If you know the cause, please add a reason below.
+                              </p>
+                            )}
+
+                            {/* Delay reason input — visible to MEMBER+ (not VIEWER) */}
+                            {session?.user?.role !== "VIEWER" && (
+                              <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <Textarea
+                                    placeholder="What caused this delay?"
+                                    value={delayReasonInput[stage.id] || ""}
+                                    onChange={(e) =>
+                                      setDelayReasonInput((prev) => ({
+                                        ...prev,
+                                        [stage.id]: e.target.value,
+                                      }))
+                                    }
+                                    className="text-sm min-h-[70px] resize-none bg-white dark:bg-zinc-900/60 border-gray-300 dark:border-zinc-600"
+                                    rows={2}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => submitDelayReason(stage.id)}
+                                    disabled={isSavingDelayReason || !delayReasonInput[stage.id]?.trim()}
+                                    className={`flex-shrink-0 text-sm h-9 px-4 ${
+                                      stage.status === "DELAYED"
+                                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                                        : "bg-red-600 hover:bg-red-700 text-white"
+                                    }`}
+                                  >
+                                    {isSavingDelayReason ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      "Submit Reason"
+                                    )}
+                                  </Button>
+                                </div>
+                                {delayReasonError && (
+                                  <p className="text-sm text-red-600 dark:text-red-400">{delayReasonError}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Quick progress buttons (visible on hover via group) */}
                         {stage.status !== "COMPLETED" &&
                           stage.status !== "BLOCKED" && (
@@ -1988,7 +2285,7 @@ export default function OrderDetailPage() {
       )}
 
       {/* Activity Timeline */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         History
       </p>
       <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">

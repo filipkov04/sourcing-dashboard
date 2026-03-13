@@ -60,17 +60,22 @@ function getRiskLevel(order: GanttOrder): RiskLevel {
   // Past due and not complete → critical
   if (daysUntilDue < 0) return "critical";
 
-  // Due within 7 days and progress is behind where it should be → at-risk
+  // Check if progress is behind where it should be based on elapsed time
+  const orderStart = new Date(order.orderDate);
+  const totalDuration = Math.max(expected.getTime() - orderStart.getTime(), 1);
+  const elapsed = today.getTime() - orderStart.getTime();
+  const expectedProgress = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+
+  // Due within 7 days
   if (daysUntilDue <= 7) {
-    const orderStart = new Date(order.orderDate);
-    const totalDuration = Math.max(expected.getTime() - orderStart.getTime(), 1);
-    const elapsed = today.getTime() - orderStart.getTime();
-    const expectedProgress = Math.min(100, Math.round((elapsed / totalDuration) * 100));
     // If actual progress is more than 15% behind expected, it's at risk
     if (order.overallProgress < expectedProgress - 15) return "at-risk";
     // If due in ≤3 days and not at 90%+, at risk
     if (daysUntilDue <= 3 && order.overallProgress < 90) return "at-risk";
   }
+
+  // Even if >7 days out: 0% progress when >30% of time has elapsed → at-risk
+  if (order.overallProgress === 0 && expectedProgress >= 30) return "at-risk";
 
   return "none";
 }

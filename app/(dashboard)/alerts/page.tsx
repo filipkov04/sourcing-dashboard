@@ -284,7 +284,7 @@ export default function AlertsPage() {
         </div>
       ) : (
         <>
-        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
           Alert Feed
         </p>
         <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] divide-y divide-gray-50 dark:divide-zinc-800/50 overflow-hidden card-hover-glow hud-corners">

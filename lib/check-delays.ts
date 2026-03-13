@@ -17,7 +17,7 @@ export async function checkAndUpdateDelays(orderIds: string[]): Promise<string[]
   const orders = await prisma.order.findMany({
     where: {
       id: { in: orderIds },
-      status: { in: ["PENDING", "IN_PROGRESS"] },
+      status: { in: ["PENDING", "IN_PROGRESS", "DELAYED"] },
     },
     include: {
       stages: true,
@@ -30,14 +30,19 @@ export async function checkAndUpdateDelays(orderIds: string[]): Promise<string[]
 
     // Check each stage for overdue conditions
     for (const stage of order.stages) {
+      // Skip stages already delayed, blocked, completed, or skipped
+      if (["DELAYED", "BLOCKED", "COMPLETED", "SKIPPED"].includes(stage.status)) {
+        continue;
+      }
+
       let shouldDelay = false;
 
-      if (
-        stage.status === "NOT_STARTED" &&
-        stage.expectedStartDate &&
-        stage.expectedStartDate < now
-      ) {
-        shouldDelay = true;
+      if (stage.status === "NOT_STARTED") {
+        // Stage should have started (or finished) by now
+        const overdueRef = stage.expectedStartDate ?? stage.expectedEndDate;
+        if (overdueRef && overdueRef < now) {
+          shouldDelay = true;
+        }
       } else if (
         stage.status === "IN_PROGRESS" &&
         stage.expectedEndDate &&

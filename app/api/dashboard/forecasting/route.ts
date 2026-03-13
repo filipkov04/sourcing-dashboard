@@ -51,10 +51,13 @@ export async function GET() {
 
     const now = new Date();
 
+    const DAY_MS = 1000 * 60 * 60 * 24;
+
     const forecasts = activeOrders.map((order) => {
       const expectedDate = new Date(order.expectedDate);
       let cumulativeDeltaDays = 0;
       let hasStageData = false;
+      let hasProblemStage = false; // any DELAYED, BLOCKED, or overdue NOT_STARTED
 
       for (const stage of order.stages) {
         if (stage.status === "SKIPPED") continue;
@@ -67,40 +70,85 @@ export async function GET() {
           // Completed stage: delta = actual end - planned end
           const delta =
             (new Date(stage.completedAt).getTime() -
-              new Date(stage.expectedEndDate).getTime()) /
-            (1000 * 60 * 60 * 24);
+              new Date(stage.expectedEndDate).getTime()) / DAY_MS;
           cumulativeDeltaDays += delta;
           hasStageData = true;
-        } else if (
-          stage.status === "IN_PROGRESS" &&
-          stage.startedAt &&
-          stage.expectedStartDate
-        ) {
-          // In-progress stage: check if it started late/early
-          const startDelta =
-            (new Date(stage.startedAt).getTime() -
-              new Date(stage.expectedStartDate).getTime()) /
-            (1000 * 60 * 60 * 24);
-          cumulativeDeltaDays += startDelta;
-          hasStageData = true;
-        } else if (
-          stage.status === "NOT_STARTED" &&
-          stage.expectedStartDate &&
-          new Date(stage.expectedStartDate) < now
-        ) {
-          // Should have started but hasn't — count delay from expected start
-          const overdueDays =
-            (now.getTime() - new Date(stage.expectedStartDate).getTime()) /
-            (1000 * 60 * 60 * 24);
-          cumulativeDeltaDays += overdueDays;
-          hasStageData = true;
-          // Only count the first overdue not-started stage
-          break;
+        } else if (stage.status === "DELAYED" || stage.status === "BLOCKED") {
+          hasProblemStage = true;
+
+          // Check both start and end dates — use whichever gives the largest overdue
+          let maxOverdue = 0;
+
+          if (stage.expectedStartDate && new Date(stage.expectedStartDate) < now) {
+            maxOverdue = Math.max(
+              maxOverdue,
+              (now.getTime() - new Date(stage.expectedStartDate).getTime()) / DAY_MS
+            );
+          }
+
+          if (stage.expectedEndDate && new Date(stage.expectedEndDate) < now) {
+            maxOverdue = Math.max(
+              maxOverdue,
+              (now.getTime() - new Date(stage.expectedEndDate).getTime()) / DAY_MS
+            );
+          }
+
+          if (maxOverdue > 0) {
+            cumulativeDeltaDays += maxOverdue;
+            hasStageData = true;
+          } else {
+            // Stage is flagged DELAYED/BLOCKED but dates haven't passed yet —
+            // still a problem, add minimum 1 day so prediction shifts
+            cumulativeDeltaDays += 1;
+            hasStageData = true;
+          }
+        } else if (stage.status === "IN_PROGRESS") {
+          // In-progress stage: use the worse of start-delay vs end-overrun
+          let delta = 0;
+          let hasRef = false;
+
+          if (stage.startedAt && stage.expectedStartDate) {
+            delta =
+              (new Date(stage.startedAt).getTime() -
+                new Date(stage.expectedStartDate).getTime()) / DAY_MS;
+            hasRef = true;
+          }
+
+          // If stage should have ended by now, count the overrun from expectedEndDate
+          if (stage.expectedEndDate && new Date(stage.expectedEndDate) < now) {
+            const endOverrun =
+              (now.getTime() - new Date(stage.expectedEndDate).getTime()) / DAY_MS;
+            delta = Math.max(delta, endOverrun);
+            hasRef = true;
+          }
+
+          if (hasRef) {
+            cumulativeDeltaDays += delta;
+            hasStageData = true;
+          }
+        } else if (stage.status === "NOT_STARTED") {
+          // Should have started or finished but hasn't — count the delay
+          const overdueRef = stage.expectedStartDate
+            ? new Date(stage.expectedStartDate)
+            : stage.expectedEndDate
+              ? new Date(stage.expectedEndDate)
+              : null;
+
+          if (overdueRef && overdueRef < now) {
+            hasProblemStage = true;
+            const overdueDays =
+              (now.getTime() - overdueRef.getTime()) / DAY_MS;
+            cumulativeDeltaDays += overdueDays;
+            hasStageData = true;
+            // Only count the first overdue not-started stage
+            // (subsequent stages are blocked by this one)
+            break;
+          }
         }
       }
 
-      // Round to nearest day
-      cumulativeDeltaDays = Math.round(cumulativeDeltaDays);
+      // Ceiling — any partial day of delay counts as a full day impact
+      cumulativeDeltaDays = Math.ceil(cumulativeDeltaDays);
 
       let predictedCompletionDate: Date;
       let method: string;
@@ -128,6 +176,9 @@ export async function GET() {
 
       let risk: "on-track" | "at-risk" | "critical";
       if (isOverdue) {
+        risk = predictedDaysLate > 7 ? "critical" : "at-risk";
+      } else if (hasProblemStage) {
+        // A stage is DELAYED, BLOCKED, or overdue NOT_STARTED — never "on-track"
         risk = predictedDaysLate > 7 ? "critical" : "at-risk";
       } else if (predictedDaysLate <= 0) {
         risk = "on-track";

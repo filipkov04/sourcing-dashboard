@@ -197,52 +197,41 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
     ],
   },
   {
-    id: "stage-duration",
-    endpoint: "/api/dashboard/stage-duration",
-    name: "Stage Duration",
-    description: "How long each production stage takes",
+    id: "delay-analysis",
+    endpoint: "/api/dashboard/delay-analysis",
+    name: "Delay Analysis",
+    description: "Delay rates and problem stages by factory",
     category: "factories",
     compatibleCharts: ["BAR", "STACKED_BAR"],
     metrics: [
       {
-        id: "stageDurationAnalysis",
-        name: "Stage Duration Analysis",
-        description: "Average duration per production stage",
+        id: "delayByFactory",
+        name: "Delay Rate by Factory",
+        description: "Percentage of orders delayed per factory",
         transform: (data: any) => ({
-          chartData: (data.overall || []).map((s: any) => ({
-            name: s.stageName,
-            value: s.avgDuration,
+          chartData: (data.byFactory || []).map((f: any) => ({
+            name: f.factoryName,
+            value: f.delayRate,
           })),
           dataKeys: ["value"],
           nameKey: "name",
-          colors: [CHART_PALETTE[0]],
+          colors: [CHART_PALETTE[5]],
         }),
       },
       {
-        id: "stageDurationByFactory",
-        name: "Stage Duration by Factory",
-        description: "Stage durations compared across factories",
-        transform: (data: any) => {
-          const factories = data.byFactory || [];
-          const allStages = new Set<string>();
-          factories.forEach((f: any) =>
-            f.stages?.forEach((s: any) => allStages.add(s.stageName))
-          );
-          const stageNames = Array.from(allStages);
-          return {
-            chartData: factories.map((f: any) => {
-              const row: any = { name: f.factoryName };
-              stageNames.forEach((stage) => {
-                const found = f.stages?.find((s: any) => s.stageName === stage);
-                row[stage] = found ? found.avgDuration : 0;
-              });
-              return row;
-            }),
-            dataKeys: stageNames,
-            nameKey: "name",
-            colors: stageNames.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]),
-          };
-        },
+        id: "delayByStage",
+        name: "Incidents by Stage",
+        description: "Delayed and blocked incidents per production stage",
+        transform: (data: any) => ({
+          chartData: (data.byStage || []).map((s: any) => ({
+            name: s.stageName,
+            Delayed: s.delayedCount,
+            Blocked: s.blockedCount,
+          })),
+          dataKeys: ["Delayed", "Blocked"],
+          nameKey: "name",
+          colors: ["#f59e0b", "#ef4444"],
+        }),
       },
     ],
   },

@@ -320,7 +320,7 @@ export default function FactoryDetailPage() {
 
         return (
           <>
-          <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+          <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
             Performance
           </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -415,7 +415,7 @@ export default function FactoryDetailPage() {
       })()}
 
       {/* Factory & Contact Info — single condensed card */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
         Details
       </p>
       <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] card-hover-glow hud-corners">
@@ -486,7 +486,7 @@ export default function FactoryDetailPage() {
       </div>
 
       {/* Orders from this Factory */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
         Production
       </p>
       <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">

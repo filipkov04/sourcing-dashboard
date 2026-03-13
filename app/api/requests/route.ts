@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { success, created, error, unauthorized, validationError, handleError , projectScope } from "@/lib/api";
 
 const orderRequestDataSchema = z.object({
+  orderNumber: z.string().max(100).optional(),
   productName: z.string().min(1, "Product name is required").max(200),
   productSKU: z.string().max(100).optional(),
   quantity: z.number().int().min(1, "Quantity must be at least 1"),
@@ -232,7 +233,7 @@ export async function POST(req: NextRequest) {
 
       const adminUsers = await prisma.user.findMany({
         where: {
-          ...projectScope(session),
+          organizationId: session.user.organizationId,
           role: { in: ["OWNER", "ADMIN"] },
         },
         select: { id: true },

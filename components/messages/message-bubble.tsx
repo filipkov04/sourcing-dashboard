@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VoiceMessagePlayer } from "./voice-message-player";
+import { RequestCardBubble, type RequestCardData } from "./request-card";
 import type { Message } from "@/lib/use-conversations";
 
 /* ─── Quick emoji set ─── */
@@ -253,8 +254,36 @@ export function MessageBubble({
                 )
           )}
         >
-          {/* Hide auto-generated "Shared N file" text when all attachments are audio/voice */}
+          {/* Request card for REQUEST messages */}
+          {message.messageType === "REQUEST" && (() => {
+            try {
+              const parsed = JSON.parse(message.content);
+              if (parsed._requestCard) {
+                const textContent = parsed.text;
+                return (
+                  <>
+                    <RequestCardBubble request={parsed._requestCard as RequestCardData} isOwn={isOwn} />
+                    {textContent && (
+                      <p className="whitespace-pre-wrap break-words mt-2">{textContent}</p>
+                    )}
+                  </>
+                );
+              }
+            } catch {
+              // Not JSON — fall through to regular rendering
+            }
+            return null;
+          })()}
+          {/* Regular content — hide for REQUEST messages that rendered a card */}
           {(() => {
+            if (message.messageType === "REQUEST") {
+              try {
+                const parsed = JSON.parse(message.content);
+                if (parsed._requestCard) return null;
+              } catch {
+                // Not JSON — render as regular text
+              }
+            }
             const hasAttachments = message.attachments && message.attachments.length > 0;
             const allAudio = hasAttachments && message.attachments!.every((a) => a.fileType.startsWith("audio/"));
             const isAutoText = /^Shared \d+ files?$/.test(message.content);

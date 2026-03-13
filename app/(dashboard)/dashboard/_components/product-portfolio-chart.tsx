@@ -17,7 +17,7 @@ export function ProductPortfolioChart({ data }: { data: ProductPortfolioData }) 
     <div className="flex items-center gap-4">
       {/* Donut chart with center label */}
       <div className="relative flex-shrink-0" style={{ width: 140, height: 140 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width={140} height={140}>
           <PieChart>
             <Pie
               data={data}

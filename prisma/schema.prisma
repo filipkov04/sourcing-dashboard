@@ -178,7 +178,7 @@ model Factory {
   orders         Order[]
   alerts         Alert[]
   conversations  Conversation[]
-  request        Request?
+  requests       Request[]
   integrations   Integration[]
 
   createdAt DateTime @default(now())
@@ -294,7 +294,7 @@ model Order {
   comments       OrderComment[]
   alerts         Alert[]
   conversations  Conversation[]
-  request        Request?
+  requests       Request[]
   trackingEvents TrackingEvent[]
 
   // Recurrence
@@ -473,6 +473,7 @@ enum AdminNoteType {
   COMMENT
   STATUS_DETAIL
   CHANGE_LOG
+  DELAY_REASON    // Submitted by MEMBER+ when stage is DELAYED/BLOCKED
 }
 
 // ============================================
@@ -819,9 +820,9 @@ model Request {
   reviewNote      String?       @db.Text
 
   // Target entities (created after approval for CREATE, or referenced for EDIT/DELETE)
-  targetOrderId   String?  @unique
+  targetOrderId   String?
   targetOrder     Order?   @relation(fields: [targetOrderId], references: [id], onDelete: SetNull)
-  targetFactoryId String?  @unique
+  targetFactoryId String?
   targetFactory   Factory? @relation(fields: [targetFactoryId], references: [id], onDelete: SetNull)
 
   // Chat thread

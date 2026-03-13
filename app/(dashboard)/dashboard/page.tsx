@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       {/* ── SECTION: Order Health ── */}
       {/* Status breakdown + Factory performance — both answer "how are things going?" */}
       <ScrollReveal>
-        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
           Order Health
         </p>
       </ScrollReveal>
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
       {/* ── SECTION: Product Intelligence ── */}
       {/* Portfolio + Upcoming deliveries — what are we buying + what's arriving */}
       <ScrollReveal>
-        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
           Product Intelligence
         </p>
       </ScrollReveal>
@@ -73,7 +73,7 @@ export default async function DashboardPage() {
 
       {/* ── SECTION: Market & Logistics ── */}
       <ScrollReveal>
-        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-4">
+        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
           Market & Logistics
         </p>
       </ScrollReveal>

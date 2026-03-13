@@ -30,8 +30,8 @@ function Sparkline({ data, isUp }: { data: number[]; isUp: boolean }) {
   const fillColor = isUp ? "#22c55e" : "#ef4444";
 
   return (
-    <div className="w-16 h-6">
-      <ResponsiveContainer width="100%" height="100%">
+    <div>
+      <ResponsiveContainer width={64} height={24}>
         <AreaChart data={chartData} margin={{ top: 1, right: 0, bottom: 1, left: 0 }}>
           <defs>
             <linearGradient id={`grad-${isUp ? "up" : "down"}`} x1="0" y1="0" x2="0" y2="1">

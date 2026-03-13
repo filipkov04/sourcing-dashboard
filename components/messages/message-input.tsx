@@ -20,6 +20,7 @@ import {
 } from "@/lib/chat-constants";
 import type { Message } from "@/lib/use-conversations";
 import { EmojiPickerPopover } from "./emoji-picker-popover";
+import { RequestCardPreview, type RequestCardData } from "./request-card";
 
 /* ─── Helpers ─── */
 
@@ -43,13 +44,15 @@ function getFileIcon(type: string) {
 /* ─── Props ─── */
 
 interface MessageInputProps {
-  onSend: (content: string, files: File[]) => void;
+  onSend: (content: string, files: File[], requestAttachment?: RequestCardData) => void;
   onTyping: () => void;
   onVoiceRecord: () => void;
   editingMessage: Message | null;
   onEditCancel: () => void;
   onEditSave: (content: string) => void;
   disabled?: boolean;
+  attachedRequest?: RequestCardData | null;
+  onDismissRequest?: () => void;
 }
 
 /* ─── Component ─── */
@@ -62,6 +65,8 @@ export function MessageInput({
   onEditCancel,
   onEditSave,
   disabled = false,
+  attachedRequest,
+  onDismissRequest,
 }: MessageInputProps) {
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -97,12 +102,12 @@ export function MessageInput({
   // Send handler
   function handleSend() {
     const trimmed = content.trim();
-    if (!trimmed && files.length === 0) return;
+    if (!trimmed && files.length === 0 && !attachedRequest) return;
     if (editingMessage) {
       if (trimmed) onEditSave(trimmed);
       return;
     }
-    onSend(trimmed, files);
+    onSend(trimmed, files, attachedRequest ?? undefined);
     setContent("");
     setFiles([]);
     // Reset textarea height
@@ -177,7 +182,7 @@ export function MessageInput({
     }
   }
 
-  const canSend = (content.trim().length > 0 || files.length > 0) && !disabled;
+  const canSend = (content.trim().length > 0 || files.length > 0 || !!attachedRequest) && !disabled;
   const showCharCount = content.length >= CHAR_WARNING_THRESHOLD;
 
   return (
@@ -208,6 +213,13 @@ export function MessageInput({
           >
             <X className="h-3.5 w-3.5" />
           </button>
+        </div>
+      )}
+
+      {/* Attached request preview */}
+      {attachedRequest && (
+        <div className="px-4 py-2 border-b border-gray-100 dark:border-zinc-800">
+          <RequestCardPreview request={attachedRequest} onDismiss={onDismissRequest ?? (() => {})} />
         </div>
       )}
 

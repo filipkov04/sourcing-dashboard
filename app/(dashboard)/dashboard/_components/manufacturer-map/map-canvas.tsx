@@ -692,16 +692,24 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       const map = mapRef.current;
       if (!map) return;
 
-      map.setStyle(getMapStyle(theme));
-      map.once("style.load", () => {
-        if (routesRef.current) {
-          addRouteLayers(map, factoriesRef.current);
-        }
-        addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
-        if (liveShipmentsRef.current.length > 0) {
-          addLiveShipmentLayers(map, liveShipmentsRef.current);
-        }
-      });
+      const applyStyle = () => {
+        map.setStyle(getMapStyle(theme));
+        map.once("style.load", () => {
+          if (routesRef.current) {
+            addRouteLayers(map, factoriesRef.current);
+          }
+          addSourceAndLayers(map, factoriesRef.current, clusteringRef.current);
+          if (liveShipmentsRef.current.length > 0) {
+            addLiveShipmentLayers(map, liveShipmentsRef.current);
+          }
+        });
+      };
+
+      if (map.isStyleLoaded()) {
+        applyStyle();
+      } else {
+        map.once("style.load", applyStyle);
+      }
     }, [theme]);
 
     // Update data / clustering / routes

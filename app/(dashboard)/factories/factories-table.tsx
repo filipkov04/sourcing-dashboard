@@ -182,7 +182,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
   return (
     <div className="space-y-4">
       {/* Summary Stats */}
-      <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500">
+      <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500">
         Overview
       </p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -250,6 +250,8 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-zinc-500" />
           <input
+            id="factory-search"
+            name="factory-search"
             type="text"
             placeholder="Search factories by name, location, or contact..."
             value={searchQuery}
@@ -269,7 +271,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
         {/* Filters and Sort */}
         <div className="flex items-center gap-2">
           {/* Order Filter */}
-          <Select value={orderFilter} onValueChange={(value) => setOrderFilter(value as OrderFilter)}>
+          <Select name="factory-order-filter" value={orderFilter} onValueChange={(value) => setOrderFilter(value as OrderFilter)}>
             <SelectTrigger className="w-[160px] border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" />
@@ -285,7 +287,7 @@ export function FactoriesTable({ factories, userRole }: FactoriesTableProps) {
           </Select>
 
           {/* Sort */}
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+          <Select name="factory-sort" value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
             <SelectTrigger className="w-[160px] border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4" />

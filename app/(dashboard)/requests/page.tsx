@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
+
 import {
   ClipboardList,
   ChevronDown,
@@ -24,6 +24,7 @@ import {
   MessageSquare,
   RefreshCw,
   Send,
+  Loader2,
 } from "lucide-react";
 
 interface RequestUser {
@@ -126,6 +127,7 @@ export default function RequestsPage() {
   const [reviewNote, setReviewNote] = useState("");
   const [responseText, setResponseText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [openingChat, setOpeningChat] = useState<string | null>(null);
 
   // Auto-scroll to the request specified by ?rid= after data loads
   const scrolledRef = useRef(false);
@@ -198,6 +200,32 @@ export default function RequestsPage() {
       console.error("Failed to respond to request");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function openChat(requestId: string, existingConversationId: string | null) {
+    setOpeningChat(requestId);
+    try {
+      let cid = existingConversationId;
+
+      if (!cid) {
+        const res = await fetch(`/api/requests/${requestId}/conversation`, { method: "POST" });
+        if (!res.ok) {
+          const text = await res.text();
+          console.error(`Failed to create conversation: ${res.status} ${res.statusText}`, text);
+          return;
+        }
+        const json = await res.json();
+        cid = json.data?.conversationId;
+      }
+
+      if (cid) {
+        window.location.href = `/messages?cid=${cid}&rid=${requestId}`;
+      }
+    } catch (err) {
+      console.error("Failed to open chat:", err);
+    } finally {
+      setOpeningChat(null);
     }
   }
 
@@ -367,26 +395,24 @@ export default function RequestsPage() {
                           #{request.targetOrder.orderNumber}
                         </span>
                       )}
+                      {!request.targetOrder && request.type === "ORDER_REQUEST" && request.data.orderNumber && (
+                        <span className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded px-1.5 py-0.5">
+                          #{String(request.data.orderNumber)}
+                        </span>
+                      )}
                       {request.targetFactory && (
                         <span className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 rounded px-1.5 py-0.5">
                           {request.targetFactory.name} — {request.targetFactory.location}
                         </span>
                       )}
-                      {/* For create requests, show key data from the request payload */}
-                      {request.type === "ORDER_REQUEST" ? (
-                        <>
-                          <span className="text-xs text-gray-500 dark:text-zinc-400">
-                            {String(request.data.quantity ?? "")} {String(request.data.unit ?? "pieces")}
-                          </span>
-                          {request.data.priority && request.data.priority !== "NORMAL" ? (
-                            <span className="text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 rounded px-1.5 py-0.5">
-                              {String(request.data.priority)}
-                            </span>
-                          ) : null}
-                        </>
+                      {/* For create requests, show priority if not normal */}
+                      {request.type === "ORDER_REQUEST" && request.data.priority && request.data.priority !== "NORMAL" ? (
+                        <span className="text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 rounded px-1.5 py-0.5">
+                          {String(request.data.priority)}
+                        </span>
                       ) : null}
                       {request.type === "FACTORY_REQUEST" && request.data.location ? (
-                        <span className="text-xs text-gray-500 dark:text-zinc-400">
+                        <span className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 rounded px-1.5 py-0.5">
                           {String(request.data.location)}
                         </span>
                       ) : null}
@@ -402,16 +428,6 @@ export default function RequestsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {request.conversationId && (
-                      <Link
-                        href={`/messages?cid=${request.conversationId}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
-                      >
-                        <MessageSquare className="h-3.5 w-3.5" />
-                        Chat
-                      </Link>
-                    )}
                     {request.reviewedBy && (
                       <span className="text-xs text-gray-400 dark:text-zinc-500">
                         Reviewed by {request.reviewedBy.name || request.reviewedBy.email}
@@ -428,6 +444,25 @@ export default function RequestsPage() {
                 {/* Expanded Panel */}
                 {isExpanded && (
                   <div className="border-t border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 px-5 py-4 space-y-4">
+                    {/* Chat button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openChat(request.id, request.conversationId);
+                      }}
+                      disabled={openingChat === request.id}
+                      className="border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 hover:border-[#FF4D15]/50 hover:text-[#FF4D15]"
+                    >
+                      {openingChat === request.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                      )}
+                      Discuss in Chat
+                    </Button>
+
                     {/* Request Details */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
@@ -551,25 +586,7 @@ export default function RequestsPage() {
 
 function RequestDetails({ type, data, request }: { type: string; data: Record<string, unknown>; request: RequestItem }) {
   if (type === "ORDER_REQUEST") {
-    return (
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <Detail label="Product Name" value={data.productName as string} />
-        {data.productSKU ? <Detail label="SKU" value={data.productSKU as string} /> : null}
-        <Detail label="Quantity" value={`${data.quantity} ${data.unit || "pieces"}`} />
-        {data.priority ? <Detail label="Priority" value={data.priority as string} /> : null}
-        {data.orderDate ? <Detail label="Order Date" value={new Date(data.orderDate as string).toLocaleDateString()} /> : null}
-        {data.expectedDate ? <Detail label="Expected Date" value={new Date(data.expectedDate as string).toLocaleDateString()} /> : null}
-        {data.notes ? <Detail label="Notes" value={data.notes as string} className="col-span-2" /> : null}
-        {data.stages ? (
-          <div className="col-span-2">
-            <span className="text-gray-500 dark:text-zinc-400">Stages:</span>{" "}
-            <span className="text-gray-900 dark:text-white">
-              {(data.stages as Array<{ name: string }>).map((s) => s.name).join(" \u2192 ")}
-            </span>
-          </div>
-        ) : null}
-      </div>
-    );
+    return <OrderRequestDetails data={data} />;
   }
 
   if (type === "FACTORY_REQUEST") {
@@ -744,6 +761,44 @@ function EditRequestDetails({ type, data, request }: { type: string; data: Recor
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function OrderRequestDetails({ data }: { data: Record<string, unknown> }) {
+  const [factoryName, setFactoryName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!data.factoryId) return;
+    fetch(`/api/factories/${data.factoryId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.data?.name) setFactoryName(json.data.name);
+      })
+      .catch(() => {});
+  }, [data.factoryId]);
+
+  return (
+    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <Detail label="Product Name" value={data.productName as string} />
+      {data.orderNumber ? <Detail label="Order Number" value={data.orderNumber as string} /> : null}
+      {data.productSKU ? <Detail label="SKU" value={data.productSKU as string} /> : null}
+      <Detail label="Quantity" value={`${data.quantity} ${data.unit || "pieces"}`} />
+      {data.factoryId ? (
+        <Detail label="Supplier" value={factoryName || "Loading..."} />
+      ) : null}
+      {data.priority ? <Detail label="Priority" value={data.priority as string} /> : null}
+      {data.orderDate ? <Detail label="Order Date" value={new Date(data.orderDate as string).toLocaleDateString()} /> : null}
+      {data.expectedDate ? <Detail label="Expected Date" value={new Date(data.expectedDate as string).toLocaleDateString()} /> : null}
+      {data.notes ? <Detail label="Notes" value={data.notes as string} className="col-span-2" /> : null}
+      {data.stages ? (
+        <div className="col-span-2">
+          <span className="text-gray-500 dark:text-zinc-400">Stages:</span>{" "}
+          <span className="text-gray-900 dark:text-white">
+            {(data.stages as Array<{ name: string }>).map((s) => s.name).join(" \u2192 ")}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

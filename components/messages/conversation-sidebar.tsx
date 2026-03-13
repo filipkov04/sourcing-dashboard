@@ -74,7 +74,11 @@ export function ConversationSidebar({
       const matchesParticipant = conv.participants.some((p) =>
         p.user.name?.toLowerCase().includes(q)
       );
-      const matchesLastMessage = conv.lastMessage?.content.toLowerCase().includes(q);
+      let previewText = conv.lastMessage?.content || "";
+      if (conv.lastMessage?.messageType === "REQUEST") {
+        try { const p = JSON.parse(previewText); if (p._requestCard) previewText = p.text || ""; } catch {}
+      }
+      const matchesLastMessage = previewText.toLowerCase().includes(q);
       return matchesSubject || matchesFactory || matchesParticipant || matchesLastMessage;
     }
     return true;
@@ -220,7 +224,13 @@ export function ConversationSidebar({
               ) : conv.lastMessage.messageType === "BOT" ? (
                 <span className="font-medium text-[#FF4D15]/80">Sourcy: </span>
               ) : null}
-              {conv.lastMessage.content}
+              {conv.lastMessage.messageType === "REQUEST" ? (() => {
+                try {
+                  const parsed = JSON.parse(conv.lastMessage.content);
+                  if (parsed._requestCard) return parsed.text || "Shared a request";
+                } catch {}
+                return conv.lastMessage.content;
+              })() : conv.lastMessage.content}
             </p>
           )}
         </div>
@@ -247,6 +257,8 @@ export function ConversationSidebar({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-300 dark:text-zinc-500" />
           <input
+            id="conversation-search"
+            name="conversation-search"
             type="text"
             placeholder="Search conversations..."
             value={search}

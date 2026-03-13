@@ -142,17 +142,6 @@ export function handleError(err: unknown): NextResponse<ApiErrorResponse> {
 
   // Standard Error object
   if (err instanceof Error) {
-    // Check for specific error types
-    if (err.message.includes("not found")) {
-      return notFound();
-    }
-    if (err.message.includes("unauthorized")) {
-      return unauthorized();
-    }
-    if (err.message.includes("forbidden")) {
-      return forbidden();
-    }
-
     return error(err.message);
   }
 

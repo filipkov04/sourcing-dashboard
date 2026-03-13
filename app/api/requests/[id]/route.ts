@@ -224,7 +224,7 @@ export async function PATCH(
             data: {
               productName: data.productName as string,
               productSKU: (data.productSKU as string) || null,
-              orderNumber: `ORD-${Date.now()}`,
+              orderNumber: (data.orderNumber as string) || `ORD-${Date.now()}`,
               quantity: data.quantity as number,
               unit: (data.unit as string) || "pieces",
               factoryId: data.factoryId as string,
