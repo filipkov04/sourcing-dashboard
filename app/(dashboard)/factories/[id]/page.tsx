@@ -30,6 +30,7 @@ import {
   Mail,
   Phone,
   Edit,
+  Plug,
   Package,
   Calendar,
   Loader2,
@@ -276,6 +277,12 @@ export default function FactoryDetailPage() {
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </Button>
+              <Link href={`/factories/${factory.id}/integration`} className="flex-1 sm:flex-initial">
+                <Button variant="outline" className="w-full sm:w-auto border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300">
+                  <Plug className="mr-2 h-4 w-4" />
+                  Setup Integration
+                </Button>
+              </Link>
               <Link href={`/factories/${factory.id}/edit`} className="flex-1 sm:flex-initial">
                 <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 text-white">
                   <Edit className="mr-2 h-4 w-4" />

@@ -334,11 +334,11 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 6.1 | Integration Setup Wizard | Filip | Create step-by-step wizard to setup factory integration | Multi-step wizard at /factories/[id]/integration | 4h | ⏳ |
-| 6.2 | Connection Type Selection | Filip | Let user choose integration type (API, SFTP, Webhook, Manual) | Step 1 of wizard: radio buttons to select connection type | 2h | ⏳ |
-| 6.3 | Credentials Form | Filip | Build form to enter factory system credentials | Step 2 of wizard: form for API URL, username, password, etc. | 3h | ⏳ |
-| 6.4 | Test Connection Button | Filip | Add button to test if connection works before saving | Test button that verifies credentials work | 2h | ⏳ |
-| 6.5 | Data Field Mapping | Filip | Let user map factory fields to our fields | Step 3 of wizard: drag-and-drop field mapping UI | 3h | ⏳ |
+| 6.1 | Integration Setup Wizard | Filip | Create step-by-step wizard to setup factory integration | Multi-step wizard at /factories/[id]/integration | 4h | ✅ |
+| 6.2 | Connection Type Selection | Filip | Let user choose integration type (API, SFTP, Webhook, Manual) | Step 1 of wizard: radio buttons to select connection type | 2h | ✅ |
+| 6.3 | Credentials Form | Filip | Build form to enter factory system credentials | Step 2 of wizard: form for API URL, username, password, etc. | 3h | ✅ |
+| 6.4 | Test Connection Button | Filip | Add button to test if connection works before saving | Test button that verifies credentials work | 2h | ✅ |
+| 6.5 | Data Field Mapping | Filip | Let user map factory fields to our fields | Step 3 of wizard: drag-and-drop field mapping UI | 3h | ✅ |
 | 6.6 | Integration Dashboard | Filip | Create page showing all integrations and their status | Page at /integrations showing health of all connections | 3h | ⏳ |
 | 6.7 | Week 6 PR | Filip | Package integration UI | Pull request for review | 30min | ⏳ |
 
