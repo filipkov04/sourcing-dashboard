@@ -10,6 +10,7 @@ const updateChartSchema = z.object({
   config: z.record(z.string(), z.any()).optional(),
   visibility: z.enum(["PERSONAL", "SHARED"]).optional(),
   sortOrder: z.number().int().optional(),
+  folderId: z.string().nullish(),
 });
 
 /**
@@ -83,8 +84,11 @@ export async function PATCH(
       return api.validationError(parsed.error);
     }
 
-    const { config: configData, ...rest } = parsed.data;
+    const { config: configData, folderId, ...rest } = parsed.data;
     const updateData: Prisma.CustomChartUpdateInput = { ...rest };
+    if (folderId !== undefined) {
+      updateData.folder = folderId ? { connect: { id: folderId } } : { disconnect: true };
+    }
     if (configData !== undefined) {
       updateData.config = configData as Prisma.InputJsonValue;
     }

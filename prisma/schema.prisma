@@ -83,6 +83,8 @@ model Organization {
   conversations Conversation[]
   requests      Request[]
   customCharts  CustomChart[]
+  chartFolders  ChartFolder[]
+  savedReports  SavedReport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,6 +111,8 @@ model Project {
   conversations  Conversation[]
   requests       Request[]
   customCharts   CustomChart[]
+  chartFolders   ChartFolder[]
+  savedReports   SavedReport[]
   integrations   Integration[]
 
   activeUsers    User[] @relation("ActiveProject")
@@ -869,10 +873,90 @@ model CustomChart {
   config         Json            // axes, colors, filters, dateRange, showTrendLine
   visibility     ChartVisibility @default(PERSONAL)
   sortOrder      Int             @default(0)
+  folderId       String?
+  folder         ChartFolder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  annotations    ChartAnnotation[]
+  reportCharts   ReportChart[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   @@index([organizationId, visibility])
   @@index([projectId])
   @@index([creatorId])
+  @@index([folderId])
+}
+
+model ChartFolder {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  creatorId      String
+  name           String
+  color          String?      // hex color for folder accent
+  sortOrder      Int          @default(0)
+  charts         CustomChart[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([creatorId])
+}
+
+model ChartAnnotation {
+  id         String      @id @default(cuid())
+  chartId    String
+  chart      CustomChart @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  content    String
+  color      String      @default("#FF4D15") // orange default
+  authorId   String
+  authorName String
+  createdAt  DateTime    @default(now())
+
+  @@index([chartId])
+}
+
+enum ReportSchedule {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model SavedReport {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  creatorId      String
+  name           String
+  description    String?
+  schedule       ReportSchedule
+  recipients     String[]       // email addresses
+  enabled        Boolean        @default(true)
+  charts         ReportChart[]
+  lastSentAt     DateTime?
+  nextSendAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([creatorId])
+  @@index([nextSendAt])
+}
+
+model ReportChart {
+  id         String      @id @default(cuid())
+  reportId   String
+  report     SavedReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  chartId    String
+  chart      CustomChart @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  sortOrder  Int         @default(0)
+
+  @@unique([reportId, chartId])
+  @@index([reportId])
+  @@index([chartId])
 }

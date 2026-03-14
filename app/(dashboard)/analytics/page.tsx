@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="custom">
-          <CustomChartsTab userId={session?.user?.id || ""} />
+          <CustomChartsTab userId={session?.user?.id || ""} userName={session?.user?.name || undefined} />
         </TabsContent>
       </Tabs>
     </div>

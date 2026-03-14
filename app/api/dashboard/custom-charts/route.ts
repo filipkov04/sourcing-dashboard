@@ -38,6 +38,12 @@ export async function GET() {
           { visibility: "SHARED" },
         ],
       },
+      include: {
+        annotations: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+      },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     });
 

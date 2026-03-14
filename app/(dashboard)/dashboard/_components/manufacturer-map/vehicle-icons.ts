@@ -47,10 +47,10 @@ export async function registerVehicleIcons(map: maplibregl.Map) {
   for (const v of vehicles) {
     for (const c of variants) {
       const id = `vehicle-${v.name}-${c.suffix}`;
-      if (map.hasImage(id)) continue;
+      try { if (map.hasImage(id)) continue; } catch { continue; }
       const colored = colorize(v.svg, c.stroke, c.fill);
       const img = await svgToImage(colored, 28);
-      map.addImage(id, img, { sdf: false });
+      try { map.addImage(id, img, { sdf: false }); } catch { /* already exists */ }
     }
   }
 }
