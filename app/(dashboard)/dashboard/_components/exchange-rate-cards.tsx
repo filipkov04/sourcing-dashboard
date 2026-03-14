@@ -163,7 +163,7 @@ export function ExchangeRateCards() {
         </h3>
         <span className="text-[10px] text-gray-400 dark:text-zinc-500">Live</span>
       </div>
-      <div className="divide-y divide-gray-100 dark:divide-zinc-700/50">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1 divide-y divide-gray-100 dark:divide-zinc-700/50 lg:divide-y-0">
         {data.rates.map((entry) => (
           <RateRow key={entry.pair} entry={entry} />
         ))}

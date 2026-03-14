@@ -10,8 +10,9 @@ export async function GET() {
     const orders = await prisma.order.findMany({
       where: {
         ...projectScope(session),
+        trackingNumber: { not: null },
         status: {
-          in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED", "SHIPPED", "IN_TRANSIT", "CUSTOMS"],
+          notIn: ["DELIVERED", "CANCELLED"],
         },
       },
       select: {
@@ -48,11 +49,12 @@ export async function GET() {
         },
         trackingEvents: {
           orderBy: { timestamp: "desc" },
-          take: 10,
           select: {
             id: true,
             timestamp: true,
             location: true,
+            latitude: true,
+            longitude: true,
             description: true,
             trackingStatus: true,
           },

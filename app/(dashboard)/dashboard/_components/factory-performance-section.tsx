@@ -71,7 +71,7 @@ export function FactoryPerformanceSection() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
+      <div className="rounded-xl border border-gray-100 bg-white p-4 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
         <Skeleton className="h-6 w-48 mb-4" />
         <Skeleton className="h-40 w-full" />
       </div>

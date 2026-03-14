@@ -8,6 +8,7 @@ import { AnimatedNumber } from "@/components/animated-number";
 import { MapControls } from "./map-controls";
 import { MapLegend } from "./map-legend";
 import { ShipmentPanel } from "./shipment-panel";
+import { ShipmentList } from "./shipment-list";
 import { MapSearch } from "./map-search";
 import { ordersToVehicles } from "./vehicle-utils";
 import type { MapFactory, MapStats, MapVehicle } from "./types";
@@ -163,6 +164,18 @@ export function ManufacturerMap() {
           <ShipmentPanel
             vehicle={selectedVehicle}
             onClose={() => setSelectedVehicle(null)}
+          />
+        </div>
+
+        {/* Shipment List Sidebar */}
+        <div className="lg:w-56 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-zinc-800 max-h-[420px] overflow-hidden">
+          <ShipmentList
+            vehicles={filteredVehicles}
+            selectedVehicleId={selectedVehicle?.orderId ?? null}
+            onSelect={(v) => {
+              setSelectedVehicle(v);
+              mapRef.current?.easeTo(v.lng, v.lat);
+            }}
           />
         </div>
       </div>

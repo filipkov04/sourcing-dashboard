@@ -49,7 +49,7 @@ export function RecentActivityFeed() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
+      <div className="rounded-xl border border-gray-100 bg-white p-4 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
         <div className="flex items-center gap-2 mb-4">
           <div className="h-4 w-4 bg-gray-200 dark:bg-zinc-700 rounded" />
           <div className="h-4 w-24 bg-gray-200 dark:bg-zinc-700 rounded" />
@@ -71,7 +71,7 @@ export function RecentActivityFeed() {
 
   if (activities.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
+      <div className="rounded-xl border border-gray-100 bg-white p-4 dark:border-zinc-800/60 dark:bg-[#0d0f13]">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="h-4 w-4 text-zinc-400 dark:text-zinc-600" strokeWidth={1.5} />
           <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Activity</h2>
@@ -85,7 +85,7 @@ export function RecentActivityFeed() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-6 dark:border-zinc-800/60 dark:bg-[#0d0f13] card-hover-glow hud-corners">
+    <div className="rounded-xl border border-gray-100 bg-white p-4 dark:border-zinc-800/60 dark:bg-[#0d0f13] card-hover-glow hud-corners">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">LOG</span>

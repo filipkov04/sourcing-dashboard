@@ -1,63 +1,33 @@
-import { buildShippingRoute, type ShippingRoute } from "./arc-utils";
 import type { MapVehicle } from "./types";
 
-function getVehicleType(shippingMethod: string | null, route: ShippingRoute): "ship" | "plane" | "truck" {
-  if (shippingMethod === "AIR") return "plane";
-  if (shippingMethod === "ROAD" || shippingMethod === "RAIL") return "truck";
-  const hasShip = route.segments.some((s) => s.transportMethod === "ship");
-  return hasShip ? "ship" : "truck";
+/**
+ * Determine vehicle type from shipping method or carrier name.
+ */
+function getVehicleType(order: any): "ship" | "plane" | "truck" {
+  if (order.shippingMethod === "AIR") return "plane";
+  if (order.shippingMethod === "OCEAN") return "ship";
+  if (order.shippingMethod === "ROAD" || order.shippingMethod === "RAIL") return "truck";
+
+  // Infer from carrier name
+  const carrier = (order.carrier ?? "").toLowerCase();
+  if (carrier.includes("maersk") || carrier.includes("cma") || carrier.includes("msc") || carrier.includes("cosco") || carrier.includes("evergreen")) return "ship";
+  if (carrier.includes("fedex") || carrier.includes("ups") || carrier.includes("dhl") || carrier.includes("tnt")) return "truck";
+  if (carrier.includes("yunexpress") || carrier.includes("yanwen")) return "plane";
+
+  // Infer from tracking events — if any mention "airport" or "flight"
+  const events = order.trackingEvents ?? [];
+  for (const e of events) {
+    const desc = (e.description ?? "").toLowerCase();
+    if (desc.includes("airport") || desc.includes("flight") || desc.includes("airline")) return "plane";
+    if (desc.includes("port") || desc.includes("vessel") || desc.includes("ship")) return "ship";
+  }
+
+  return "truck";
 }
 
-function getVehiclePosition(
-  order: any,
-  route: ShippingRoute
-): { coords: [number, number]; bearing: number } {
-  if (order.currentLat != null && order.currentLng != null) {
-    return { coords: [order.currentLng, order.currentLat], bearing: 0 };
-  }
-
-  const stops = route.stops;
-  if (stops.length === 0) {
-    return { coords: [order.factory.longitude, order.factory.latitude], bearing: 0 };
-  }
-
-  let stopIndex = 0;
-  switch (order.status) {
-    case "PENDING":
-    case "IN_PROGRESS":
-      stopIndex = 0;
-      break;
-    case "SHIPPED":
-      stopIndex = Math.min(1, stops.length - 1);
-      break;
-    case "IN_TRANSIT":
-      stopIndex = Math.floor(stops.length / 2);
-      break;
-    case "CUSTOMS": {
-      const harborIdx = stops.findIndex((s) => s.type === "harbor");
-      stopIndex = harborIdx >= 0 ? harborIdx : stops.length - 2;
-      break;
-    }
-    case "DELAYED":
-    case "DISRUPTED":
-      stopIndex = Math.min(1, stops.length - 1);
-      break;
-    default:
-      stopIndex = 0;
-  }
-
-  stopIndex = Math.max(0, Math.min(stopIndex, stops.length - 1));
-  const stop = stops[stopIndex];
-
-  let bearing = 0;
-  if (stopIndex < stops.length - 1) {
-    const next = stops[stopIndex + 1];
-    bearing = calculateBearing(stop.coords, next.coords);
-  }
-
-  return { coords: stop.coords, bearing };
-}
-
+/**
+ * Calculate bearing between two [lng, lat] points in degrees.
+ */
 function calculateBearing(from: [number, number], to: [number, number]): number {
   const toRad = (d: number) => (d * Math.PI) / 180;
   const toDeg = (r: number) => (r * 180) / Math.PI;
@@ -69,15 +39,124 @@ function calculateBearing(from: [number, number], to: [number, number]): number 
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
+/**
+ * Build route stops from real tracking events (oldest → newest).
+ * Each unique location becomes a stop on the map.
+ */
+function buildRouteFromEvents(
+  order: any,
+  factoryCoords: [number, number]
+): { stops: MapVehicle["routeStops"]; segments: MapVehicle["routeSegments"] } {
+  const events = [...(order.trackingEvents ?? [])].sort(
+    (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+
+  if (events.length === 0) {
+    // No events — just show factory as single stop
+    return {
+      stops: [
+        {
+          name: order.factory?.name ?? "Factory",
+          coords: factoryCoords,
+          type: "factory",
+          description: "Order origin",
+          icon: "🏭",
+        },
+      ],
+      segments: [],
+    };
+  }
+
+  // Deduplicate by location string
+  const seen = new Set<string>();
+  const stops: MapVehicle["routeStops"] = [];
+
+  // Always start with factory
+  stops.push({
+    name: order.factory?.name ?? "Factory",
+    coords: factoryCoords,
+    type: "factory",
+    description: "Order origin",
+    icon: "🏭",
+  });
+  seen.add("factory");
+
+  for (const evt of events) {
+    const loc = evt.location;
+    if (!loc || seen.has(loc)) continue;
+    seen.add(loc);
+
+    // Determine icon from event description
+    const desc = (evt.description ?? "").toLowerCase();
+    let icon = "📍";
+    let type = "checkpoint";
+    if (desc.includes("airport")) { icon = "✈️"; type = "airport"; }
+    else if (desc.includes("port") || desc.includes("vessel")) { icon = "🚢"; type = "port"; }
+    else if (desc.includes("customs") || desc.includes("clearance")) { icon = "🛃"; type = "customs"; }
+    else if (desc.includes("delivered") || desc.includes("picked up")) { icon = "🏁"; type = "destination"; }
+    else if (desc.includes("sort") || desc.includes("hub") || desc.includes("facility")) { icon = "📦"; type = "hub"; }
+    else if (desc.includes("transit")) { icon = "🚛"; type = "transit"; }
+
+    stops.push({
+      name: loc,
+      coords: factoryCoords, // We don't have per-event coords — position will be interpolated
+      type,
+      description: evt.description,
+      icon,
+    });
+  }
+
+  // No real coordinate-based segments since tracking events don't have lat/lng per event
+  return { stops, segments: [] };
+}
+
+/**
+ * Get vehicle position — uses only real coordinates from 17Track.
+ * Returns null if 17Track provides no coordinates (vehicle won't appear on map).
+ */
+function getVehiclePosition(
+  order: any,
+  factoryCoords: [number, number]
+): { coords: [number, number]; bearing: number } | null {
+  // 1. Real GPS position from 17Track (set by tracking adapter from misc_info or latest event)
+  if (order.currentLat != null && order.currentLng != null) {
+    const bearing = calculateBearing(factoryCoords, [order.currentLng, order.currentLat]);
+    return { coords: [order.currentLng, order.currentLat], bearing };
+  }
+
+  // 2. Check tracking events for per-event coordinates from 17Track
+  const events = order.trackingEvents ?? [];
+  for (const evt of events) {
+    if (evt.latitude != null && evt.longitude != null) {
+      const coords: [number, number] = [evt.longitude, evt.latitude];
+      const bearing = calculateBearing(factoryCoords, coords);
+      return { coords, bearing };
+    }
+  }
+
+  // 3. No real coordinates — don't show on map (better than showing wrong location)
+  return null;
+}
+
+/**
+ * Transform raw API order data into MapVehicle objects.
+ * Uses real 17Track data — no hardcoded routes.
+ */
 export function ordersToVehicles(orders: any[]): MapVehicle[] {
   return orders
     .filter((o) => o.factory?.latitude != null && o.factory?.longitude != null)
-    .map((order) => {
-      const route = buildShippingRoute(order.factory.longitude, order.factory.latitude);
-      const vehicleType = getVehicleType(order.shippingMethod, route);
-      const { coords, bearing } = getVehiclePosition(order, route);
+    .flatMap((order) => {
+      const factoryCoords: [number, number] = [order.factory.longitude, order.factory.latitude];
+      const vehicleType = getVehicleType(order);
+      const position = getVehiclePosition(order, factoryCoords);
 
-      return {
+      // No real coordinates from 17Track — skip this order on the map
+      if (!position) return [];
+
+      const { coords, bearing } = position;
+      const { stops, segments } = buildRouteFromEvents(order, factoryCoords);
+
+      return [{
         orderId: order.id,
         orderNumber: order.orderNumber,
         productName: order.productName,
@@ -108,14 +187,8 @@ export function ordersToVehicles(orders: any[]): MapVehicle[] {
           phone: order.factory.contactPhone,
         },
         trackingEvents: order.trackingEvents ?? [],
-        routeStops: route.stops.map((s) => ({
-          name: s.name,
-          coords: s.coords,
-          type: s.type,
-          description: s.description,
-          icon: s.icon,
-        })),
-        routeSegments: route.segments,
-      };
+        routeStops: stops,
+        routeSegments: segments,
+      }];
     });
 }

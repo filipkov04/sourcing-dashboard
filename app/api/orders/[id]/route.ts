@@ -6,6 +6,47 @@ import { logOrderEvent, OrderEventType } from "@/lib/history";
 import { notifyOrderStatusChange } from "@/lib/notifications";
 import { checkAndUpdateDelays } from "@/lib/check-delays";
 
+/**
+ * Auto-sync tracking data from 17Track when a tracking number is set.
+ * Fire-and-forget — errors are logged but don't fail the order update.
+ * The order's lastTrackingSync should already be reset before calling this.
+ */
+async function triggerTrackingSync(orderId: string) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { trackingNumber: true, organizationId: true },
+  });
+  if (!order?.trackingNumber) return;
+
+  try {
+    const { TrackingAdapter } = await import("@/lib/integrations/adapters/tracking-adapter");
+    const adapter = new TrackingAdapter();
+    await adapter.sync({
+      integration: {
+        id: "auto-sync",
+        name: "Auto Sync",
+        type: "CARRIER_TRACKING",
+        status: "ACTIVE",
+        credentials: null,
+        config: null,
+        syncFrequency: 0,
+        lastSyncAt: null,
+        lastSyncStatus: "NEVER",
+        lastSyncError: null,
+        factoryId: "",
+        organizationId: order.organizationId,
+        projectId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      factoryId: "",
+      organizationId: order.organizationId,
+    });
+  } catch (err) {
+    console.error("Auto tracking sync failed:", err);
+  }
+}
+
 // GET /api/orders/[id] - Get a single order with all details
 export async function GET(
   request: NextRequest,
@@ -113,6 +154,8 @@ export async function PATCH(
       recurrenceEnabled,
       recurrenceIntervalDays,
       recurrenceNextDate,
+      trackingNumber,
+      shippingMethod,
     } = body;
 
     // Validate required fields if provided
@@ -172,6 +215,21 @@ export async function PATCH(
     }
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;
     if (tags !== undefined) updateData.tags = tags;
+    if (trackingNumber !== undefined) {
+      const newTN = trackingNumber ? trackingNumber.trim() : null;
+      updateData.trackingNumber = newTN;
+      // Reset tracking state when number changes so 17Track can re-sync
+      if (newTN !== existingOrder.trackingNumber) {
+        updateData.lastTrackingSync = null;
+        updateData.trackingStatus = null;
+        updateData.currentLat = null;
+        updateData.currentLng = null;
+        updateData.currentLocation = null;
+        updateData.carrier = null;
+        updateData.carrierCode = null;
+      }
+    }
+    if (shippingMethod !== undefined) updateData.shippingMethod = shippingMethod || null;
 
     // Handle recurrence fields
     if (recurrenceEnabled !== undefined) {
@@ -500,6 +558,11 @@ export async function PATCH(
         newStatus: status,
         factoryName: updatedOrder.factory?.name,
       }).catch(console.error);
+    }
+
+    // Auto-sync tracking when tracking number is set/changed (fire-and-forget)
+    if (trackingNumber !== undefined && trackingNumber && trackingNumber.trim() !== existingOrder.trackingNumber) {
+      triggerTrackingSync(id).catch(console.error);
     }
 
     return success(updatedOrder, "Order updated successfully");

@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="relative space-y-6">
+    <div className="relative space-y-3">
       {/* Subtle grid overlay — dark mode only, orange tinted */}
       <div
         className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
@@ -41,50 +41,42 @@ export default async function DashboardPage() {
         </ScrollReveal>
 
       {/* ── SECTION: Alerts + Recent Activity ── */}
-      {/* Immediate situational awareness — what needs attention, what just happened */}
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger>
+      <ScrollReveal className="grid gap-3 lg:grid-cols-2" stagger>
         <DashboardAlertsWidget />
         <RecentActivityFeed />
       </ScrollReveal>
 
       {/* ── SECTION: Order Health ── */}
-      {/* Status breakdown + Factory performance — both answer "how are things going?" */}
       <ScrollReveal>
-        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
+        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-2">
           Order Health
         </p>
-      </ScrollReveal>
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2" stagger>
-        <OrdersByStatusSection />
-        <FactoryPerformanceSection />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <OrdersByStatusSection />
+          <FactoryPerformanceSection />
+        </div>
       </ScrollReveal>
 
       {/* ── SECTION: Product Intelligence ── */}
-      {/* Portfolio + Upcoming deliveries — what are we buying + what's arriving */}
       <ScrollReveal>
-        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
+        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-2">
           Product Intelligence
         </p>
-      </ScrollReveal>
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
-        <ProductPortfolioSection />
-        <UpcomingDeliveries />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <ProductPortfolioSection />
+          <UpcomingDeliveries />
+        </div>
       </ScrollReveal>
 
       {/* ── SECTION: Market & Logistics ── */}
       <ScrollReveal>
-        <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
+        <p className="hud-section-label font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-500 mb-2">
           Market & Logistics
         </p>
-      </ScrollReveal>
-      <ScrollReveal className="grid gap-5 lg:grid-cols-2 items-start" stagger delay={0.1}>
-        <ExchangeRateCards />
-        <div />
-      </ScrollReveal>
-
-      {/* Manufacturer Intelligence Map */}
-      <ScrollReveal delay={0.15}>
-        <ManufacturerMap />
+        <div className="space-y-3">
+          <ManufacturerMap />
+          <ExchangeRateCards />
+        </div>
       </ScrollReveal>
 
       {/* ── SECTION: Quick Actions ── */}

@@ -58,6 +58,17 @@ type TrackInfo17 = {
           description: string;
           location?: string;
           status: number;
+          address?: {
+            country?: string;
+            state?: string;
+            city?: string;
+            street?: string;
+            postal_code?: string;
+            coordinates?: {
+              longitude?: string;
+              latitude?: string;
+            };
+          };
         }>;
       }>;
     };
@@ -258,30 +269,67 @@ export class TrackingAdapter implements IntegrationAdapter {
   ) {
     const trackInfo = info.track_info;
     const latestStatus = trackInfo?.latest_status?.status ?? 0;
-    const trackingStatus = STATUS_MAP[latestStatus] ?? TrackingStatus.NOT_FOUND;
+    let trackingStatus = STATUS_MAP[latestStatus] ?? TrackingStatus.NOT_FOUND;
 
-    // Extract carrier info
-    const carrierName =
-      info.param?.carrier_name ?? `Carrier ${info.carrier}`;
+    // Fallback: if 17Track says NOT_FOUND but events exist, infer from latest event
+    if (trackingStatus === TrackingStatus.NOT_FOUND) {
+      const providers = trackInfo?.tracking?.providers ?? [];
+      for (const provider of providers) {
+        const events = provider.events ?? [];
+        if (events.length > 0) {
+          const lastEvent = events[events.length - 1];
+          trackingStatus = STATUS_MAP[lastEvent.status] ?? TrackingStatus.IN_TRANSIT;
+          break;
+        }
+      }
+    }
+
+    // Extract carrier info — fallback to known carrier codes if 17Track doesn't provide a name
+    const KNOWN_CARRIERS: Record<string, string> = {
+      "190008": "YunExpress",
+      "2151": "YunExpress",
+      "100002": "DHL",
+      "100003": "FedEx",
+      "100001": "UPS",
+      "7021": "Maersk",
+    };
     const carrierCode = String(info.carrier);
-
-    // Extract location from latest event or misc_info
-    const latestLocation = trackInfo?.misc_info?.latest_location;
-    const currentLat = latestLocation?.lat ?? null;
-    const currentLng = latestLocation?.lng ?? null;
-    const currentLocation = latestLocation?.name ?? null;
+    const carrierName =
+      info.param?.carrier_name && !info.param.carrier_name.startsWith("Carrier ")
+        ? info.param.carrier_name
+        : KNOWN_CARRIERS[carrierCode] ?? `Carrier ${carrierCode}`;
 
     // Extract ETA
     const etaStr =
       trackInfo?.time_metrics?.estimated_delivery_date?.from ?? null;
     const estimatedArrival = etaStr ? new Date(etaStr) : null;
 
-    // Upsert tracking events from carrier data
+    // Upsert tracking events from carrier data, collecting coords along the way
+    let latestEventLat: number | null = null;
+    let latestEventLng: number | null = null;
+    let latestEventLocation: string | null = null;
+
     const providers = trackInfo?.tracking?.providers ?? [];
     for (const provider of providers) {
       const events = provider.events ?? [];
       for (const event of events) {
         const eventTimestamp = new Date(event.time_iso);
+
+        // Extract per-event coordinates from 17Track address field
+        const eventLat = event.address?.coordinates?.latitude
+          ? parseFloat(event.address.coordinates.latitude)
+          : null;
+        const eventLng = event.address?.coordinates?.longitude
+          ? parseFloat(event.address.coordinates.longitude)
+          : null;
+        const hasCoords = eventLat != null && !isNaN(eventLat) && eventLng != null && !isNaN(eventLng);
+
+        // Track latest event with valid coordinates for order position
+        if (hasCoords) {
+          latestEventLat = eventLat;
+          latestEventLng = eventLng;
+          latestEventLocation = event.location ?? null;
+        }
 
         // Upsert by orderId + timestamp + description (avoid duplicates)
         const existing = await prisma.trackingEvent.findFirst({
@@ -298,6 +346,8 @@ export class TrackingAdapter implements IntegrationAdapter {
               orderId: order.id,
               timestamp: eventTimestamp,
               location: event.location ?? null,
+              latitude: hasCoords ? eventLat : null,
+              longitude: hasCoords ? eventLng : null,
               description: event.description,
               statusCode: String(event.status),
               trackingStatus:
@@ -305,9 +355,21 @@ export class TrackingAdapter implements IntegrationAdapter {
               source: "17track",
             },
           });
+        } else if (hasCoords && (existing.latitude == null || existing.longitude == null)) {
+          // Backfill coords on existing events that were missing them
+          await prisma.trackingEvent.update({
+            where: { id: existing.id },
+            data: { latitude: eventLat, longitude: eventLng },
+          });
         }
       }
     }
+
+    // Determine current position: prefer misc_info.latest_location, then latest event coords
+    const miscLocation = trackInfo?.misc_info?.latest_location;
+    const currentLat = miscLocation?.lat ?? latestEventLat;
+    const currentLng = miscLocation?.lng ?? latestEventLng;
+    const currentLocation = miscLocation?.name ?? latestEventLocation;
 
     // Update order with latest tracking data
     const orderUpdates: Record<string, unknown> = {
