@@ -21,6 +21,7 @@ import {
   Loader2,
   Factory,
   Plus,
+  BookOpen,
 } from "lucide-react";
 
 type Integration = {
@@ -157,6 +158,12 @@ export default function IntegrationsPage() {
             Manage factory data connections and sync status.
           </p>
         </div>
+        <Link href="/integrations/docs">
+          <Button variant="outline" size="sm" className="border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300">
+            <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+            Setup Guides
+          </Button>
+        </Link>
       </div>
 
       {/* Stats */}

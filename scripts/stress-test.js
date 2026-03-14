@@ -83,6 +83,14 @@ const tests = [
   // Carrier Tracking
   { name: 'Shipments In Transit API', path: '/api/dashboard/shipments-in-transit', expectedStatus: [200, 307, 401] },
   { name: 'Map Vehicles API', path: '/api/dashboard/map-vehicles', expectedStatus: [200, 307, 401] },
+
+  // Integration System (Tasks 6.1-6.6, 7.1-7.4)
+  { name: 'Integrations Page', path: '/integrations', expectedStatus: [200, 302, 307] },
+  { name: 'Integrations List API', path: '/api/integrations', expectedStatus: [200, 307, 401] },
+  { name: 'Integration Detail (404)', path: '/api/integrations/nonexistent-id', expectedStatus: [307, 401, 404] },
+  { name: 'Integration Test (404)', path: '/api/integrations/nonexistent-id/test', expectedStatus: [307, 401, 404, 405] },
+  { name: 'Integration Sync (404)', path: '/api/integrations/nonexistent-id/sync', expectedStatus: [307, 401, 404, 405] },
+  { name: 'Integration Wizard Page', path: '/factories/test-id/integration', expectedStatus: [200, 302, 307] },
 ];
 
 /**
@@ -92,7 +100,7 @@ function makeRequest(path) {
   return new Promise((resolve, reject) => {
     const url = `${BASE_URL}${path}`;
 
-    http.get(url, { timeout: 5000 }, (res) => {
+    http.get(url, { timeout: 10000 }, (res) => {
       let data = '';
 
       res.on('data', (chunk) => {

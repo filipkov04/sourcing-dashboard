@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 import {
   Bell,
   AlertTriangle,
@@ -12,6 +13,7 @@ import {
   CalendarDays,
   Package,
   Volume2,
+  BookOpen,
 } from "lucide-react";
 
 interface NotificationPreferences {
@@ -161,13 +163,21 @@ export default function SettingsPage() {
         }}
       />
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Settings
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
-          Manage your notification preferences
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Settings
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
+            Manage your notification preferences
+          </p>
+        </div>
+        <Link href="/settings/docs">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+            <BookOpen className="h-3.5 w-3.5" />
+            User Guide
+          </button>
+        </Link>
       </div>
 
       {/* Notification Preferences */}
