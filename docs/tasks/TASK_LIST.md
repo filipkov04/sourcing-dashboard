@@ -339,7 +339,7 @@
 | 6.3 | Credentials Form | Filip | Build form to enter factory system credentials | Step 2 of wizard: form for API URL, username, password, etc. | 3h | ✅ |
 | 6.4 | Test Connection Button | Filip | Add button to test if connection works before saving | Test button that verifies credentials work | 2h | ✅ |
 | 6.5 | Data Field Mapping | Filip | Let user map factory fields to our fields | Step 3 of wizard: drag-and-drop field mapping UI | 3h | ✅ |
-| 6.6 | Integration Dashboard | Filip | Create page showing all integrations and their status | Page at /integrations showing health of all connections | 3h | ⏳ |
+| 6.6 | Integration Dashboard | Filip | Create page showing all integrations and their status | Page at /integrations showing health of all connections | 3h | ✅ |
 | 6.7 | Week 6 PR | Filip | Package integration UI | Pull request for review | 30min | ⏳ |
 
 **What Filip Creates This Week:** User interface for setting up factory integrations - wizard and dashboard.
@@ -384,10 +384,10 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 7.1 | Integration Detail Page | Filip | Build page showing one integration's details and logs | Page at /integrations/[id] with sync history | 3h | ⏳ |
-| 7.2 | Sync Logs Viewer | Filip | Create table showing all sync attempts (success/failure) | Log table with date, status, error messages | 3h | ⏳ |
-| 7.3 | Manual Sync Button | Filip | Add button to trigger sync immediately (not wait 15 min) | "Sync Now" button that starts immediate sync | 2h | ⏳ |
-| 7.4 | Integration Settings | Filip | Let user change sync frequency, enable/disable integration | Settings form to edit integration config | 2h | ⏳ |
+| 7.1 | Integration Detail Page | Filip | Build page showing one integration's details and logs | Page at /integrations/[id] with sync history | 3h | ✅ |
+| 7.2 | Sync Logs Viewer | Filip | Create table showing all sync attempts (success/failure) | Log table with date, status, error messages | 3h | ✅ |
+| 7.3 | Manual Sync Button | Filip | Add button to trigger sync immediately (not wait 15 min) | "Sync Now" button that starts immediate sync | 2h | ✅ |
+| 7.4 | Integration Settings | Filip | Let user change sync frequency, enable/disable integration | Settings form to edit integration config | 2h | ✅ |
 | 7.5 | Integration Docs | Filip | Write setup guides for different factory systems | Documentation pages for SAP, Oracle, SFTP setup | 3h | ⏳ |
 | 7.6 | Week 7 PR | Filip | Package integration UI improvements | Pull request for review | 30min | ⏳ |
 

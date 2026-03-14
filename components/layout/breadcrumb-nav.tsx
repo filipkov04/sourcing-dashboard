@@ -16,6 +16,7 @@ const SECTION_MAP: Record<string, { label: string; href: string }> = {
   settings: { label: "Settings", href: "/settings" },
   alerts: { label: "Alerts", href: "/alerts" },
   analytics: { label: "Analytics", href: "/analytics" },
+  integrations: { label: "Integrations", href: "/integrations" },
 };
 
 interface BreadcrumbNavProps {

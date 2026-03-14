@@ -15,6 +15,7 @@ import {
   Settings,
   BarChart3,
   Bell,
+  Plug,
   LogOut,
   User,
   ChevronsUpDown,
@@ -43,6 +44,7 @@ const navigation = [
   { name: "Team", href: "/team", icon: Users },
   { name: "Alerts", href: "/alerts", icon: Bell },
   { name: "Requests", href: "/requests", icon: ClipboardList },
+  { name: "Integrations", href: "/integrations", icon: Plug },
   { name: "Messages", href: "/messages", icon: MessageSquare },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
