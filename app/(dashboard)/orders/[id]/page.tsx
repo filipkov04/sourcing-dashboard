@@ -356,6 +356,7 @@ function RecurrenceCard({ order, onUpdate }: {
               <div className="space-y-2">
                 <label className="text-sm text-gray-600 dark:text-zinc-400">Reorder Interval</label>
                 <Select
+                  name="reorder-interval"
                   value={interval}
                   onValueChange={(val) => {
                     setInterval(val);
@@ -381,8 +382,10 @@ function RecurrenceCard({ order, onUpdate }: {
               </div>
               {interval === "custom" && (
                 <div className="space-y-2">
-                  <label className="text-sm text-gray-600 dark:text-zinc-400">Custom Interval (days)</label>
+                  <label htmlFor="custom-interval-days" className="text-sm text-gray-600 dark:text-zinc-400">Custom Interval (days)</label>
                   <Input
+                    id="custom-interval-days"
+                    name="custom-interval-days"
                     type="number"
                     min="1"
                     max="365"
@@ -402,8 +405,10 @@ function RecurrenceCard({ order, onUpdate }: {
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-gray-600 dark:text-zinc-400">Next Order Date</label>
+              <label htmlFor="next-order-date" className="text-sm text-gray-600 dark:text-zinc-400">Next Order Date</label>
               <Input
+                id="next-order-date"
+                name="next-order-date"
                 type="date"
                 value={nextDate}
                 onChange={(e) => setNextDate(e.target.value)}
@@ -1007,6 +1012,7 @@ export default function OrderDetailPage() {
               </h1>
               {isAdminOrOwner ? (
                 <Select
+                  name="order-status"
                   value={order.status}
                   onValueChange={updateOrderStatus}
                   disabled={isUpdatingStatus}
@@ -1611,6 +1617,7 @@ export default function OrderDetailPage() {
                         <div className="flex items-center gap-3">
                           <span className="text-sm text-gray-600 dark:text-zinc-400 w-16">Status:</span>
                           <Select
+                            name="stage-status"
                             value={editingStatus}
                             onValueChange={(value) => {
                               setEditingStatus(value);
@@ -1650,6 +1657,8 @@ export default function OrderDetailPage() {
                         <div className="flex items-center gap-3">
                           <span className="text-sm text-gray-600 dark:text-zinc-400 w-16">Progress:</span>
                           <input
+                            id="stage-progress"
+                            name="stage-progress"
                             type="range"
                             min="0"
                             max="100"
@@ -1711,6 +1720,7 @@ export default function OrderDetailPage() {
                             )}
                           </label>
                           <Textarea
+                            name="stage-notes"
                             value={editingNotes}
                             onChange={(e) => setEditingNotes(e.target.value)}
                             placeholder={
@@ -1728,8 +1738,10 @@ export default function OrderDetailPage() {
                         {/* Expected Start/End Dates */}
                         <div className="flex items-center gap-4">
                           <div className="flex-1 space-y-1">
-                            <label className="text-sm text-gray-600 dark:text-zinc-400">Expected Start</label>
+                            <label htmlFor="stage-expected-start" className="text-sm text-gray-600 dark:text-zinc-400">Expected Start</label>
                             <Input
+                              id="stage-expected-start"
+                              name="stage-expected-start"
                               type="date"
                               value={editingExpectedStart}
                               onChange={(e) => setEditingExpectedStart(e.target.value)}
@@ -1737,8 +1749,10 @@ export default function OrderDetailPage() {
                             />
                           </div>
                           <div className="flex-1 space-y-1">
-                            <label className="text-sm text-gray-600 dark:text-zinc-400">Expected End</label>
+                            <label htmlFor="stage-expected-end" className="text-sm text-gray-600 dark:text-zinc-400">Expected End</label>
                             <Input
+                              id="stage-expected-end"
+                              name="stage-expected-end"
                               type="date"
                               value={editingExpectedEnd}
                               onChange={(e) => setEditingExpectedEnd(e.target.value)}
@@ -1976,6 +1990,7 @@ export default function OrderDetailPage() {
                                         {isEditing ? (
                                           <div className="space-y-2">
                                             <Textarea
+                                              name="edit-delay-reason"
                                               value={editingDelayReasonContent}
                                               onChange={(e) => setEditingDelayReasonContent(e.target.value)}
                                               className="text-sm min-h-[50px] resize-none bg-white dark:bg-zinc-900/60"
@@ -2058,6 +2073,7 @@ export default function OrderDetailPage() {
                               <div className="space-y-2">
                                 <div className="flex items-start gap-2">
                                   <Textarea
+                                    name="delay-reason-input"
                                     placeholder="What caused this delay?"
                                     value={delayReasonInput[stage.id] || ""}
                                     onChange={(e) =>

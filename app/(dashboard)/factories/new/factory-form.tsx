@@ -91,6 +91,7 @@ export function FactoryForm() {
                   {...register("name")}
                   type="text"
                   id="name"
+                  autoComplete="off"
                   className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="e.g., Shenzhen Manufacturing Co."
                 />
@@ -111,6 +112,7 @@ export function FactoryForm() {
                   {...register("location")}
                   type="text"
                   id="location"
+                  autoComplete="off"
                   className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="e.g., Guangzhou, China"
                 />
@@ -132,6 +134,7 @@ export function FactoryForm() {
                 <textarea
                   {...register("address")}
                   id="address"
+                  autoComplete="off"
                   rows={3}
                   className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="Street address, building number, etc."
@@ -166,6 +169,7 @@ export function FactoryForm() {
                   {...register("contactName")}
                   type="text"
                   id="contactName"
+                  autoComplete="off"
                   className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="e.g., Zhang Wei"
                 />
@@ -188,6 +192,7 @@ export function FactoryForm() {
                   {...register("contactEmail")}
                   type="email"
                   id="contactEmail"
+                  autoComplete="off"
                   className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="contact@factory.com"
                 />
@@ -210,6 +215,7 @@ export function FactoryForm() {
                   {...register("contactPhone")}
                   type="tel"
                   id="contactPhone"
+                  autoComplete="off"
                   className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="+86 138 0000 0000"
                 />

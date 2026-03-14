@@ -188,6 +188,7 @@ export default function EditFactoryPage() {
                   <input
                     type="text"
                     id="name"
+                    autoComplete="off"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
@@ -207,6 +208,7 @@ export default function EditFactoryPage() {
                   <input
                     type="text"
                     id="location"
+                    autoComplete="off"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     disabled={isLoading}
@@ -225,6 +227,7 @@ export default function EditFactoryPage() {
                   </label>
                   <textarea
                     id="address"
+                    autoComplete="off"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     disabled={isLoading}
@@ -256,6 +259,7 @@ export default function EditFactoryPage() {
                   <input
                     type="text"
                     id="contactName"
+                    autoComplete="off"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     disabled={isLoading}
@@ -275,6 +279,7 @@ export default function EditFactoryPage() {
                   <input
                     type="email"
                     id="contactEmail"
+                    autoComplete="off"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
                     disabled={isLoading}
@@ -294,6 +299,7 @@ export default function EditFactoryPage() {
                   <input
                     type="tel"
                     id="contactPhone"
+                    autoComplete="off"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
                     disabled={isLoading}

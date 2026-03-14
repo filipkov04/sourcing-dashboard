@@ -418,6 +418,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="orderNumber">Order Number *</Label>
                 <Input
                   id="orderNumber"
+                  name="orderNumber"
                   placeholder="PO-2024-001"
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
@@ -427,11 +428,12 @@ export default function EditOrderPage() {
               <div className="space-y-2">
                 <Label htmlFor="factory">Factory *</Label>
                 <Select
+                  name="factory"
                   value={factoryId}
                   onValueChange={setFactoryId}
                   disabled={isLoading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="factory">
                     <SelectValue placeholder="Select a factory" />
                   </SelectTrigger>
                   <SelectContent>
@@ -456,6 +458,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="productName">Product Name *</Label>
                 <Input
                   id="productName"
+                  name="productName"
                   placeholder="Summer T-Shirt Collection"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
@@ -466,6 +469,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="productSKU">Product SKU</Label>
                 <Input
                   id="productSKU"
+                  name="productSKU"
                   placeholder="TSH-SUM-2024"
                   value={productSKU}
                   onChange={(e) => setProductSKU(e.target.value)}
@@ -476,7 +480,16 @@ export default function EditOrderPage() {
 
             {/* Product Image Upload */}
             <div className="space-y-2">
-              <Label>Product Image</Label>
+              <Label htmlFor="productImage">Product Image</Label>
+              <input
+                id="productImage"
+                name="productImage"
+                type="file"
+                className="sr-only"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handleImageSelect}
+                disabled={isLoading}
+              />
               {productImagePreview ? (
                 <div className="relative inline-block">
                   <img
@@ -494,6 +507,7 @@ export default function EditOrderPage() {
                 </div>
               ) : (
                 <label
+                  htmlFor="productImage"
                   className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:border-[#FF4D15] dark:hover:border-[#FF4D15] transition-colors"
                 >
                   <div className="flex flex-col items-center justify-center py-2">
@@ -502,13 +516,6 @@ export default function EditOrderPage() {
                       Click to upload (PNG, JPG, WEBP, max 5MB)
                     </p>
                   </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleImageSelect}
-                    disabled={isLoading}
-                  />
                 </label>
               )}
             </div>
@@ -518,6 +525,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="quantity">Quantity *</Label>
                 <Input
                   id="quantity"
+                  name="quantity"
                   type="number"
                   min="1"
                   placeholder="1000"
@@ -528,8 +536,8 @@ export default function EditOrderPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit">Unit</Label>
-                <Select value={unit} onValueChange={setUnit} disabled={isLoading}>
-                  <SelectTrigger>
+                <Select name="unit" value={unit} onValueChange={setUnit} disabled={isLoading}>
+                  <SelectTrigger id="unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -544,11 +552,12 @@ export default function EditOrderPage() {
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
                 <Select
+                  name="priority"
                   value={priority}
                   onValueChange={setPriority}
                   disabled={isLoading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="priority">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -562,11 +571,12 @@ export default function EditOrderPage() {
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
+                  name="status"
                   value={status}
                   onValueChange={setStatus}
                   disabled={isLoading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -597,6 +607,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="orderDate">Order Date *</Label>
                 <Input
                   id="orderDate"
+                  name="orderDate"
                   type="date"
                   value={orderDate}
                   onChange={(e) => setOrderDate(e.target.value)}
@@ -607,6 +618,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="expectedDate">Expected Delivery *</Label>
                 <Input
                   id="expectedDate"
+                  name="expectedDate"
                   type="date"
                   value={expectedDate}
                   onChange={(e) => setExpectedDate(e.target.value)}
@@ -695,6 +707,7 @@ export default function EditOrderPage() {
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
+                name="notes"
                 placeholder="Any additional notes about this order..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -706,6 +719,7 @@ export default function EditOrderPage() {
               <Label htmlFor="tags">Tags</Label>
               <Input
                 id="tags"
+                name="tags"
                 placeholder="urgent, sample, summer-2024 (comma separated)"
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
@@ -733,6 +747,7 @@ export default function EditOrderPage() {
                 <Label htmlFor="trackingNumber">Tracking Number</Label>
                 <Input
                   id="trackingNumber"
+                  name="trackingNumber"
                   placeholder="e.g. MAEU1234567"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
@@ -742,6 +757,7 @@ export default function EditOrderPage() {
               <div className="space-y-2">
                 <Label htmlFor="shippingMethod">Shipping Method</Label>
                 <Select
+                  name="shippingMethod"
                   value={shippingMethod}
                   onValueChange={setShippingMethod}
                   disabled={isLoading}
@@ -790,6 +806,7 @@ export default function EditOrderPage() {
                   <div className="space-y-2">
                     <Label htmlFor="recurrenceInterval">Reorder Interval</Label>
                     <Select
+                      name="recurrenceInterval"
                       value={recurrenceInterval}
                       onValueChange={(val) => {
                         setRecurrenceInterval(val);
@@ -801,7 +818,7 @@ export default function EditOrderPage() {
                       }}
                       disabled={isLoading}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="recurrenceInterval">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -818,6 +835,7 @@ export default function EditOrderPage() {
                       <Label htmlFor="recurrenceCustomDays">Custom Interval (days)</Label>
                       <Input
                         id="recurrenceCustomDays"
+                        name="recurrenceCustomDays"
                         type="number"
                         min="1"
                         max="365"
@@ -840,6 +858,7 @@ export default function EditOrderPage() {
                   <Label htmlFor="recurrenceNextDate">Next Order Date</Label>
                   <Input
                     id="recurrenceNextDate"
+                    name="recurrenceNextDate"
                     type="date"
                     value={recurrenceNextDate}
                     onChange={(e) => setRecurrenceNextDate(e.target.value)}

@@ -83,7 +83,7 @@ function EmojiPickerInner({
       data={getEmojiData}
       theme={theme}
       previewPosition="none"
-      skinTonePosition="search"
+      searchPosition="none"
       onEmojiSelect={(emoji: { native: string }) => onSelect(emoji.native)}
       set="native"
       maxFrequentRows={2}

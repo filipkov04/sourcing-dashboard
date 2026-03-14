@@ -503,10 +503,12 @@ export default function RequestsPage() {
                     {canReview && (
                       <>
                         <div>
-                          <label className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1 block">
+                          <label htmlFor="review-note" className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1 block">
                             Review Note (optional)
                           </label>
                           <Textarea
+                            id="review-note"
+                            name="review-note"
                             value={reviewNote}
                             onChange={(e) => setReviewNote(e.target.value)}
                             placeholder="Add a note about your decision..."
@@ -551,10 +553,12 @@ export default function RequestsPage() {
                     {needsInfo && !isAdmin && (
                       <>
                         <div>
-                          <label className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1 block">
+                          <label htmlFor="response-text" className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1 block">
                             Your Response
                           </label>
                           <Textarea
+                            id="response-text"
+                            name="response-text"
                             value={responseText}
                             onChange={(e) => setResponseText(e.target.value)}
                             placeholder="Provide the additional information requested..."

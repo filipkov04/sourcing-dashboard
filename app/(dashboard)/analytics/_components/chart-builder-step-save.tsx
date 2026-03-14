@@ -34,9 +34,11 @@ export function ChartBuilderStepSave({
 
       {/* Title */}
       <div>
-        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1">Title</label>
+        <label htmlFor="chart-save-title" className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1">Title</label>
         <input
           type="text"
+          id="chart-save-title"
+          name="chart-save-title"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           className="w-full rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EB5D2E]/50"
@@ -45,7 +47,7 @@ export function ChartBuilderStepSave({
 
       {/* Visibility */}
       <div>
-        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1.5">Visibility</label>
+        <span className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1.5">Visibility</span>
         <div className="flex gap-3">
           <button
             onClick={() => onVisibilityChange("PERSONAL")}

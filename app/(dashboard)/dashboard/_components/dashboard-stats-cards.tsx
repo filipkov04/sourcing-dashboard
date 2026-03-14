@@ -274,15 +274,19 @@ export function DashboardStatsCards() {
       {/* Custom Date Range Picker */}
       {showCustom && (
         <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700">
-          <label className="text-xs text-gray-500 dark:text-zinc-400">From</label>
+          <label htmlFor="stats-date-from" className="text-xs text-gray-500 dark:text-zinc-400">From</label>
           <input
+            id="stats-date-from"
+            name="stats-date-from"
             type="date"
             value={customFrom}
             onChange={(e) => setCustomFrom(e.target.value)}
             className="px-2 py-1 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
           />
-          <label className="text-xs text-gray-500 dark:text-zinc-400">To</label>
+          <label htmlFor="stats-date-to" className="text-xs text-gray-500 dark:text-zinc-400">To</label>
           <input
+            id="stats-date-to"
+            name="stats-date-to"
             type="date"
             value={customTo}
             onChange={(e) => setCustomTo(e.target.value)}

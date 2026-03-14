@@ -298,6 +298,8 @@ export function OrderComments({
                     /* Edit Mode */
                     <div className="mt-1 space-y-2">
                       <Textarea
+                        id="edit-comment"
+                        name="edit-comment"
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         rows={3}
@@ -409,6 +411,8 @@ export function OrderComments({
             <div className="space-y-2">
               <Textarea
                 ref={textareaRef}
+                id="new-comment"
+                name="new-comment"
                 value={newComment}
                 onChange={(e) => {
                   setNewComment(e.target.value);

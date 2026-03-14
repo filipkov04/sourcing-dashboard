@@ -166,6 +166,8 @@ export function NewDMDialog({ currentUserId, onCreated, onClose }: NewDMDialogPr
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-300 dark:text-zinc-500" />
             <input
               type="text"
+              id="dm-search"
+              name="dm-search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or email..."
@@ -196,6 +198,8 @@ export function NewDMDialog({ currentUserId, onCreated, onClose }: NewDMDialogPr
           <div className="px-5 py-2.5 border-b border-gray-100 dark:border-zinc-800">
             <input
               type="text"
+              id="group-name"
+              name="group-name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="Group name (optional)"

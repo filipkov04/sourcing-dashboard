@@ -121,9 +121,14 @@ export async function checkAndUpdateDelays(orderIds: string[]): Promise<string[]
       }
 
       if (newOrderStatus && newOrderStatus !== order.status) {
+        const isCompleted = ["COMPLETED", "SHIPPED", "DELIVERED"].includes(newOrderStatus);
         await prisma.order.update({
           where: { id: order.id },
-          data: { status: newOrderStatus as never, overallProgress },
+          data: {
+            status: newOrderStatus as never,
+            overallProgress,
+            ...(!isCompleted && order.actualDate ? { actualDate: null } : {}),
+          },
         });
 
         updatedOrderIds.push(order.id);

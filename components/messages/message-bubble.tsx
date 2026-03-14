@@ -37,6 +37,19 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** Detect emoji-only messages (1-3 emojis, no other text) */
+const EMOJI_REGEX = /^\p{Emoji_Presentation}(\uFE0F|\u200D\p{Emoji_Presentation})*/u;
+function isEmojiOnly(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  // Strip all emoji + variation selectors + ZWJ sequences, check if anything remains
+  const stripped = trimmed.replace(/\p{Emoji_Presentation}[\uFE0F\u200D\p{Emoji_Presentation}]*/gu, "").trim();
+  if (stripped.length > 0) return false;
+  // Count emoji (limit to 3 for big display)
+  const emojis = [...trimmed.match(/\p{Emoji_Presentation}[\uFE0F\u200D\p{Emoji_Presentation}]*/gu) || []];
+  return emojis.length >= 1 && emojis.length <= 3;
+}
+
 /* ─── Props ─── */
 
 interface MessageBubbleProps {
@@ -122,6 +135,8 @@ export function MessageBubble({
       reactionGroups.push({ emoji, ...data });
     }
   }
+
+  const emojiOnly = message.messageType === "TEXT" && !message.attachments?.length && isEmojiOnly(message.content);
 
   // ── Attachment rendering ──
   function renderAttachments() {
@@ -243,14 +258,19 @@ export function MessageBubble({
         {/* Bubble */}
         <div
           className={cn(
-            "rounded-2xl text-[13px] leading-relaxed",
-            message.attachments?.length && message.attachments.every((a) => a.fileType.startsWith("audio/"))
-              ? ""
+            "rounded-2xl leading-relaxed",
+            emojiOnly
+              ? "text-4xl py-1"
               : cn(
-                  "px-3 py-2.5",
-                  isOwn
-                    ? "bg-[#FF4D15] text-white rounded-br-md shadow-sm shadow-[#FF4D15]/15"
-                    : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
+                  "text-[13px]",
+                  message.attachments?.length && message.attachments.every((a) => a.fileType.startsWith("audio/"))
+                    ? ""
+                    : cn(
+                        "px-3 py-2.5",
+                        isOwn
+                          ? "bg-[#FF4D15] text-white rounded-br-md shadow-sm shadow-[#FF4D15]/15"
+                          : "bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md shadow-sm border border-gray-100 dark:border-zinc-700/50"
+                      )
                 )
           )}
         >

@@ -160,11 +160,14 @@ export async function PATCH(
         if (!existingOrder.actualDate) {
           updateData.actualDate = new Date();
         }
-      } else if (status === "PENDING") {
-        updateData.overallProgress = 0;
-        updateData.actualDate = null;
-      } else if (status === "CANCELLED") {
-        updateData.actualDate = null;
+      } else {
+        // Clear actualDate when moving away from completed statuses
+        if (existingOrder.actualDate) {
+          updateData.actualDate = null;
+        }
+        if (status === "PENDING") {
+          updateData.overallProgress = 0;
+        }
       }
     }
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : null;

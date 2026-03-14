@@ -66,6 +66,8 @@ export function SortableStageItem({
         {index + 1}
       </div>
       <Input
+        id={`stage-name-${stage.id}`}
+        name={`stage-name-${stage.id}`}
         placeholder="Stage name (e.g., Cutting, Sewing)"
         value={stage.name}
         onChange={(e) => onNameChange(stage.id, e.target.value)}

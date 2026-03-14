@@ -46,9 +46,11 @@ export function ChartBuilderStepConfig({ chartType, dataSource, metric, config, 
 
       {/* Title */}
       <div>
-        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1">Title</label>
+        <label htmlFor="chart-title" className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1">Title</label>
         <input
           type="text"
+          id="chart-title"
+          name="chart-title"
           value={config.title}
           onChange={(e) => onConfigChange({ ...config, title: e.target.value })}
           className="w-full rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EB5D2E]/50"
@@ -59,7 +61,7 @@ export function ChartBuilderStepConfig({ chartType, dataSource, metric, config, 
       {/* Time range */}
       {supportsTimeFilter && (
         <div>
-          <label className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1.5">Time Range</label>
+          <span className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1.5">Time Range</span>
           <div className="flex gap-2 flex-wrap">
             {PERIOD_OPTIONS.map((opt) => {
               const isActive = (config.period || "all") === opt.value;
@@ -96,7 +98,7 @@ export function ChartBuilderStepConfig({ chartType, dataSource, metric, config, 
 
       {/* Live preview */}
       <div>
-        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1.5">Preview</label>
+        <span className="text-xs font-medium text-gray-500 dark:text-zinc-400 block mb-1.5">Preview</span>
         <div className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
           {loading ? (
             <div className="flex items-center justify-center h-[200px]">

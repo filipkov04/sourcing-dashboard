@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     // Ensure all participants belong to the same organization
     if (participantIds.length > 0) {
       const participants = await prisma.user.findMany({
-        where: { id: { in: participantIds }, ...projectScope(session) },
+        where: { id: { in: participantIds }, organizationId: session.user.organizationId },
         select: { id: true },
       });
       if (participants.length !== participantIds.length) {

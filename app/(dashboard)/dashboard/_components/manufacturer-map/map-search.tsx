@@ -43,6 +43,8 @@ export function MapSearch({ value, onChange }: MapSearchProps) {
       <Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
       <input
         ref={inputRef}
+        id="map-search"
+        name="map-search"
         type="text"
         defaultValue={value}
         placeholder="Search name, city, country..."

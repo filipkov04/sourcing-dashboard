@@ -803,8 +803,8 @@ export default function TeamPage() {
                   <Label htmlFor="invite-role" className="text-gray-700 dark:text-zinc-300">
                     Role
                   </Label>
-                  <Select value={inviteRole} onValueChange={setInviteRole}>
-                    <SelectTrigger className="w-full bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
+                  <Select name="invite-role" value={inviteRole} onValueChange={setInviteRole}>
+                    <SelectTrigger id="invite-role" className="w-full bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

@@ -107,7 +107,7 @@ export function MessageList({
 
   /** Scroll to the bottom of the list. */
   const scrollToBottom = useCallback(
-    (behavior: "smooth" | "auto" = "smooth") => {
+    (behavior: "smooth" | "auto" = "auto") => {
       if (renderItems.length > 0) {
         virtualizer.scrollToIndex(renderItems.length - 1, { align: "end", behavior });
       }
@@ -135,7 +135,7 @@ export function MessageList({
     if (messages.length > prevMessageCountRef.current) {
       if (isNearBottomRef.current) {
         // Small timeout to let virtualizer measure
-        requestAnimationFrame(() => scrollToBottom("smooth"));
+        requestAnimationFrame(() => scrollToBottom("auto"));
       } else {
         setShowNewMessagesPill(true);
       }
@@ -233,7 +233,7 @@ export function MessageList({
       {showNewMessagesPill && (
         <button
           onClick={() => {
-            scrollToBottom("smooth");
+            scrollToBottom("auto");
             setShowNewMessagesPill(false);
           }}
           className={cn(

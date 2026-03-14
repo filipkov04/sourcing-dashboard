@@ -290,6 +290,8 @@ export function MessageInput({
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
+            id="message-input"
+            name="message-input"
             placeholder="Type a message..."
             rows={1}
             disabled={disabled}

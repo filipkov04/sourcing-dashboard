@@ -384,8 +384,8 @@ function NewOrderForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="factory">Factory *</Label>
-                <Select value={factoryId} onValueChange={setFactoryId} disabled={isLoading}>
-                  <SelectTrigger>
+                <Select name="factory" value={factoryId} onValueChange={setFactoryId} disabled={isLoading}>
+                  <SelectTrigger id="factory">
                     <SelectValue placeholder="Select a factory" />
                   </SelectTrigger>
                   <SelectContent>
@@ -430,7 +430,16 @@ function NewOrderForm() {
 
             {/* Product Image Upload */}
             <div className="space-y-2">
-              <Label>Product Image</Label>
+              <Label htmlFor="productImage">Product Image</Label>
+              <input
+                id="productImage"
+                name="productImage"
+                type="file"
+                className="sr-only"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handleImageSelect}
+                disabled={isLoading}
+              />
               {productImagePreview ? (
                 <div className="relative inline-block">
                   <img
@@ -448,6 +457,7 @@ function NewOrderForm() {
                 </div>
               ) : (
                 <label
+                  htmlFor="productImage"
                   className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:border-[#FF4D15] dark:hover:border-[#FF4D15] transition-colors"
                 >
                   <div className="flex flex-col items-center justify-center py-2">
@@ -456,13 +466,6 @@ function NewOrderForm() {
                       Click to upload (PNG, JPG, WEBP, max 5MB)
                     </p>
                   </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleImageSelect}
-                    disabled={isLoading}
-                  />
                 </label>
               )}
             </div>
@@ -482,8 +485,8 @@ function NewOrderForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit">Unit</Label>
-                <Select value={unit} onValueChange={setUnit} disabled={isLoading}>
-                  <SelectTrigger>
+                <Select name="unit" value={unit} onValueChange={setUnit} disabled={isLoading}>
+                  <SelectTrigger id="unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -497,8 +500,8 @@ function NewOrderForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={priority} onValueChange={setPriority} disabled={isLoading}>
-                  <SelectTrigger>
+                <Select name="priority" value={priority} onValueChange={setPriority} disabled={isLoading}>
+                  <SelectTrigger id="priority">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -666,6 +669,7 @@ function NewOrderForm() {
                   <div className="space-y-2">
                     <Label htmlFor="recurrenceInterval">Reorder Interval</Label>
                     <Select
+                      name="recurrenceInterval"
                       value={recurrenceInterval}
                       onValueChange={(val) => {
                         setRecurrenceInterval(val);
@@ -677,7 +681,7 @@ function NewOrderForm() {
                       }}
                       disabled={isLoading}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="recurrenceInterval">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
