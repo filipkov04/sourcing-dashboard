@@ -161,8 +161,8 @@ export function HistoricalDelayChart({ data }: HistoricalDelayChartProps) {
                   fontSize: "12px",
                   padding: "8px 12px",
                 }}
-                formatter={(_: any, __: any, props: any) => {
-                  const { late, total, lateRate } = props.payload;
+                formatter={(_v, _name, props) => {
+                  const { late, total, lateRate } = (props as { payload: { late: number; total: number; lateRate: number } }).payload;
                   return [`${late} of ${total} completed orders late (${lateRate}%)`, "Late Rate"];
                 }}
               />

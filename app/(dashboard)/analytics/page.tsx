@@ -17,8 +17,21 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 
 type LeadTimeData = {
   overall: { avgLeadTime: number; minLeadTime: number; maxLeadTime: number; totalOrders: number };
-  byFactory: any[];
-  byProduct: any[];
+  byFactory: Array<{
+    factoryId: string;
+    factoryName: string;
+    avgLeadTime: number;
+    minLeadTime: number;
+    maxLeadTime: number;
+    avgExpectedTime: number;
+    orderCount: number;
+    variance: number;
+  }>;
+  byProduct: Array<{
+    productName: string;
+    avgLeadTime: number;
+    orderCount: number;
+  }>;
 };
 
 type DelayAnalysisData = {
@@ -78,7 +91,21 @@ type HistoricalDelayData = {
 
 type ForecastData = {
   summary: { total: number; onTrack: number; atRisk: number; critical: number };
-  forecasts: any[];
+  forecasts: Array<{
+    orderId: string;
+    orderNumber: string;
+    productName: string;
+    status: string;
+    factoryName: string;
+    progress: number;
+    expectedDate: string;
+    predictedDate: string;
+    predictedDaysLate: number;
+    daysUntilExpected: number;
+    deltaDays: number;
+    risk: "on-track" | "at-risk" | "critical";
+    method: string;
+  }>;
 };
 
 type DailyStat = {

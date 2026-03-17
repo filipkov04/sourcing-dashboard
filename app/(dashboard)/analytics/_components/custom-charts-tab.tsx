@@ -24,7 +24,7 @@ export function CustomChartsTab({ userId, userName }: Props) {
     chartType: string;
     dataSource: string;
     metric: string;
-    config: Record<string, any>;
+    config: Record<string, unknown>;
     visibility: "PERSONAL" | "SHARED";
   }) => {
     if (editingChart) {

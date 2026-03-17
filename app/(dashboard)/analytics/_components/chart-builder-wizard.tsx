@@ -48,7 +48,7 @@ type Props = {
     chartType: string;
     dataSource: string;
     metric: string;
-    config: Record<string, any>;
+    config: Record<string, unknown>;
     visibility: "PERSONAL" | "SHARED";
   }) => Promise<CustomChart | null>;
   editChart?: CustomChart | null;
@@ -58,15 +58,15 @@ export function ChartBuilderWizard({ open, onOpenChange, onSave, editChart }: Pr
   const [step, setStep] = useState(() => editChart ? 2 : 0);
   const [state, setState] = useState<WizardState>(() => {
     if (editChart) {
-      const cfg = (editChart.config || {}) as Record<string, any>;
+      const cfg = (editChart.config || {}) as Record<string, string | boolean | undefined>;
       return {
         chartType: editChart.chartType as ChartTypeId,
         dataSource: editChart.dataSource,
         metric: editChart.metric,
         config: {
           title: editChart.title,
-          showTrendLine: cfg.showTrendLine || false,
-          ...(cfg.period && { period: cfg.period }),
+          showTrendLine: !!cfg.showTrendLine,
+          ...(cfg.period ? { period: String(cfg.period) } : {}),
         },
         visibility: editChart.visibility,
       };

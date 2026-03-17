@@ -10,7 +10,7 @@ type Props = {
   dataSource: string;
   metric: string;
   title: string;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   visibility: "PERSONAL" | "SHARED";
   onTitleChange: (title: string) => void;
   onVisibilityChange: (visibility: "PERSONAL" | "SHARED") => void;

@@ -61,7 +61,7 @@ export async function GET() {
     };
 
     const orderInfos: OrderInfo[] = orders.map((o) => {
-      const isStatusDelayed = o.status === "DELAYED" || o.status === "DISRUPTED";
+      const isStatusDelayed = o.status === "BEHIND_SCHEDULE" || o.status === "DELAYED" || o.status === "DISRUPTED";
       const completedLate = o.actualDate && new Date(o.actualDate) > new Date(o.expectedDate);
       const isDelayed = isStatusDelayed || !!completedLate;
 
@@ -156,7 +156,6 @@ export async function GET() {
 
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
       const monthLabel = monthNames[d.getMonth()];
 
       const monthOrders = orderInfos.filter((o) => {

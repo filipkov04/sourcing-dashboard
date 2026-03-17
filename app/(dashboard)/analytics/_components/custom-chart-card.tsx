@@ -46,7 +46,7 @@ export function CustomChartCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const { transformedData, loading } = useChartData(chart.dataSource, chart.metric, chart.config);
 
-  const periodLabel = PERIOD_LABELS[chart.config?.period || "all"] || "All time";
+  const periodLabel = PERIOD_LABELS[String(chart.config?.period || "all")] || "All time";
   const annotations = chart.annotations || [];
   const currentFolder = folders.find((f) => f.id === chart.folderId);
 

@@ -8,26 +8,20 @@ import {
 import { useTheme } from "@/components/theme-provider";
 import { linearRegression, CHART_PALETTE } from "@/lib/chart-data-sources";
 
+type ChartConfig = {
+  showTrendLine?: boolean;
+  period?: string;
+  [key: string]: unknown;
+};
+
 type ChartRendererProps = {
   chartType: string;
-  data: any[];
+  data: Record<string, unknown>[];
   dataKeys: string[];
   nameKey: string;
   colors?: string[];
-  config?: Record<string, any>;
+  config?: ChartConfig;
   height?: number;
-};
-
-const TOOLTIP_STYLE = {
-  contentStyle: {
-    backgroundColor: "#27272a",
-    border: "1px solid #3f3f46",
-    borderRadius: "8px",
-    fontSize: "12px",
-    color: "#fff",
-  },
-  itemStyle: { color: "#a1a1aa" },
-  labelStyle: { color: "#fff", fontWeight: 600, marginBottom: 2 },
 };
 
 export function CustomChartRenderer({
@@ -41,6 +35,18 @@ export function CustomChartRenderer({
 }: ChartRendererProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+
+  const TOOLTIP_STYLE = {
+    contentStyle: {
+      backgroundColor: isDark ? "#27272a" : "#ffffff",
+      border: `1px solid ${isDark ? "#3f3f46" : "#e5e7eb"}`,
+      borderRadius: "8px",
+      fontSize: "12px",
+      color: isDark ? "#fff" : "#111827",
+    },
+    itemStyle: { color: isDark ? "#a1a1aa" : "#6b7280" },
+    labelStyle: { color: isDark ? "#fff" : "#111827", fontWeight: 600, marginBottom: 2 },
+  };
 
   const axisColor = isDark ? "#71717a" : "#9ca3af";
   const gridColor = isDark ? "#3f3f46" : "#e5e7eb";
@@ -64,6 +70,7 @@ export function CustomChartRenderer({
   );
 
   // Custom angled tick that renders entirely below the axis line
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const angledTick = ({ x, y, payload }: any) => {
     const label = String(payload?.value || "");
     const short = label.length > 14 ? label.slice(0, 13) + "…" : label;
@@ -118,7 +125,7 @@ export function CustomChartRenderer({
 
     case "LINE": {
       const showTrend = config?.showTrendLine;
-      let trendData: any[] | null = null;
+      let trendData: Record<string, unknown>[] | null = null;
       if (showTrend) {
         // For single-key, trend that key; for multi-key, trend the first key
         const trendKey = dataKeys[0];
@@ -170,12 +177,12 @@ export function CustomChartRenderer({
               paddingAngle={0}
             >
               {data.map((entry, i) => (
-                <Cell key={i} fill={entry.color || palette[i % palette.length]} />
+                <Cell key={i} fill={(entry.color as string) || palette[i % palette.length]} />
               ))}
             </Pie>
-            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} formatter={(value: any, name: any) => {
-              const pct = pieTotal > 0 ? ((Number(value) / pieTotal) * 100).toFixed(0) : 0;
-              return [`${value} (${pct}%)`, name];
+            <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} formatter={(value, name) => {
+              const pct = pieTotal > 0 ? ((Number(value ?? 0) / pieTotal) * 100).toFixed(0) : 0;
+              return [`${value ?? 0} (${pct}%)`, name ?? ""];
             }} />
             <Legend wrapperStyle={legendStyle} />
           </PieChart>
@@ -185,7 +192,7 @@ export function CustomChartRenderer({
 
     case "AREA": {
       const showTrend = config?.showTrendLine;
-      let trendData: any[] | null = null;
+      let trendData: Record<string, unknown>[] | null = null;
       if (showTrend) {
         const trendKey = dataKeys[0];
         const points = data.map((d, i) => ({ x: i, y: Number(d[trendKey]) || 0 }));

@@ -1,15 +1,20 @@
 // Chart Data Source Registry
 // Maps data sources to compatible chart types and provides transform functions
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ApiData = any;
+
 export type ChartTypeId = "BAR" | "LINE" | "PIE" | "AREA" | "RADAR" | "STACKED_BAR";
 
 export type DataSourceCategory = "orders" | "factories" | "products" | "forecasting";
+
+export type TransformedChartData = { chartData: Record<string, unknown>[]; dataKeys: string[]; nameKey: string; colors?: string[] };
 
 export type MetricDefinition = {
   id: string;
   name: string;
   description: string;
-  transform: (data: any) => { chartData: any[]; dataKeys: string[]; nameKey: string; colors?: string[] };
+  transform: (data: unknown) => TransformedChartData;
 };
 
 export type DataSourceDefinition = {
@@ -26,9 +31,15 @@ export type DataSourceDefinition = {
 const STATUS_COLORS: Record<string, string> = {
   Pending: "#f59e0b",
   "In Progress": "#3b82f6",
+  "Behind Schedule": "#f59e0b",
   Completed: "#10b981",
+  Shipped: "#8b5cf6",
+  "In Transit": "#06b6d4",
+  Customs: "#a855f7",
+  Delivered: "#059669",
   Delayed: "#f97316",
   Disrupted: "#ef4444",
+  Cancelled: "#6b7280",
 };
 
 const CHART_PALETTE = [
@@ -50,11 +61,11 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "ordersByStatus",
         name: "Order Status Distribution",
         description: "How orders are distributed across statuses",
-        transform: (data: any[]) => ({
-          chartData: data.map((d: any) => ({ name: d.status, value: d.count, color: d.color })),
+        transform: (data: ApiData) => ({
+          chartData: data.map((d: ApiData) => ({ name: d.status, value: d.count, color: d.color })),
           dataKeys: ["value"],
           nameKey: "name",
-          colors: data.map((d: any) => d.color),
+          colors: data.map((d: ApiData) => d.color),
         }),
       },
     ],
@@ -72,11 +83,11 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "productSplit",
         name: "Product Portfolio Split",
         description: "Total quantity ordered per product",
-        transform: (data: any[]) => ({
-          chartData: data.map((d: any) => ({ name: d.name, value: d.value, color: d.color })),
+        transform: (data: ApiData) => ({
+          chartData: data.map((d: ApiData) => ({ name: d.name, value: d.value, color: d.color })),
           dataKeys: ["value"],
           nameKey: "name",
-          colors: data.map((d: any) => d.color),
+          colors: data.map((d: ApiData) => d.color),
         }),
       },
     ],
@@ -94,20 +105,22 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "ordersOverTime",
         name: "Orders Over Time",
         description: "Orders created per week, broken down by status",
-        transform: (data: any[]) => ({
-          chartData: data.map((d: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: data.map((d: ApiData) => ({
             name: d.week,
             Pending: d.Pending || 0,
             "In Progress": d["In Progress"] || 0,
+            "Behind Schedule": d["Behind Schedule"] || 0,
             Completed: d.Completed || 0,
             Delayed: d.Delayed || 0,
             Disrupted: d.Disrupted || 0,
           })),
-          dataKeys: ["Pending", "In Progress", "Completed", "Delayed", "Disrupted"],
+          dataKeys: ["Pending", "In Progress", "Behind Schedule", "Completed", "Delayed", "Disrupted"],
           nameKey: "name",
           colors: [
             STATUS_COLORS["Pending"],
             STATUS_COLORS["In Progress"],
+            STATUS_COLORS["Behind Schedule"],
             STATUS_COLORS["Completed"],
             STATUS_COLORS["Delayed"],
             STATUS_COLORS["Disrupted"],
@@ -129,8 +142,8 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "ordersPerFactory",
         name: "Orders Per Factory",
         description: "Total order count per factory",
-        transform: (data: any) => ({
-          chartData: (data.factories || []).map((f: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: (data.factories || []).map((f: ApiData) => ({
             name: f.name,
             value: f.totalOrders,
           })),
@@ -143,8 +156,8 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "factoryPerformance",
         name: "Factory Performance",
         description: "Multi-metric comparison across factories",
-        transform: (data: any) => ({
-          chartData: (data.factories || []).map((f: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: (data.factories || []).map((f: ApiData) => ({
             name: f.name,
             "On-Time Rate": f.onTimeRate,
             "Completion Rate": f.completionRate,
@@ -169,8 +182,8 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "leadTimeByFactory",
         name: "Lead Time by Factory",
         description: "Average days from order to completion per factory",
-        transform: (data: any) => ({
-          chartData: (data.byFactory || []).map((f: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: (data.byFactory || []).map((f: ApiData) => ({
             name: f.factoryName,
             value: f.avgLeadTime,
             expected: f.avgExpectedTime,
@@ -184,8 +197,8 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "leadTimeByProduct",
         name: "Lead Time by Product",
         description: "Average lead time per product type",
-        transform: (data: any) => ({
-          chartData: (data.byProduct || []).map((p: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: (data.byProduct || []).map((p: ApiData) => ({
             name: p.productName,
             value: p.avgLeadTime,
           })),
@@ -208,8 +221,8 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "delayByFactory",
         name: "Delay Rate by Factory",
         description: "Percentage of orders delayed per factory",
-        transform: (data: any) => ({
-          chartData: (data.byFactory || []).map((f: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: (data.byFactory || []).map((f: ApiData) => ({
             name: f.factoryName,
             value: f.delayRate,
           })),
@@ -222,8 +235,8 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "delayByStage",
         name: "Incidents by Stage",
         description: "Delayed and blocked incidents per production stage",
-        transform: (data: any) => ({
-          chartData: (data.byStage || []).map((s: any) => ({
+        transform: (data: ApiData) => ({
+          chartData: (data.byStage || []).map((s: ApiData) => ({
             name: s.stageName,
             Delayed: s.delayedCount,
             Blocked: s.blockedCount,
@@ -247,7 +260,7 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "riskDistribution",
         name: "Risk Distribution",
         description: "Active orders grouped by delivery risk level",
-        transform: (data: any) => {
+        transform: (data: ApiData) => {
           const summary = data.summary || { onTrack: 0, atRisk: 0, critical: 0 };
           return {
             chartData: [
@@ -265,10 +278,10 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "progressByRisk",
         name: "Progress by Risk",
         description: "Average progress of orders by risk category",
-        transform: (data: any) => {
+        transform: (data: ApiData) => {
           const forecasts = data.forecasts || [];
           const groups: Record<string, number[]> = { "on-track": [], "at-risk": [], critical: [] };
-          forecasts.forEach((f: any) => groups[f.risk]?.push(f.progress));
+          forecasts.forEach((f: ApiData) => groups[f.risk]?.push(f.progress));
           return {
             chartData: [
               { name: "On Track", value: avg(groups["on-track"]), color: "#10b981" },
@@ -296,7 +309,7 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "kpiSparklines",
         name: "KPI Sparklines",
         description: "Trend lines for total, active, completed, and delayed orders",
-        transform: (data: any) => {
+        transform: (data: ApiData) => {
           const sparklines = data.sparklines || {};
           const total = sparklines.total || [];
           const bucketCount = total.length || 7;
@@ -339,15 +352,15 @@ export const DATA_SOURCES: DataSourceDefinition[] = [
         id: "topProducts",
         name: "Top Products by Quantity",
         description: "Products ranked by total units ordered",
-        transform: (data: any[]) => ({
-          chartData: data.map((d: any, i: number) => ({
+        transform: (data: ApiData) => ({
+          chartData: data.map((d: ApiData, i: number) => ({
             name: d.productName,
             value: d.totalQuantity,
             color: CHART_PALETTE[i % CHART_PALETTE.length],
           })),
           dataKeys: ["value"],
           nameKey: "name",
-          colors: data.map((_: any, i: number) => CHART_PALETTE[i % CHART_PALETTE.length]),
+          colors: data.map((_: ApiData, i: number) => CHART_PALETTE[i % CHART_PALETTE.length]),
         }),
       },
     ],
@@ -405,11 +418,11 @@ export function linearRegression(data: { x: number; y: number }[]): { slope: num
 
 // Generate trend line points including forecast
 export function getTrendLineData(
-  data: any[],
+  data: Record<string, unknown>[],
   valueKey: string,
   nameKey: string,
   forecastPoints: number = 4
-): any[] {
+): Record<string, unknown>[] {
   const points = data.map((d, i) => ({ x: i, y: Number(d[valueKey]) || 0 }));
   const { slope, intercept } = linearRegression(points);
   const trendData = data.map((d, i) => ({

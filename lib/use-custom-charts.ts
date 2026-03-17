@@ -21,7 +21,7 @@ export type CustomChart = {
   chartType: string;
   dataSource: string;
   metric: string;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   visibility: "PERSONAL" | "SHARED";
   sortOrder: number;
   folderId: string | null;
@@ -64,7 +64,7 @@ type CreateChartInput = {
   chartType: string;
   dataSource: string;
   metric: string;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   visibility: "PERSONAL" | "SHARED";
 };
 
@@ -346,10 +346,10 @@ export function useSavedReports() {
   return { reports, loading, fetchReports, createReport, updateReport, deleteReport };
 }
 
-export function useChartData(dataSourceId: string, metricId: string, config?: Record<string, any>) {
-  const [data, setData] = useState<any>(null);
+export function useChartData(dataSourceId: string, metricId: string, config?: Record<string, unknown>) {
+  const [data, setData] = useState<unknown>(null);
   const [transformedData, setTransformedData] = useState<{
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     dataKeys: string[];
     nameKey: string;
     colors?: string[];
@@ -365,7 +365,7 @@ export function useChartData(dataSourceId: string, metricId: string, config?: Re
     setLoading(true);
 
     const params = new URLSearchParams();
-    if (config?.period) params.set("period", config.period);
+    if (config?.period) params.set("period", String(config.period));
 
     const url = params.toString() ? `${ds.endpoint}?${params}` : ds.endpoint;
 
