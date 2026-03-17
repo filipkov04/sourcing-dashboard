@@ -61,9 +61,32 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten by auto-rules.
 
-## Current Status (Session 29 — Mar 17, 2026)
+## Current Status (Session 30 — Mar 17, 2026)
 
-**Last completed:** BEHIND_SCHEDULE status + Dashboard redesign + Security fixes
+**Last completed:** Systematic dashboard review — Homepage, Factories, Orders, Analytics sections
+
+**Session 30 changes (Marco):**
+- **Systematic Dashboard Review** — Section-by-section fault audit with fixes:
+  - **Homepage:** (reviewed in prior context window, committed)
+  - **Factories:**
+    - `factories/page.tsx`: Added BEHIND_SCHEDULE to active orders filter
+    - `factories/[id]/page.tsx`: Fixed on-time rate calc (was checking status=DELAYED within completed set, now uses actualDate vs expectedDate), fixed 3x `replace("_"," ")` → `replace(/_/g," ")`
+    - `factories/new/page.tsx`: Fixed dark-mode-only text colors → added light mode variants
+    - `api/factories/route.ts`: Replaced `any` with typed where clause, added server-side ADMIN/OWNER role check on POST
+    - `api/factories/[id]/route.ts`: Replaced `any` with `Record<string, string | null>` for updateData
+  - **Orders:**
+    - `orders/[id]/page.tsx`: Fixed 2x `replace("_"," ")` → `replace(/_/g," ")`
+    - `orders/[id]/edit/page.tsx`: Added BEHIND_SCHEDULE, IN_TRANSIT, CUSTOMS to status dropdown
+    - `orders/page.tsx`: Added IN_TRANSIT, CUSTOMS to status filter and bulk status dropdowns
+    - `api/orders/route.ts`: Added server-side ADMIN/OWNER role check on POST, added IN_TRANSIT/CUSTOMS to validStatuses
+    - `api/orders/[id]/route.ts`: Added BEHIND_SCHEDULE to StageInput type union
+  - **Analytics (including custom charts):**
+    - `lib/chart-data-sources.ts`: Added BEHIND_SCHEDULE + 5 missing statuses to STATUS_COLORS, added Behind Schedule to ordersOverTime trend transform, centralized `ApiData` type alias for transforms
+    - `api/dashboard/delay-analysis/route.ts`: Added BEHIND_SCHEDULE to isStatusDelayed check, removed unused monthKey variable
+    - `analytics/page.tsx`: Replaced `any[]` types with proper types for LeadTimeData.byFactory/byProduct and ForecastData.forecasts
+    - `analytics/_components/custom-chart-renderer.tsx`: Fixed hardcoded dark tooltip → theme-aware, replaced `any` types with `Record<string, unknown>` / proper types
+    - 6 more files: Eliminated `Record<string, any>` across chart-builder-wizard, chart-builder-step-save, custom-charts-tab, custom-chart-card, historical-delay-chart, use-custom-charts
+  - **Sections remaining:** Timeline, Team, Settings, Messages, Requests, Map, Sidebar/Layout
 
 **Session 29 changes (Marco):**
 - **BEHIND_SCHEDULE Status (Order + Stage level):**
