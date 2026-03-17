@@ -414,6 +414,8 @@ export default function OrdersPage() {
                 <SelectItem value="DISRUPTED">Disrupted</SelectItem>
                 <SelectItem value="COMPLETED">Completed</SelectItem>
                 <SelectItem value="SHIPPED">Shipped</SelectItem>
+                <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                <SelectItem value="CUSTOMS">Customs</SelectItem>
                 <SelectItem value="DELIVERED">Delivered</SelectItem>
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
@@ -502,6 +504,8 @@ export default function OrdersPage() {
               <SelectItem value="DISRUPTED">Disrupted</SelectItem>
               <SelectItem value="COMPLETED">Completed</SelectItem>
               <SelectItem value="SHIPPED">Shipped</SelectItem>
+              <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+              <SelectItem value="CUSTOMS">Customs</SelectItem>
               <SelectItem value="DELIVERED">Delivered</SelectItem>
               <SelectItem value="CANCELLED">Cancelled</SelectItem>
             </SelectContent>

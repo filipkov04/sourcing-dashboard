@@ -582,10 +582,13 @@ export default function EditOrderPage() {
                   <SelectContent>
                     <SelectItem value="PENDING">Pending</SelectItem>
                     <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="BEHIND_SCHEDULE">Behind Schedule</SelectItem>
                     <SelectItem value="DELAYED">Delayed</SelectItem>
                     <SelectItem value="DISRUPTED">Disrupted</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
                     <SelectItem value="SHIPPED">Shipped</SelectItem>
+                    <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                    <SelectItem value="CUSTOMS">Customs</SelectItem>
                     <SelectItem value="DELIVERED">Delivered</SelectItem>
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>

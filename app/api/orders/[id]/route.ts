@@ -261,7 +261,7 @@ export async function PATCH(
 
     // Handle stages update — upsert to preserve IDs, metadata, timestamps, and relations
     if (stages !== undefined) {
-      type StageInput = { id?: string; name: string; sequence: number; progress?: number; status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED"; notes?: string };
+      type StageInput = { id?: string; name: string; sequence: number; progress?: number; status?: "NOT_STARTED" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED"; notes?: string };
       const incomingStages: StageInput[] = stages;
       const existingStageIds = existingOrder.stages.map((s) => s.id);
       const incomingIds = incomingStages.filter((s) => s.id).map((s) => s.id!);

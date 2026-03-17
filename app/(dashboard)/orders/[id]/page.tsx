@@ -1045,7 +1045,7 @@ export default function OrderDetailPage() {
                 </Select>
               ) : (
                 <Badge className={statusColors[order.status]}>
-                  {order.status.replace("_", " ")}
+                  {order.status.replace(/_/g, " ")}
                 </Badge>
               )}
               <Badge className={priorityColors[order.priority]}>
@@ -1560,7 +1560,7 @@ export default function OrderDetailPage() {
                         <Badge
                           className={stageStatusBadgeColors[stage.status] || "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400"}
                         >
-                          {stage.status.replace("_", " ")}
+                          {stage.status.replace(/_/g, " ")}
                         </Badge>
                         {/* Expand button — always visible so users can view/add metadata */}
                         {editingStageId !== stage.id && (

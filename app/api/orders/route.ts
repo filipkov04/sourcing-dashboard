@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { success, error, unauthorized, handleError, projectScope } from "@/lib/api";
+import { success, error, unauthorized, forbidden, handleError, projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { checkAndUpdateDelays } from "@/lib/check-delays";
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const validStatuses = [
       "PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED",
-      "COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED",
+      "COMPLETED", "SHIPPED", "IN_TRANSIT", "CUSTOMS", "DELIVERED", "CANCELLED",
     ] as const;
     const validPriorities = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
 
@@ -157,6 +157,12 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session) {
       return unauthorized();
+    }
+
+    // Only ADMIN and OWNER can create orders directly
+    const role = session.user?.role;
+    if (role !== "ADMIN" && role !== "OWNER") {
+      return forbidden("Only admins can create orders directly. Please submit a request instead.");
     }
 
     const body = await request.json();
