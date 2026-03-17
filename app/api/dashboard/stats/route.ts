@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     // Calculate date range
     const now = new Date();
     const to = period === "custom" && customTo ? new Date(customTo) : now;
-    let from: Date;
+    let from: Date = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     let periodDays: number;
 
     switch (period) {
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         break;
       case "custom":
         from = customFrom ? new Date(customFrom) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        periodDays = Math.ceil((to.getTime() - from!.getTime()) / (24 * 60 * 60 * 1000));
+        periodDays = Math.ceil((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000));
         break;
       default:
         periodDays = 30;
@@ -52,33 +52,33 @@ export async function GET(request: NextRequest) {
     }
 
     // Run all DB queries in parallel
-    const previousFrom = new Date(from!.getTime() - periodDays * 24 * 60 * 60 * 1000);
+    const previousFrom = new Date(from.getTime() - periodDays * 24 * 60 * 60 * 1000);
 
     const [orders, previousPeriodOrders, previousCompletedOrders, previousCompletedWithDates] = await Promise.all([
       prisma.order.findMany({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
-          orderDate: { gte: from!, lte: to },
+          orderDate: { gte: from, lte: to },
         },
       }),
       prisma.order.count({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
-          orderDate: { gte: previousFrom, lt: from! },
+          orderDate: { gte: previousFrom, lt: from },
         },
       }),
       prisma.order.count({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
           status: "COMPLETED",
-          actualDate: { gte: previousFrom, lt: from! },
+          actualDate: { gte: previousFrom, lt: from },
         },
       }),
       prisma.order.findMany({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
           status: "COMPLETED",
-          actualDate: { gte: previousFrom, lt: from!, not: null },
+          actualDate: { gte: previousFrom, lt: from, not: null },
         },
         select: { actualDate: true, expectedDate: true, orderDate: true },
       }),
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
     const recentCompletedOrders = orders.filter((order) =>
       order.status === "COMPLETED" &&
       order.actualDate &&
-      new Date(order.actualDate) >= from!
+      new Date(order.actualDate) >= from
     ).length;
 
     const completionTrend = previousCompletedOrders > 0
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
 
     // Generate sparkline data: split the period into 7 buckets
     const bucketCount = 7;
-    const bucketMs = (to.getTime() - from!.getTime()) / bucketCount;
+    const bucketMs = (to.getTime() - from.getTime()) / bucketCount;
 
     const totalSparkline: number[] = Array(bucketCount).fill(0);
     const activeSparkline: number[] = Array(bucketCount).fill(0);
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
     for (const order of orders) {
       const orderTime = new Date(order.orderDate).getTime();
       const bucket = Math.min(
-        Math.floor((orderTime - from!.getTime()) / bucketMs),
+        Math.floor((orderTime - from.getTime()) / bucketMs),
         bucketCount - 1
       );
       if (bucket >= 0) {
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
         completed: completedSparkline,
       },
       period: {
-        from: from!.toISOString(),
+        from: from.toISOString(),
         to: to.toISOString(),
       },
     };

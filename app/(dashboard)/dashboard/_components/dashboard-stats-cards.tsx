@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useId } from "react";
 import { Package, Activity, CheckCircle, Target, Clock, Calendar, RefreshCw } from "lucide-react";
 import { useAutoRefresh, formatTimeAgo } from "@/lib/use-auto-refresh";
 import { AnimatedNumber } from "@/components/animated-number";
@@ -31,12 +31,11 @@ type DashboardStats = {
 
 type Period = "7d" | "30d" | "90d" | "custom";
 
-let sparklineIdCounter = 0;
-
 function Sparkline({ data, color = "#3b82f6" }: { data: number[]; color?: string }) {
+  const id = useId();
   if (!data || data.length < 2) return null;
 
-  const gradientId = `sparkline-grad-${sparklineIdCounter++}`;
+  const gradientId = `sparkline-grad-${id}`;
   const max = Math.max(...data, 1);
   const w = 64;
   const h = 28;

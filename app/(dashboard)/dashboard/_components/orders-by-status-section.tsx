@@ -26,7 +26,7 @@ export function OrdersByStatusSection() {
         const response = await fetch("/api/dashboard/status-breakdown");
         const data = await response.json();
         if (data.success) {
-          const chartData = data.data.map((item: any) => ({
+          const chartData = data.data.map((item: { status: string; count: number; color: string; percentage: number }) => ({
             name: item.status,
             value: item.count,
             color: item.color,
