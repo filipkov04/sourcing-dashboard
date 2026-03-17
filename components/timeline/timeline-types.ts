@@ -5,6 +5,7 @@ export type TimelineNodeType = "order-info" | "stage";
 export type StageStatus =
   | "NOT_STARTED"
   | "IN_PROGRESS"
+  | "BEHIND_SCHEDULE"
   | "COMPLETED"
   | "SKIPPED"
   | "DELAYED"
@@ -32,6 +33,13 @@ export const statusConfig: Record<StageStatus | "ORDER", StatusConfigItem> = {
     iconColor: "text-blue-500 dark:text-blue-400",
     sequenceBgColor: "bg-blue-100 dark:bg-blue-900/60",
     glowColor: "shadow-blue-500/40",
+  },
+  BEHIND_SCHEDULE: {
+    bgColor: "bg-amber-50 dark:bg-amber-900/40",
+    borderColor: "border-amber-400 dark:border-amber-500",
+    iconColor: "text-amber-500 dark:text-amber-400",
+    sequenceBgColor: "bg-amber-100 dark:bg-amber-900/60",
+    glowColor: "shadow-amber-500/30",
   },
   COMPLETED: {
     bgColor: "bg-green-50 dark:bg-green-900/40",
@@ -97,6 +105,7 @@ export const stageIcons: Record<string, string> = {
 export const statusZoneColors: Record<string, { light: string; dark: string } | null> = {
   COMPLETED: { light: "bg-green-500/[0.04]", dark: "dark:bg-green-400/[0.06]" },
   IN_PROGRESS: { light: "bg-blue-500/[0.04]", dark: "dark:bg-blue-400/[0.06]" },
+  BEHIND_SCHEDULE: { light: "bg-amber-500/[0.05]", dark: "dark:bg-amber-400/[0.07]" },
   DELAYED: { light: "bg-orange-500/[0.05]", dark: "dark:bg-orange-400/[0.07]" },
   BLOCKED: { light: "bg-red-500/[0.05]", dark: "dark:bg-red-400/[0.07]" },
   NOT_STARTED: null, // skip — gray on gray adds nothing

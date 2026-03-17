@@ -52,6 +52,7 @@ function formatStatusValue(value: string): string {
   const statusLabels: Record<string, string> = {
     PENDING: "Pending",
     IN_PROGRESS: "In Progress",
+    BEHIND_SCHEDULE: "Behind Schedule",
     DELAYED: "Delayed",
     DISRUPTED: "Disrupted",
     COMPLETED: "Completed",
@@ -203,6 +204,7 @@ export function getEventColor(event: OrderEvent): "green" | "blue" | "orange" | 
         return "green";
       case "IN_PROGRESS":
         return "blue";
+      case "BEHIND_SCHEDULE":
       case "DELAYED":
         return "orange";
       case "DISRUPTED":

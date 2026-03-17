@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       const totalOrders = orders.length;
 
       // Active orders
-      const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
+      const activeStatuses = ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"];
       const activeOrders = orders.filter((order) =>
         activeStatuses.includes(order.status)
       ).length;

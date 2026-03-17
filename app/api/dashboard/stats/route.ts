@@ -87,10 +87,9 @@ export async function GET(request: NextRequest) {
     // Calculate statistics
     const totalOrders = orders.length;
 
-    // Active pipeline = only healthy in-flight orders (not delayed/disrupted)
-    const pipelineStatuses = ["PENDING", "IN_PROGRESS"];
+    // In Progress = only orders currently in production
     const activeOrders = orders.filter((order) =>
-      pipelineStatuses.includes(order.status)
+      order.status === "IN_PROGRESS"
     ).length;
 
     const completedOrders = orders.filter((order) =>
@@ -177,7 +176,7 @@ export async function GET(request: NextRequest) {
       );
       if (bucket >= 0) {
         totalSparkline[bucket]++;
-        if (pipelineStatuses.includes(order.status)) activeSparkline[bucket]++;
+        if (order.status === "IN_PROGRESS") activeSparkline[bucket]++;
         if (order.status === "COMPLETED") completedSparkline[bucket]++;
       }
     }

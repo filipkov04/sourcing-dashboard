@@ -28,7 +28,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const validStatuses = [
-      "PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED",
+      "PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED",
       "COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED",
     ];
     if (!validStatuses.includes(status)) {

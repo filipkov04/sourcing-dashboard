@@ -36,7 +36,7 @@ const FACTORIES = {
 };
 
 type OrderStatus = "PENDING" | "IN_PROGRESS" | "DELAYED" | "DISRUPTED" | "COMPLETED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-type StageStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED";
+type StageStatus = "NOT_STARTED" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED";
 type Priority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 function cuid(): string {

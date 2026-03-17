@@ -541,6 +541,8 @@ export function getRouteColor(worstStatus: string | null): string {
       return "#dc2626";
     case "DELAYED":
       return "#d97706";
+    case "BEHIND_SCHEDULE":
+      return "#f59e0b";
     default:
       return "#94a3b8";
   }

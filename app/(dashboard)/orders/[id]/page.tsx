@@ -142,6 +142,7 @@ type Order = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  BEHIND_SCHEDULE: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   DELAYED: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
@@ -162,6 +163,7 @@ const priorityColors: Record<string, string> = {
 const stageStatusColors: Record<string, string> = {
   NOT_STARTED: "text-zinc-500",
   IN_PROGRESS: "text-blue-600",
+  BEHIND_SCHEDULE: "text-amber-600",
   COMPLETED: "text-green-600",
   SKIPPED: "text-zinc-500",
   DELAYED: "text-yellow-600",
@@ -171,6 +173,7 @@ const stageStatusColors: Record<string, string> = {
 const stageStatusBadgeColors: Record<string, string> = {
   NOT_STARTED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
   IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  BEHIND_SCHEDULE: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
   SKIPPED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
   DELAYED: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
@@ -180,6 +183,7 @@ const stageStatusBadgeColors: Record<string, string> = {
 const stageBorderColors: Record<string, string> = {
   NOT_STARTED: "!border-l-zinc-300 dark:!border-l-zinc-600",
   IN_PROGRESS: "!border-l-blue-500",
+  BEHIND_SCHEDULE: "!border-l-amber-500",
   COMPLETED: "!border-l-green-500",
   SKIPPED: "!border-l-zinc-300 dark:!border-l-zinc-600",
   DELAYED: "!border-l-amber-500",
@@ -189,6 +193,7 @@ const stageBorderColors: Record<string, string> = {
 const stageBgColors: Record<string, string> = {
   NOT_STARTED: "",
   IN_PROGRESS: "bg-blue-50/30 dark:bg-blue-950/10",
+  BEHIND_SCHEDULE: "bg-amber-50/30 dark:bg-amber-950/10",
   COMPLETED: "bg-green-50/30 dark:bg-green-950/10",
   SKIPPED: "",
   DELAYED: "bg-amber-50/30 dark:bg-amber-950/10",
@@ -715,6 +720,8 @@ export default function OrderDetailPage() {
         return <CheckCircle2 className="h-5 w-5 text-green-600" />;
       case "IN_PROGRESS":
         return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
+      case "BEHIND_SCHEDULE":
+        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
       case "DELAYED":
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
       case "BLOCKED":
@@ -1027,6 +1034,7 @@ export default function OrderDetailPage() {
                   <SelectContent>
                     <SelectItem value="PENDING">Pending</SelectItem>
                     <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="BEHIND_SCHEDULE">Behind Schedule</SelectItem>
                     <SelectItem value="DELAYED">Delayed</SelectItem>
                     <SelectItem value="DISRUPTED">Disrupted</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
@@ -1635,6 +1643,12 @@ export default function OrderDetailPage() {
                             <SelectContent>
                               <SelectItem value="NOT_STARTED">Not Started</SelectItem>
                               <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                              <SelectItem value="BEHIND_SCHEDULE">
+                                <span className="flex items-center gap-2">
+                                  <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                  Behind Schedule
+                                </span>
+                              </SelectItem>
                               <SelectItem value="COMPLETED">Completed</SelectItem>
                               <SelectItem value="DELAYED">
                                 <span className="flex items-center gap-2">

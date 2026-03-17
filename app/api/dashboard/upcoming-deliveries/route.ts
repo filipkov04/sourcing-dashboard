@@ -25,7 +25,7 @@ export async function GET() {
       where: {
         organizationId,
         ...(projectId ? { projectId } : {}),
-        status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "SHIPPED"] },
+        status: { in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "SHIPPED"] },
         expectedDate: { gte: sevenDaysAgo },
       },
       include: {
@@ -63,7 +63,7 @@ export async function GET() {
         return false;
       });
 
-      const isOrderDelayed = order.status === "DELAYED" || order.status === "DISRUPTED";
+      const isOrderDelayed = order.status === "BEHIND_SCHEDULE" || order.status === "DELAYED" || order.status === "DISRUPTED";
 
       let urgency: "overdue" | "critical" | "soon" | "on-track";
       if (daysRemaining < 0) {

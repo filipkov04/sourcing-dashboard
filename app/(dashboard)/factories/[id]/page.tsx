@@ -77,6 +77,7 @@ type Factory = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  BEHIND_SCHEDULE: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   DELAYED: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
@@ -95,6 +96,7 @@ const priorityColors: Record<string, string> = {
 const statusBarFills: Record<string, string> = {
   PENDING: "#f59e0b",
   IN_PROGRESS: "#3b82f6",
+  BEHIND_SCHEDULE: "#eab308",
   DELAYED: "#f97316",
   DISRUPTED: "#ef4444",
   COMPLETED: "#22c55e",
@@ -103,7 +105,7 @@ const statusBarFills: Record<string, string> = {
   CANCELLED: "#a1a1aa",
 };
 
-const ACTIVE_STATUSES = ["IN_PROGRESS", "PENDING", "DELAYED", "DISRUPTED"];
+const ACTIVE_STATUSES = ["IN_PROGRESS", "PENDING", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"];
 
 export default function FactoryDetailPage() {
   const params = useParams();

@@ -395,7 +395,7 @@ export default function RequestsPage() {
                           #{request.targetOrder.orderNumber}
                         </span>
                       )}
-                      {!request.targetOrder && request.type === "ORDER_REQUEST" && request.data.orderNumber && (
+                      {!request.targetOrder && request.type === "ORDER_REQUEST" && !!request.data.orderNumber && (
                         <span className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded px-1.5 py-0.5">
                           #{String(request.data.orderNumber)}
                         </span>

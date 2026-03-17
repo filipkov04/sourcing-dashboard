@@ -142,7 +142,7 @@ export type OrderFormData = {
  * Order update form data (partial)
  */
 export type OrderUpdateFormData = Partial<OrderFormData> & {
-  status?: "PENDING" | "IN_PROGRESS" | "DELAYED" | "DISRUPTED" | "COMPLETED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status?: "PENDING" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "DELAYED" | "DISRUPTED" | "COMPLETED" | "SHIPPED" | "IN_TRANSIT" | "CUSTOMS" | "DELIVERED" | "CANCELLED";
   overallProgress?: number;
 };
 
@@ -161,7 +161,7 @@ export type OrderStageFormData = {
 export type StageProgressUpdate = {
   stageId: string;
   progress: number;
-  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED";
+  status?: "NOT_STARTED" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED";
   notes?: string;
 };
 
@@ -191,7 +191,7 @@ export type UserLoginData = {
  * Order list filters
  */
 export type OrderFilters = {
-  status?: "PENDING" | "IN_PROGRESS" | "DELAYED" | "DISRUPTED" | "COMPLETED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status?: "PENDING" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "DELAYED" | "DISRUPTED" | "COMPLETED" | "SHIPPED" | "IN_TRANSIT" | "CUSTOMS" | "DELIVERED" | "CANCELLED";
   factoryId?: string;
   priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   search?: string;

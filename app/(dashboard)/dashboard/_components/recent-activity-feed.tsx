@@ -16,14 +16,15 @@ type ActivityItem = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
-  IN_PROGRESS: "bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20",
+  PENDING: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
+  IN_PROGRESS: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
+  BEHIND_SCHEDULE: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
   DELAYED: "bg-orange-500/10 text-[#FF4D15] ring-1 ring-orange-500/20",
   DISRUPTED: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
-  COMPLETED: "bg-green-500/10 text-green-600 dark:text-green-400 ring-1 ring-green-500/20",
-  SHIPPED: "bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20",
-  DELIVERED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20",
-  CANCELLED: "bg-zinc-500/10 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/20",
+  COMPLETED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
+  SHIPPED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
+  DELIVERED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
+  CANCELLED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
 };
 
 export function RecentActivityFeed() {
@@ -109,16 +110,12 @@ export function RecentActivityFeed() {
             className="group flex items-center gap-3 -mx-2 px-2 py-2 rounded-lg hover:bg-gray-50/80 dark:hover:bg-zinc-800/50 transition-colors"
           >
             <div
-              className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
-                activity.type === "completed"
-                  ? "bg-green-500/10"
-                  : "bg-blue-500/10"
-              }`}
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-zinc-500/5 dark:bg-zinc-800"
             >
               {activity.type === "completed" ? (
-                <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                <CheckCircle className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
               ) : (
-                <Package className="h-3.5 w-3.5 text-blue-500" />
+                <Package className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
               )}
             </div>
 

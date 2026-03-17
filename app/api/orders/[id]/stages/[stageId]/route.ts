@@ -61,7 +61,7 @@ export async function PATCH(
     }
 
     // Validate status (ignore empty string)
-    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "SKIPPED", "DELAYED", "BLOCKED"];
+    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "BEHIND_SCHEDULE", "COMPLETED", "SKIPPED", "DELAYED", "BLOCKED"];
     if (status !== undefined && status !== "" && !validStatuses.includes(status)) {
       return error("Invalid status", 400);
     }
@@ -69,9 +69,9 @@ export async function PATCH(
     // Build update data
     const updateData: Record<string, unknown> = {};
 
-    // Check if stage is in a "problem" state (DELAYED or BLOCKED)
-    const isProblemStatus = existingStage.status === "DELAYED" || existingStage.status === "BLOCKED";
-    const isSettingProblemStatus = status === "DELAYED" || status === "BLOCKED";
+    // Check if stage is in a "problem" state (BEHIND_SCHEDULE, DELAYED, or BLOCKED)
+    const isProblemStatus = existingStage.status === "BEHIND_SCHEDULE" || existingStage.status === "DELAYED" || existingStage.status === "BLOCKED";
+    const isSettingProblemStatus = status === "BEHIND_SCHEDULE" || status === "DELAYED" || status === "BLOCKED";
 
     if (progress !== undefined) {
       updateData.progress = progress;
@@ -122,6 +122,13 @@ export async function PATCH(
           updateData.progress = 0;
         }
       }
+      // BEHIND_SCHEDULE keeps existing timestamps (still progressing)
+      if (status === "BEHIND_SCHEDULE") {
+        if (!existingStage.startedAt) {
+          updateData.startedAt = new Date();
+        }
+        updateData.completedAt = null;
+      }
       // DELAYED and BLOCKED keep existing timestamps but don't auto-complete
       if (status === "DELAYED" || status === "BLOCKED") {
         if (!existingStage.startedAt) {
@@ -169,12 +176,13 @@ export async function PATCH(
       // Determine order status based on stage statuses
       const hasBlockedStage = allStages.some((s) => s.status === "BLOCKED");
       const hasDelayedStage = allStages.some((s) => s.status === "DELAYED");
+      const hasBehindScheduleStage = allStages.some((s) => s.status === "BEHIND_SCHEDULE");
       const allCompleted = allStages.every((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
-      const anyInProgress = allStages.some((s) => s.status === "IN_PROGRESS");
+      const anyInProgress = allStages.some((s) => s.status === "IN_PROGRESS" || s.status === "BEHIND_SCHEDULE");
       const allNotStarted = allStages.every((s) => s.status === "NOT_STARTED");
 
       // Only auto-update status for active orders (not completed, shipped, delivered, or cancelled)
-      const activeStatuses = ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"];
+      const activeStatuses = ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"];
       let newOrderStatus: string | undefined;
 
       if (activeStatuses.includes(order.status)) {
@@ -182,6 +190,8 @@ export async function PATCH(
           newOrderStatus = "DISRUPTED";
         } else if (hasDelayedStage) {
           newOrderStatus = "DELAYED";
+        } else if (hasBehindScheduleStage) {
+          newOrderStatus = "BEHIND_SCHEDULE";
         } else if (allCompleted) {
           newOrderStatus = "COMPLETED";
         } else if (allNotStarted && overallProgress === 0) {

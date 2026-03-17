@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         contactPhone: true,
         orders: {
           where: {
-            status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
+            status: { in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"] },
           },
           select: {
             status: true,
@@ -85,8 +85,9 @@ export async function GET(request: NextRequest) {
 
         // Determine worst order status (priority: DISRUPTED > DELAYED > IN_PROGRESS > PENDING)
         const statusPriority: Record<string, number> = {
-          DISRUPTED: 4,
-          DELAYED: 3,
+          DISRUPTED: 5,
+          DELAYED: 4,
+          BEHIND_SCHEDULE: 3,
           IN_PROGRESS: 2,
           PENDING: 1,
         };

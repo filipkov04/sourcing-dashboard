@@ -79,6 +79,7 @@ function getStatusColor(status: string): string {
   const colorMap: Record<string, string> = {
     PENDING: "#f59e0b", // amber-500
     IN_PROGRESS: "#3b82f6", // blue-500
+    BEHIND_SCHEDULE: "#eab308", // amber-500
     DELAYED: "#f97316", // orange-500
     DISRUPTED: "#ef4444", // red-500
     COMPLETED: "#10b981", // green-500

@@ -58,13 +58,13 @@ export async function GET() {
 
       const delayed = orders.filter((o) => {
         const d = new Date(o.updatedAt);
-        return d >= date && d < nextDate && ["DELAYED", "DISRUPTED"].includes(o.status);
+        return d >= date && d < nextDate && ["BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"].includes(o.status);
       }).length;
 
       // Active orders as of this day (created before nextDate and not yet completed)
       const active = orders.filter((o) => {
         const created = new Date(o.orderDate);
-        return created < nextDate && ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"].includes(o.status);
+        return created < nextDate && ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"].includes(o.status);
       }).length;
 
       days.push({ day: dayLabel, created, completed, delayed, active });

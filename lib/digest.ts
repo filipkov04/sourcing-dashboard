@@ -4,6 +4,7 @@ import { sendEmail } from "./email";
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "Pending",
   IN_PROGRESS: "In Progress",
+  BEHIND_SCHEDULE: "Behind Schedule",
   DELAYED: "Delayed",
   DISRUPTED: "Disrupted",
   COMPLETED: "Completed",
@@ -13,11 +14,12 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
+  IN_PROGRESS: "#3b82f6",
+  BEHIND_SCHEDULE: "#eab308",
   DELAYED: "#eab308",
   DISRUPTED: "#ef4444",
   COMPLETED: "#22c55e",
   SHIPPED: "#8b5cf6",
-  IN_PROGRESS: "#3b82f6",
 };
 
 interface DigestResult {
@@ -94,7 +96,7 @@ export async function sendWeeklyDigest(
     prisma.order.count({
       where: {
         organizationId,
-        status: { in: ["IN_PROGRESS", "DELAYED", "DISRUPTED"] },
+        status: { in: ["IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"] },
       },
     }),
     prisma.orderEvent.findMany({

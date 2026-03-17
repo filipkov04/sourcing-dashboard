@@ -68,6 +68,7 @@ type Factory = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   IN_PROGRESS: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  BEHIND_SCHEDULE: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   DELAYED: "bg-orange-50 text-[#FF4D15] dark:bg-orange-900/20 dark:text-[#FF4D15]",
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
@@ -408,6 +409,7 @@ export default function OrdersPage() {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="BEHIND_SCHEDULE">Behind Schedule</SelectItem>
                 <SelectItem value="DELAYED">Delayed</SelectItem>
                 <SelectItem value="DISRUPTED">Disrupted</SelectItem>
                 <SelectItem value="COMPLETED">Completed</SelectItem>
@@ -495,6 +497,7 @@ export default function OrdersPage() {
             <SelectContent>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="BEHIND_SCHEDULE">Behind Schedule</SelectItem>
               <SelectItem value="DELAYED">Delayed</SelectItem>
               <SelectItem value="DISRUPTED">Disrupted</SelectItem>
               <SelectItem value="COMPLETED">Completed</SelectItem>

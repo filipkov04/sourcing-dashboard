@@ -5,7 +5,7 @@
 Web dashboard for fashion/manufacturing brands to track real-time production status from all their factories. Think Shopify for production tracking.
 
 **Repo:** https://github.com/filipkov04/sourcing-dashboard
-**Developers:** Filip & Marco | **Timeline:** 12 weeks (currently Week 3 of 8 core + 4 planned)
+**Developers:** Filip & Marco | **Timeline:** 12 weeks (currently Week 9 — week 8 was skipped)
 
 ## Tech Stack
 
@@ -14,7 +14,7 @@ Web dashboard for fashion/manufacturing brands to track real-time production sta
 - **Database:** PostgreSQL on Supabase | **ORM:** Prisma 7
 - **Auth:** NextAuth.js v5
 - **Styling:** Tailwind CSS 4 (dark theme default) | **UI:** shadcn/ui (Radix)
-- **Charts:** Recharts | **DnD:** @dnd-kit | **Export:** html-to-image | **Deployment:** Vercel
+- **Charts:** Recharts | **DnD:** @dnd-kit | **Export:** html-to-image, ExcelJS | **Deployment:** Vercel
 
 ## Key Conventions
 
@@ -42,15 +42,55 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 ## Status System
 
-**Order Status** (auto-updated from stages): PENDING | IN_PROGRESS | DELAYED | DISRUPTED | COMPLETED | SHIPPED | DELIVERED | CANCELLED
+**Order Status** (auto-updated from stages): PENDING | IN_PROGRESS | BEHIND_SCHEDULE | DELAYED | DISRUPTED | COMPLETED | SHIPPED | IN_TRANSIT | CUSTOMS | DELIVERED | CANCELLED
 
-**Stage Status:** NOT_STARTED | IN_PROGRESS | COMPLETED | SKIPPED | DELAYED | BLOCKED
+**Stage Status:** NOT_STARTED | IN_PROGRESS | BEHIND_SCHEDULE | COMPLETED | SKIPPED | DELAYED | BLOCKED
 
-Auto-rules: Any BLOCKED stage → order DISRUPTED. Any DELAYED stage → order DELAYED. All COMPLETED/SKIPPED → order COMPLETED. Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten.
+**Stage-level detection (`lib/check-delays.ts`):**
+- IN_PROGRESS stage past `expectedEndDate` → **BEHIND_SCHEDULE** (amber — still progressing but late)
+- NOT_STARTED stage past `expectedStartDate` → **DELAYED** (orange — hasn't even begun)
+- Auto-reverts: BEHIND_SCHEDULE → IN_PROGRESS when projected completion catches up
 
-## Current Status (Session 28 — Mar 8, 2026)
+**Order-level propagation priority** (highest wins):
+1. Any BLOCKED stage → order **DISRUPTED**
+2. Any DELAYED stage → order **DELAYED**
+3. Any BEHIND_SCHEDULE stage → order **BEHIND_SCHEDULE**
+4. All COMPLETED/SKIPPED → order **COMPLETED**
 
-**Last completed:** Tony Stark HUD Visual Enhancements + Factory Map Fix
+**AT_RISK** is a computed visual indicator (not a DB status) — shown in Action Required widget for IN_PROGRESS orders without stage dates where progress is 20+ percentage points behind time elapsed and >30% time elapsed.
+
+Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten by auto-rules.
+
+## Current Status (Session 29 — Mar 17, 2026)
+
+**Last completed:** BEHIND_SCHEDULE status + Dashboard redesign + Security fixes
+
+**Session 29 changes (Marco):**
+- **BEHIND_SCHEDULE Status (Order + Stage level):**
+  - `prisma/schema.prisma`: Added BEHIND_SCHEDULE to both OrderStatus and StageStatus enums. Added IN_TRANSIT, CUSTOMS to OrderStatus.
+  - `lib/check-delays.ts`: Rewritten detection logic — IN_PROGRESS stages past expectedEndDate → BEHIND_SCHEDULE, NOT_STARTED past expectedStartDate → DELAYED. `projectCompletion()` function for cumulative slippage. Auto-revert when projection catches up.
+  - `app/api/orders/[id]/stages/[stageId]/route.ts`: BEHIND_SCHEDULE in validStatuses, isProblemStatus, timestamp handling, order propagation.
+  - 13+ API routes: Added BEHIND_SCHEDULE to active status filter arrays (orders, bulk, stages, factory-stats, forecasting, factory-orders, factory-locations, daily-stats, stats, status-breakdown, upcoming-deliveries, cron/check-delays).
+  - 6+ UI files: Added BEHIND_SCHEDULE to status color maps across orders, factories, shipment panel, map drawer, shipment list, activity feed.
+  - Timeline/Gantt: BEHIND_SCHEDULE in all color maps (amber), horizontal-timeline summary counter, timeline-node formatting.
+  - Lib files: alert-generator, digest, notifications, history-utils, pdf/order-report, integrations/transformer, types.
+  - `scripts/test-behind-schedule.ts`: Test script verified detection against real DB.
+- **Dashboard Redesign:**
+  - `dashboard/page.tsx`: New layout — Header → KPIs → Action Required + Alerts → Activity + Order Progress → Orders by Status → Map + Exchange Rates.
+  - Removed 11 unused components: quick-actions, upcoming-deliveries, product-portfolio (3 files), factory-performance-section, best-sellers, orders-over-time (3 files), dashboard-empty-state.
+  - `action-required.tsx` (NEW): Action Required widget with severity-coded items (critical/warning/attention), AT_RISK computed indicator, count badge.
+  - `order-progress-snapshot.tsx` (NEW): Top 8 active orders sorted by nearest delivery, progress bars, days-remaining badges.
+  - `app/api/dashboard/action-required/route.ts` (NEW): Returns DISRUPTED/DELAYED/BEHIND_SCHEDULE orders + AT_RISK computed indicator.
+  - `app/api/dashboard/order-progress/route.ts` (NEW): Returns active orders for progress widget.
+  - `dashboard-stats-cards.tsx`: Sparklines muted to zinc-500, "In Progress" → "Currently in production", activeOrders counts only IN_PROGRESS.
+  - `recent-activity-feed.tsx`: Healthy status badges muted to zinc, icons muted.
+- **Security: xlsx → ExcelJS swap:**
+  - `app/api/orders/export-xlsx/route.ts`: Complete rewrite using ExcelJS (same 3-sheet structure). Removed vulnerable `xlsx` package.
+- **Bug fixes:**
+  - `next.config.ts`: Fixed Sentry v10 config — replaced deprecated `disableServerWebpackPlugin`/`disableClientWebpackPlugin` with `sourcemaps: { disable: ... }`.
+  - `requests/page.tsx`: Fixed `!!request.data.orderNumber` coercion for ReactNode compatibility.
+  - `manufacturer-map/map-canvas.tsx`: Added `if (!map.getStyle()) return;` guard in geolocation callback.
+  - `manufacturer-map/vehicle-icons.ts`: Double `hasImage()` check before/after async `svgToImage()` to prevent race condition.
 
 **Session 28 changes (Marco):**
 - **Tony Stark HUD Visual Enhancements** — Cohesive JARVIS-style command center aesthetic across dashboard:

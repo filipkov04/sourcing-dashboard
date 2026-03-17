@@ -16,6 +16,7 @@ const statusDot: Record<string, string> = {
   CUSTOMS: "bg-amber-400",
   SHIPPED: "bg-indigo-400",
   DELIVERED: "bg-green-400",
+  BEHIND_SCHEDULE: "bg-amber-400",
   DELAYED: "bg-amber-400",
   DISRUPTED: "bg-red-400",
   EXCEPTION: "bg-red-400",

@@ -40,7 +40,8 @@ const riskBadge: Record<string, { label: string; className: string }> = {
 const statusBadge: Record<string, { label: string; className: string }> = {
   PENDING: { label: "Pending", className: "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400" },
   IN_PROGRESS: { label: "In Progress", className: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" },
-  DELAYED: { label: "Delayed", className: "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
+  BEHIND_SCHEDULE: { label: "Behind Schedule", className: "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
+  DELAYED: { label: "Delayed", className: "bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" },
   DISRUPTED: { label: "Disrupted", className: "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
 };
 

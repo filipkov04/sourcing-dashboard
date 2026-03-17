@@ -36,7 +36,7 @@ export async function GET(
     const orders = await prisma.order.findMany({
       where: {
         factoryId,
-        status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
+        status: { in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"] },
       },
       select: {
         id: true,

@@ -167,7 +167,7 @@ export function DashboardStatsCards() {
       icon: Package,
       trend: stats?.trends.orders,
       sparkline: stats?.sparklines?.total,
-      sparkColor: "#3b82f6",
+      sparkColor: "#71717a",
     },
     {
       label: "In Progress",
@@ -176,8 +176,8 @@ export function DashboardStatsCards() {
       icon: Activity,
       trend: sparklineTrend(stats?.sparklines?.active),
       sparkline: stats?.sparklines?.active,
-      sparkColor: "#8b5cf6",
-      subtitle: "Pending & in production",
+      sparkColor: "#71717a",
+      subtitle: "Currently in production",
       subtitleColor: "text-zinc-500 dark:text-zinc-500",
     },
     {
@@ -187,7 +187,7 @@ export function DashboardStatsCards() {
       icon: CheckCircle,
       trend: stats?.trends.completion,
       sparkline: stats?.sparklines?.completed,
-      sparkColor: "#10b981",
+      sparkColor: "#71717a",
     },
     {
       label: "On-Time Rate",
@@ -216,7 +216,7 @@ export function DashboardStatsCards() {
       icon: Clock,
       trend: stats?.trends.leadTime,
       invertTrend: true,
-      sparkColor: "#6366f1",
+      sparkColor: "#71717a",
       subtitle: stats?.avgLeadTimeDays
         ? "Order to completion"
         : "No completed orders",

@@ -25,6 +25,7 @@ function formatStatus(status: string): string {
   const labels: Record<string, string> = {
     NOT_STARTED: "Not Started",
     IN_PROGRESS: "In Progress",
+    BEHIND_SCHEDULE: "Behind Schedule",
     COMPLETED: "Completed",
     SKIPPED: "Skipped",
     DELAYED: "Delayed",
@@ -37,6 +38,7 @@ function formatStatus(status: string): string {
 const statusBadgeColors: Record<string, string> = {
   NOT_STARTED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
   IN_PROGRESS: "bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300",
+  BEHIND_SCHEDULE: "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300",
   COMPLETED: "bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-300",
   SKIPPED: "bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400",
   DELAYED: "bg-orange-100 dark:bg-orange-900/60 text-orange-700 dark:text-orange-300",
@@ -47,6 +49,7 @@ const statusBadgeColors: Record<string, string> = {
 const progressTextColors: Record<string, string> = {
   NOT_STARTED: "text-gray-400 dark:text-zinc-500",
   IN_PROGRESS: "text-blue-600 dark:text-blue-400",
+  BEHIND_SCHEDULE: "text-amber-600 dark:text-amber-400",
   COMPLETED: "text-green-600 dark:text-green-400",
   SKIPPED: "text-gray-400 dark:text-zinc-500",
   DELAYED: "text-orange-600 dark:text-orange-400",
@@ -57,6 +60,7 @@ const progressTextColors: Record<string, string> = {
 const progressBarColors: Record<string, string> = {
   NOT_STARTED: "bg-gray-400 dark:bg-zinc-500",
   IN_PROGRESS: "bg-blue-500 dark:bg-blue-400",
+  BEHIND_SCHEDULE: "bg-amber-500 dark:bg-amber-400",
   COMPLETED: "bg-green-500 dark:bg-green-400",
   SKIPPED: "bg-gray-400 dark:bg-zinc-500",
   DELAYED: "bg-orange-500 dark:bg-orange-400",

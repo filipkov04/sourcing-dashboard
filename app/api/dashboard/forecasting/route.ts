@@ -23,7 +23,7 @@ export async function GET() {
       where: {
         organizationId,
         ...(projectId ? { projectId } : {}),
-        status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
+        status: { in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"] },
       },
       select: {
         id: true,

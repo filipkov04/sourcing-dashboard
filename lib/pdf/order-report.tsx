@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
 const statusColors: Record<string, string> = {
   PENDING: "#f59e0b",
   IN_PROGRESS: "#3b82f6",
+  BEHIND_SCHEDULE: "#eab308",
   DELAYED: "#EB5D2E",
   DISRUPTED: "#ef4444",
   COMPLETED: "#10b981",

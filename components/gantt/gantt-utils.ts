@@ -194,6 +194,7 @@ export function generateDayLines(
 export const statusBarColors: Record<string, string> = {
   PENDING: "#f59e0b",     // amber-500
   IN_PROGRESS: "#3b82f6", // blue-500
+  BEHIND_SCHEDULE: "#f59e0b", // amber-500
   DELAYED: "#F97316",     // brand orange
   DISRUPTED: "#ef4444",   // red-500
   COMPLETED: "#22c55e",   // green-500
@@ -206,6 +207,7 @@ export const statusBarColors: Record<string, string> = {
 export const statusTrackColors: Record<string, string> = {
   PENDING: "#fef3c7",
   IN_PROGRESS: "#dbeafe",
+  BEHIND_SCHEDULE: "#fef3c7",
   DELAYED: "#fed7aa",
   DISRUPTED: "#fecaca",
   COMPLETED: "#dcfce7",
@@ -218,6 +220,7 @@ export const statusTrackColors: Record<string, string> = {
 export const statusBarColorsDark: Record<string, string> = {
   PENDING: "#d97706",
   IN_PROGRESS: "#2563eb",
+  BEHIND_SCHEDULE: "#d97706",
   DELAYED: "#F97316",
   DISRUPTED: "#dc2626",
   COMPLETED: "#16a34a",
@@ -229,6 +232,7 @@ export const statusBarColorsDark: Record<string, string> = {
 export const statusTrackColorsDark: Record<string, string> = {
   PENDING: "#451a03",
   IN_PROGRESS: "#172554",
+  BEHIND_SCHEDULE: "#78350f",
   DELAYED: "#431407",
   DISRUPTED: "#450a0a",
   COMPLETED: "#052e16",

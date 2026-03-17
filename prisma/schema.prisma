@@ -319,10 +319,11 @@ model Order {
 }
 
 enum OrderStatus {
-  PENDING     // Order placed, not started
-  IN_PROGRESS // Production started
-  DELAYED     // Behind schedule (one or more stages delayed)
-  DISRUPTED   // Production blocked (one or more stages blocked)
+  PENDING          // Order placed, not started
+  IN_PROGRESS      // Production started
+  BEHIND_SCHEDULE  // Projected to finish late based on stage timeline slippage
+  DELAYED          // Behind schedule (one or more stages delayed)
+  DISRUPTED        // Production blocked (one or more stages blocked)
   COMPLETED   // Production complete
   SHIPPED     // Shipped to brand
   IN_TRANSIT  // Carrier confirms movement
@@ -404,10 +405,11 @@ model OrderStage {
 enum StageStatus {
   NOT_STARTED
   IN_PROGRESS
+  BEHIND_SCHEDULE  // Stage still progressing but past expected end date (amber)
   COMPLETED
   SKIPPED
-  DELAYED      // Stage is behind schedule (yellow)
-  BLOCKED      // Stage is completely disrupted/stopped (red)
+  DELAYED          // Stage has stalled / no longer progressing (orange)
+  BLOCKED          // Stage is completely disrupted/stopped (red)
 }
 
 // ============================================

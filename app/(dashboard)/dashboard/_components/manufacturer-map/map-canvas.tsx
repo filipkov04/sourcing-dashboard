@@ -218,6 +218,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          // Map may have been removed or style not yet loaded by the time geolocation resolves
+          if (!map.getStyle()) return;
+
           const { longitude, latitude } = pos.coords;
           const data: GeoJSON.FeatureCollection = {
             type: "FeatureCollection",

@@ -52,7 +52,7 @@ export async function generateAlertsForOrganization(organizationId: string) {
   const activeOrders = await prisma.order.findMany({
     where: {
       organizationId,
-      status: { in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"] },
+      status: { in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"] },
     },
     include: {
       factory: { select: { id: true, name: true } },

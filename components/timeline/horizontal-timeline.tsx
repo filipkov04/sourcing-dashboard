@@ -46,6 +46,7 @@ const PANEL_WIDTH = 340;
 // --- Summary bar ---
 function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: TimelineStage[]; orderStatus: string; expectedDate?: string | null }) {
   const completed = stages.filter((s) => s.status === "COMPLETED").length;
+  const behindSchedule = stages.filter((s) => s.status === "BEHIND_SCHEDULE").length;
   const blocked = stages.filter((s) => s.status === "BLOCKED").length;
   const delayed = stages.filter((s) => s.status === "DELAYED").length;
   const total = stages.length;
@@ -89,6 +90,12 @@ function TimelineSummary({ stages, orderStatus, expectedDate }: { stages: Timeli
         <>
           <span className="text-gray-300 dark:text-zinc-600">|</span>
           <span className="text-red-400 font-medium">{blocked} blocked</span>
+        </>
+      )}
+      {behindSchedule > 0 && (
+        <>
+          <span className="text-gray-300 dark:text-zinc-600">|</span>
+          <span className="text-amber-400 font-medium">{behindSchedule} behind schedule</span>
         </>
       )}
       {delayed > 0 && (

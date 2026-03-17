@@ -2,7 +2,7 @@ import { projectScope } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 /**
  * GET /api/orders/export-xlsx
@@ -49,83 +49,102 @@ export async function GET(request: NextRequest) {
 
     const formatDate = (d: Date | null) => d ? new Date(d).toISOString().split("T")[0] : "";
 
+    const wb = new ExcelJS.Workbook();
+
     // Sheet 1: Orders
-    const ordersData = orders.map((order) => ({
-      "Order Number": order.orderNumber,
-      "Product Name": order.productName,
-      SKU: order.productSKU || "",
-      Quantity: order.quantity,
-      Unit: order.unit,
-      Factory: order.factory.name,
-      "Factory Location": order.factory.location,
-      Status: order.status.replace("_", " "),
-      Priority: order.priority,
-      "Progress (%)": order.overallProgress,
-      "Order Date": formatDate(order.orderDate),
-      "Expected Date": formatDate(order.expectedDate),
-      "Actual Date": formatDate(order.actualDate),
-      Notes: order.notes || "",
-      Tags: (order.tags as string[])?.join(", ") || "",
-    }));
+    const ws1 = wb.addWorksheet("Orders");
+    ws1.columns = [
+      { header: "Order Number", key: "orderNumber", width: 15 },
+      { header: "Product Name", key: "productName", width: 25 },
+      { header: "SKU", key: "sku", width: 12 },
+      { header: "Quantity", key: "quantity", width: 10 },
+      { header: "Unit", key: "unit", width: 8 },
+      { header: "Factory", key: "factory", width: 20 },
+      { header: "Factory Location", key: "factoryLocation", width: 20 },
+      { header: "Status", key: "status", width: 14 },
+      { header: "Priority", key: "priority", width: 10 },
+      { header: "Progress (%)", key: "progress", width: 12 },
+      { header: "Order Date", key: "orderDate", width: 12 },
+      { header: "Expected Date", key: "expectedDate", width: 12 },
+      { header: "Actual Date", key: "actualDate", width: 12 },
+      { header: "Notes", key: "notes", width: 30 },
+      { header: "Tags", key: "tags", width: 20 },
+    ];
+    for (const order of orders) {
+      ws1.addRow({
+        orderNumber: order.orderNumber,
+        productName: order.productName,
+        sku: order.productSKU || "",
+        quantity: order.quantity,
+        unit: order.unit,
+        factory: order.factory.name,
+        factoryLocation: order.factory.location,
+        status: order.status.replace(/_/g, " "),
+        priority: order.priority,
+        progress: order.overallProgress,
+        orderDate: formatDate(order.orderDate),
+        expectedDate: formatDate(order.expectedDate),
+        actualDate: formatDate(order.actualDate),
+        notes: order.notes || "",
+        tags: (order.tags as string[])?.join(", ") || "",
+      });
+    }
 
     // Sheet 2: Summary
+    const ws2 = wb.addWorksheet("Summary");
+    ws2.columns = [
+      { header: "Metric", key: "metric", width: 25 },
+      { header: "Value", key: "value", width: 15 },
+    ];
     const statusCounts: Record<string, number> = {};
     const factoryCounts: Record<string, number> = {};
     for (const order of orders) {
       statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
       factoryCounts[order.factory.name] = (factoryCounts[order.factory.name] || 0) + 1;
     }
-
-    const summaryData = [
-      { Metric: "Total Orders", Value: orders.length },
-      { Metric: "Export Date", Value: new Date().toISOString().split("T")[0] },
-      { Metric: "", Value: "" },
-      { Metric: "--- By Status ---", Value: "" },
-      ...Object.entries(statusCounts).map(([status, count]) => ({
-        Metric: status.replace("_", " "),
-        Value: count,
-      })),
-      { Metric: "", Value: "" },
-      { Metric: "--- By Factory ---", Value: "" },
-      ...Object.entries(factoryCounts).map(([factory, count]) => ({
-        Metric: factory,
-        Value: count,
-      })),
-    ];
+    ws2.addRow({ metric: "Total Orders", value: orders.length });
+    ws2.addRow({ metric: "Export Date", value: new Date().toISOString().split("T")[0] });
+    ws2.addRow({ metric: "", value: "" });
+    ws2.addRow({ metric: "--- By Status ---", value: "" });
+    for (const [s, count] of Object.entries(statusCounts)) {
+      ws2.addRow({ metric: s.replace(/_/g, " "), value: count });
+    }
+    ws2.addRow({ metric: "", value: "" });
+    ws2.addRow({ metric: "--- By Factory ---", value: "" });
+    for (const [factory, count] of Object.entries(factoryCounts)) {
+      ws2.addRow({ metric: factory, value: count });
+    }
 
     // Sheet 3: Stages
-    const stagesData = orders.flatMap((order) =>
-      order.stages.map((stage) => ({
-        "Order Number": order.orderNumber,
-        "Product Name": order.productName,
-        Factory: order.factory.name,
-        "Stage #": stage.sequence,
-        "Stage Name": stage.name,
-        "Stage Status": stage.status.replace("_", " "),
-        "Progress (%)": stage.progress,
-        "Started At": stage.startedAt ? formatDate(stage.startedAt) : "",
-        "Completed At": stage.completedAt ? formatDate(stage.completedAt) : "",
-      }))
-    );
-
-    // Build workbook
-    const wb = XLSX.utils.book_new();
-    const ws1 = XLSX.utils.json_to_sheet(ordersData);
-    const ws2 = XLSX.utils.json_to_sheet(summaryData);
-    const ws3 = XLSX.utils.json_to_sheet(stagesData);
-
-    // Set column widths
-    ws1["!cols"] = [
-      { wch: 15 }, { wch: 25 }, { wch: 12 }, { wch: 10 }, { wch: 8 },
-      { wch: 20 }, { wch: 20 }, { wch: 14 }, { wch: 10 }, { wch: 12 },
-      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, { wch: 20 },
+    const ws3 = wb.addWorksheet("Stages");
+    ws3.columns = [
+      { header: "Order Number", key: "orderNumber", width: 15 },
+      { header: "Product Name", key: "productName", width: 25 },
+      { header: "Factory", key: "factory", width: 20 },
+      { header: "Stage #", key: "sequence", width: 8 },
+      { header: "Stage Name", key: "name", width: 18 },
+      { header: "Stage Status", key: "status", width: 14 },
+      { header: "Progress (%)", key: "progress", width: 12 },
+      { header: "Started At", key: "startedAt", width: 12 },
+      { header: "Completed At", key: "completedAt", width: 12 },
     ];
+    for (const order of orders) {
+      for (const stage of order.stages) {
+        ws3.addRow({
+          orderNumber: order.orderNumber,
+          productName: order.productName,
+          factory: order.factory.name,
+          sequence: stage.sequence,
+          name: stage.name,
+          status: stage.status.replace(/_/g, " "),
+          progress: stage.progress,
+          startedAt: stage.startedAt ? formatDate(stage.startedAt) : "",
+          completedAt: stage.completedAt ? formatDate(stage.completedAt) : "",
+        });
+      }
+    }
 
-    XLSX.utils.book_append_sheet(wb, ws1, "Orders");
-    XLSX.utils.book_append_sheet(wb, ws2, "Summary");
-    XLSX.utils.book_append_sheet(wb, ws3, "Stages");
-
-    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    const buffer = await wb.xlsx.writeBuffer();
     const filename = `orders-export-${new Date().toISOString().split("T")[0]}.xlsx`;
 
     return new NextResponse(buffer, {

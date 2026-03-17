@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const validStatuses = [
-      "PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED",
+      "PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED",
       "COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED",
     ] as const;
     const validPriorities = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;

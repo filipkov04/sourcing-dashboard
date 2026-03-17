@@ -19,6 +19,7 @@ const vehicleIcons = { ship: Ship, plane: Plane, truck: Truck };
 const statusColors: Record<string, string> = {
   PENDING: "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400",
   IN_PROGRESS: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+  BEHIND_SCHEDULE: "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
   SHIPPED: "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
   IN_TRANSIT: "bg-cyan-50 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
   CUSTOMS: "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",

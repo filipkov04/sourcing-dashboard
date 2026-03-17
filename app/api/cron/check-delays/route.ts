@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   // Fetch all active order IDs
   const orders = await prisma.order.findMany({
     where: {
-      status: { in: ["PENDING", "IN_PROGRESS"] },
+      status: { in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE"] },
     },
     select: { id: true },
   });

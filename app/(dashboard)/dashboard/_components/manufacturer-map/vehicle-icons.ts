@@ -50,6 +50,8 @@ export async function registerVehicleIcons(map: maplibregl.Map) {
       if (map.hasImage(id)) continue;
       const colored = colorize(v.svg, c.stroke, c.fill);
       const img = await svgToImage(colored, 28);
+      // Double-check after async — another caller may have added it during await
+      if (map.hasImage(id)) continue;
       map.addImage(id, img, { sdf: false });
     }
   }
