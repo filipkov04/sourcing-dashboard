@@ -94,8 +94,8 @@ export async function PATCH(
 
     const data = validation.data;
 
-    // Build update data
-    const updateData: any = {};
+    // Build update data — only include fields that were provided
+    const updateData: Record<string, string | null> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.location !== undefined) updateData.location = data.location;
     if (data.address !== undefined) updateData.address = data.address || null;

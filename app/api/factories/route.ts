@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, created, unauthorized, handleError, validationError, projectScope } from "@/lib/api";
+import { success, created, unauthorized, handleError, validationError, projectScope, forbidden } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
-    const where: any = {
+    const where: { organizationId: string; projectId?: string; OR?: Array<Record<string, unknown>> } = {
       ...projectScope(session),
     };
 
@@ -61,6 +61,12 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session) {
       return unauthorized();
+    }
+
+    // Only ADMIN and OWNER can create factories directly
+    const role = session.user?.role;
+    if (role !== "ADMIN" && role !== "OWNER") {
+      return forbidden("Only admins can create factories directly. Please submit a request instead.");
     }
 
     const body = await request.json();

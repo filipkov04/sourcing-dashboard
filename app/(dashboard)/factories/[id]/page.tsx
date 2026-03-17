@@ -57,6 +57,7 @@ type Order = {
   status: string;
   priority: string;
   expectedDate: string;
+  actualDate: string | null;
   overallProgress: number;
   stages: OrderStage[];
 };
@@ -318,9 +319,11 @@ export default function FactoryDetailPage() {
         const totalOrders = factory.orders.length;
         const activeOrders = factory.orders.filter((o) => ACTIVE_STATUSES.includes(o.status)).length;
         const completedOrders = factory.orders.filter((o) => ["COMPLETED", "SHIPPED", "DELIVERED"].includes(o.status));
-        const delayedCompleted = completedOrders.filter((o) => o.status === "DELAYED").length;
+        const onTimeCount = completedOrders.filter(
+          (o) => o.actualDate && o.expectedDate && new Date(o.actualDate).getTime() <= new Date(o.expectedDate).getTime()
+        ).length;
         const onTimeRate = completedOrders.length > 0
-          ? Math.round(((completedOrders.length - delayedCompleted) / completedOrders.length) * 100)
+          ? Math.round((onTimeCount / completedOrders.length) * 100)
           : null;
         const activeOrdersList = factory.orders.filter((o) => ACTIVE_STATUSES.includes(o.status));
         const avgProgress = activeOrdersList.length > 0
@@ -553,7 +556,7 @@ export default function FactoryDetailPage() {
                             width: `${(count / total) * 100}%`,
                             backgroundColor: statusBarFills[status] || "#71717a",
                           }}
-                          title={`${status.replace("_", " ")}: ${count}`}
+                          title={`${status.replace(/_/g, " ")}: ${count}`}
                         />
                       ))}
                     </div>
@@ -564,7 +567,7 @@ export default function FactoryDetailPage() {
                             className="inline-block h-2 w-2 rounded-full"
                             style={{ backgroundColor: statusBarFills[status] || "#71717a" }}
                           />
-                          {status.replace("_", " ")} ({count})
+                          {status.replace(/_/g, " ")} ({count})
                         </div>
                       ))}
                     </div>
@@ -621,7 +624,7 @@ export default function FactoryDetailPage() {
                             variant="secondary"
                             className={statusColors[order.status] || ""}
                           >
-                            {order.status.replace("_", " ")}
+                            {order.status.replace(/_/g, " ")}
                           </Badge>
                         </td>
                         <td className="py-3 px-4">

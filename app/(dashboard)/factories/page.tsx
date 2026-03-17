@@ -96,7 +96,7 @@ async function FactoriesTableContent({
       orders: {
         where: {
           status: {
-            in: ["PENDING", "IN_PROGRESS", "DELAYED", "DISRUPTED"],
+            in: ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"],
           },
         },
         select: { id: true },
