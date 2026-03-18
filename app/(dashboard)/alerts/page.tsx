@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -144,33 +144,31 @@ export default function AlertsPage() {
 
   async function handleMarkAllRead() {
     const unread = filteredAlerts.filter((a) => !a.read);
-    await Promise.all(
-      unread.map((a) =>
-        fetch(`/api/alerts/${a.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ read: true }),
-        })
-      )
-    );
-    setAlerts((prev) => {
-      const unreadIds = new Set(unread.map((a) => a.id));
-      return prev.map((a) => (unreadIds.has(a.id) ? { ...a, read: true } : a));
+    if (unread.length === 0) return;
+    const ids = unread.map((a) => a.id);
+    await fetch("/api/alerts", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, read: true }),
     });
+    setAlerts((prev) =>
+      prev.map((a) => (ids.includes(a.id) ? { ...a, read: true } : a))
+    );
     notifyAlertsChanged();
   }
 
   // Apply filters — "ALL" hides resolved by default so they don't clutter the feed
-  const filteredAlerts = alerts.filter((alert) => {
+  const filteredAlerts = useMemo(() => alerts.filter((alert) => {
     if (severityFilter !== "ALL" && alert.severity !== severityFilter) return false;
     if (statusFilter === "ALL" && alert.resolved) return false;
     if (statusFilter === "UNREAD" && alert.read) return false;
     if (statusFilter === "READ" && (!alert.read || alert.resolved)) return false;
     if (statusFilter === "RESOLVED" && !alert.resolved) return false;
     return true;
-  });
+  }), [alerts, severityFilter, statusFilter]);
 
-  const unreadCount = alerts.filter((a) => !a.read).length;
+  const unreadCount = useMemo(() => alerts.filter((a) => !a.read).length, [alerts]);
+  const resolvedCount = useMemo(() => alerts.filter((a) => a.resolved).length, [alerts]);
 
   if (loading) {
     return (
@@ -263,9 +261,9 @@ export default function AlertsPage() {
         </Select>
         <span className="text-sm text-gray-400 dark:text-zinc-500">
           {filteredAlerts.length} notification{filteredAlerts.length !== 1 ? "s" : ""}
-          {statusFilter === "ALL" && alerts.filter((a) => a.resolved).length > 0 && (
+          {statusFilter === "ALL" && resolvedCount > 0 && (
             <span className="ml-1">
-              ({alerts.filter((a) => a.resolved).length} resolved hidden)
+              ({resolvedCount} resolved hidden)
             </span>
           )}
         </span>

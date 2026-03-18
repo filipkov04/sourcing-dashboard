@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +47,7 @@ import {
   Loader2,
   XCircle,
 } from "lucide-react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { AnimatedNumber } from "@/components/animated-number";
 
 interface TeamMember {
@@ -97,6 +97,11 @@ export default function TeamPage() {
 
   const currentUserRole = session?.user?.role;
   const isAdminOrOwner = currentUserRole === "ADMIN" || currentUserRole === "OWNER";
+
+  const pendingInvitations = useMemo(
+    () => invitations.filter((inv) => inv.status === "PENDING"),
+    [invitations]
+  );
 
   // Dev role switcher
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -614,13 +619,13 @@ export default function TeamPage() {
       </Card>
 
       {/* Pending Invitations */}
-      {isAdminOrOwner && invitations.filter((inv) => inv.status === "PENDING").length > 0 && (
+      {isAdminOrOwner && pendingInvitations.length > 0 && (
         <Card className="bg-white dark:bg-[#0d0f13] border-gray-100 dark:border-zinc-800/60 rounded-xl card-hover-glow hud-corners">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
               <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">INV</span>
               <Mail className="h-5 w-5 text-orange-500" />
-              Pending Invitations ({invitations.filter((inv) => inv.status === "PENDING").length})
+              Pending Invitations ({pendingInvitations.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -646,7 +651,7 @@ export default function TeamPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invitations.filter((inv) => inv.status === "PENDING").map((invitation) => {
+                  {pendingInvitations.map((invitation) => {
                     const invitedDate = new Date(invitation.createdAt).toLocaleDateString(
                       "en-US",
                       { month: "short", day: "numeric" }

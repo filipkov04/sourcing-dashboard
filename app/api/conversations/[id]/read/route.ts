@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
+import { success, notFound, unauthorized, handleError, projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 // PATCH /api/conversations/[id]/read — Mark conversation as read

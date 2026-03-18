@@ -22,6 +22,7 @@ import {
   Factory,
   Plus,
   BookOpen,
+  ArrowLeft,
 } from "lucide-react";
 
 type Integration = {
@@ -151,6 +152,16 @@ export default function IntegrationsPage() {
       />
 
       {/* Header */}
+      <div>
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/settings")}
+          className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 mb-2"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Settings
+        </Button>
+      </div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Integrations</h1>
@@ -158,7 +169,7 @@ export default function IntegrationsPage() {
             Manage factory data connections and sync status.
           </p>
         </div>
-        <Link href="/integrations/docs">
+        <Link href="/settings/integrations/docs">
           <Button variant="outline" size="sm" className="border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300">
             <BookOpen className="mr-1.5 h-3.5 w-3.5" />
             Setup Guides
@@ -260,7 +271,7 @@ export default function IntegrationsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleSync(integration.id)}
+                        onClick={(e) => { e.stopPropagation(); handleSync(integration.id); }}
                         className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200"
                         title="Test connection"
                       >
@@ -269,7 +280,7 @@ export default function IntegrationsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(integration.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(integration.id); }}
                         className="text-zinc-500 hover:text-red-500"
                         title="Delete"
                       >

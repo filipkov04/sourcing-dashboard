@@ -61,9 +61,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten by auto-rules.
 
-## Current Status (Session 30 — Mar 17, 2026)
+## Current Status (Session 31 — Mar 18, 2026)
 
-**Last completed:** Systematic dashboard review — Homepage, Factories, Orders, Analytics sections
+**Last completed:** Sidebar consolidation + systematic review (Messages, Settings, Timeline, Team, Alerts, Requests, Integrations sections)
+
+**Session 31 changes (Marco):**
+- **Sidebar Consolidation** — Reduced sidebar from 11 → 8 items:
+  - **Removed Alerts** from sidebar — still accessible via header bell dropdown + dashboard Active Alerts widget. `/alerts` route kept as hidden page.
+  - **Moved Timeline under Analytics** — New third tab: Overview | Custom Charts | Timeline. Extracted timeline content into `analytics/_components/timeline-tab.tsx`. Deleted `/timeline` route.
+  - **Moved Integrations under Settings** — Settings page rewritten as vertical nav hub linking to Notifications, Integrations, User Guide sub-pages. Created `/settings/notifications/page.tsx` (moved notification + sound prefs). Moved `/integrations/*` → `/settings/integrations/*` (3 pages). Updated all internal links.
+  - `components/layout/sidebar.tsx`: Removed 3 nav items + unused icon imports (CalendarRange, Bell, Plug)
+  - `components/layout/breadcrumb-nav.tsx`: Removed `timeline` and `integrations` from SECTION_MAP
+  - Design doc: `docs/plans/2026-03-18-sidebar-consolidation-design.md`
+- **Systematic Dashboard Review (continued)** — Messages, Settings, Timeline, Team, Alerts, Requests sections:
+  - **Messages:** Fixed extra spaces in 8 API route imports, removed unused EMOJI_REGEX, memoized filters in conversation-sidebar/forward-dialog/new-dm-dialog/message-list, fixed Object URL memory leak in message-input
+  - **Settings:** Memoized filteredDocs in docs page, fixed AudioContext leak, wrapped profile/profile-stats/avatar API routes in try/catch with api.handleError
+  - **Timeline:** Fixed gantt-chart/gantt-utils type issues, removed unused timeline-expansion-panel component
+  - **Team:** Fixed team page issues
+  - **Alerts:** Fixed alerts page issues, improved alert-generator
+  - **Requests:** Fixed request page issues, request-delete-dialog
+  - **Integrations:** Fixed integrations API route issues, transformer, queue
+- **iCloud + Turbopack fix:** `.next` → `.next.nosync` symlink to prevent iCloud Drive from corrupting Turbopack's persistent SST cache files
 
 **Session 30 changes (Marco):**
 - **Systematic Dashboard Review** — Section-by-section fault audit with fixes:

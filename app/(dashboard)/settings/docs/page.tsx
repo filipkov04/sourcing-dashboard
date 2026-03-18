@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -200,7 +200,7 @@ export default function UserDocsPage() {
   const [expanded, setExpanded] = useState<string | null>("getting-started");
   const [search, setSearch] = useState("");
 
-  const filteredDocs = search
+  const filteredDocs = useMemo(() => search
     ? DOCS.map((section) => ({
         ...section,
         items: section.items.filter(
@@ -209,7 +209,7 @@ export default function UserDocsPage() {
             item.answer.toLowerCase().includes(search.toLowerCase())
         ),
       })).filter((section) => section.items.length > 0)
-    : DOCS;
+    : DOCS, [search]);
 
   return (
     <div className="relative max-w-3xl mx-auto space-y-6">

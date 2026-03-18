@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   Send,
   Paperclip,
@@ -74,6 +74,12 @@ export function MessageInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCountRef = useRef(0);
+
+  // Create stable object URLs for file previews and revoke on cleanup
+  const filePreviewUrls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => {
+    return () => { filePreviewUrls.forEach((url) => URL.revokeObjectURL(url)); };
+  }, [filePreviewUrls]);
 
   // Pre-fill content when editing
   useEffect(() => {
@@ -236,7 +242,7 @@ export function MessageInput({
               >
                 {isImage ? (
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={filePreviewUrls[i]}
                     alt={file.name}
                     className="h-8 w-8 rounded object-cover"
                   />

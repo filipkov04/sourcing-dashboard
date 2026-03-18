@@ -127,6 +127,16 @@ export async function GET(request: NextRequest) {
       return api.unauthorized();
     }
 
+    // Only ADMIN/OWNER can list invitations (tokens grant org access)
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (!currentUser || !["OWNER", "ADMIN"].includes(currentUser.role)) {
+      return api.error("Only admins and owners can view invitations", 403);
+    }
+
     const invitations = await prisma.userInvitation.findMany({
       where: {
         organizationId: session.user.organizationId,

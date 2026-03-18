@@ -62,7 +62,7 @@ export default function FactoryEditRequestPage() {
           setContactEmail(factory.contactEmail || "");
           setContactPhone(factory.contactPhone || "");
         }
-      } catch (err) {
+      } catch {
         setFetchError("Failed to load factory");
       } finally {
         setIsFetching(false);
@@ -168,7 +168,7 @@ export default function FactoryEditRequestPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+        <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-zinc-400">
           <FactoryIcon className="h-12 w-12 mb-4 text-zinc-500" />
           <p className="text-lg font-medium">{fetchError}</p>
           <Link href="/factories" className="mt-4">

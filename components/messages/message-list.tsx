@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -85,7 +85,7 @@ export function MessageList({
   const prevMessageCountRef = useRef(messages.length);
   const isNearBottomRef = useRef(true);
 
-  const renderItems = buildRenderItems(messages, currentUserId);
+  const renderItems = useMemo(() => buildRenderItems(messages, currentUserId), [messages, currentUserId]);
 
   const virtualizer = useVirtualizer({
     count: renderItems.length,

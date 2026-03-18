@@ -147,10 +147,10 @@ export function TimelineNode({
       className={`
         relative flex flex-col rounded-xl border-2 p-3
         transition-all duration-200 cursor-pointer
-        ${config.bgColor} ${config.borderColor}
-        ${isExpanded ? `shadow-lg ${config.glowColor}` : ""}
+        ${config.bgColor} ${config.borderColor} ${config.glowColor}
+        ${isExpanded ? "shadow-lg" : ""}
         ${isFocused ? "ring-[3px] ring-black/30 dark:ring-white/70 ring-offset-[3px] ring-offset-white dark:ring-offset-zinc-900 scale-105 shadow-xl" : ""}
-        hover:shadow-lg hover:${config.glowColor} hover:scale-[1.02]
+        hover:shadow-lg hover:scale-[1.02]
         focus:outline-none focus-visible:ring-[3px] focus-visible:ring-black/30 dark:focus-visible:ring-white/70 focus-visible:ring-offset-[3px]
       `}
       style={{ width: NODE_CARD_WIDTH, height: NODE_CARD_HEIGHT }}

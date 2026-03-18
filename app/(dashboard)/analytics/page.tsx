@@ -13,6 +13,7 @@ import { HistoricalDelayChart } from "./_components/historical-delay-chart";
 import { FactoryComparisonTable } from "./_components/factory-comparison-table";
 import { ForecastTimeline } from "./_components/forecast-timeline";
 import { CustomChartsTab } from "./_components/custom-charts-tab";
+import { TimelineTab } from "./_components/timeline-tab";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
 type LeadTimeData = {
@@ -197,6 +198,7 @@ export default function AnalyticsPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="custom">Custom Charts</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -311,6 +313,10 @@ export default function AnalyticsPage() {
 
         <TabsContent value="custom">
           <CustomChartsTab userId={session?.user?.id || ""} userName={session?.user?.name || undefined} />
+        </TabsContent>
+
+        <TabsContent value="timeline">
+          <TimelineTab />
         </TabsContent>
       </Tabs>
     </div>

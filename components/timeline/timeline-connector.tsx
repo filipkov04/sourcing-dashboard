@@ -32,6 +32,7 @@ const statusHexColors: Record<string, string> = {
   COMPLETED: "#22c55e",
   ORDER: "#a855f7",
   IN_PROGRESS: "#3b82f6",
+  BEHIND_SCHEDULE: "#f59e0b",
   DELAYED: "#f97316",
   BLOCKED: "#ef4444",
   NOT_STARTED: "#52525b",

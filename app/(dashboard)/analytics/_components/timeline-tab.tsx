@@ -36,7 +36,7 @@ type Factory = {
   name: string;
 };
 
-export default function TimelinePage() {
+export function TimelineTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [factories, setFactories] = useState<Factory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +46,6 @@ export default function TimelinePage() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
 
-  // Fetch factories
   useEffect(() => {
     async function fetchFactories() {
       try {
@@ -62,7 +61,6 @@ export default function TimelinePage() {
     fetchFactories();
   }, []);
 
-  // Fetch orders with server-side filters
   useEffect(() => {
     async function fetchOrders() {
       setIsLoading(true);
@@ -88,7 +86,6 @@ export default function TimelinePage() {
     fetchOrders();
   }, [statusFilter, factoryFilter, priorityFilter]);
 
-  // Client-side date range filter (orders overlap with selected range)
   const filteredOrders = useMemo(() => {
     if (!dateFrom && !dateTo) return orders;
 
@@ -97,17 +94,13 @@ export default function TimelinePage() {
       const orderEnd = new Date(order.expectedDate);
 
       if (dateFrom) {
-        // First day of the selected month
         const rangeStart = new Date(dateFrom + "-01");
-        // If order ends before range start, exclude
         if (orderEnd < rangeStart) return false;
       }
 
       if (dateTo) {
-        // Last day of the selected month
         const [year, month] = dateTo.split("-").map(Number);
         const rangeEnd = new Date(year, month, 0, 23, 59, 59);
-        // If order starts after range end, exclude
         if (orderStart > rangeEnd) return false;
       }
 
@@ -118,7 +111,7 @@ export default function TimelinePage() {
   const stats = useMemo(() => ({
     total: filteredOrders.length,
     inProgress: filteredOrders.filter(o => o.status === "IN_PROGRESS").length,
-    critical: filteredOrders.filter(o => ["DELAYED", "DISRUPTED"].includes(o.status)).length,
+    critical: filteredOrders.filter(o => ["DELAYED", "DISRUPTED", "BEHIND_SCHEDULE"].includes(o.status)).length,
     done: filteredOrders.filter(o => ["COMPLETED", "SHIPPED", "DELIVERED"].includes(o.status)).length,
   }), [filteredOrders]);
 
@@ -145,26 +138,7 @@ export default function TimelinePage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="relative space-y-6">
-      {/* HUD Grid Overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.02]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,77,21,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,21,0.3) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
-          Production Timeline
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
-          Gantt chart overview of all production orders
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {/* Stats Strip */}
       {!isLoading && orders.length > 0 && (
         <>
@@ -218,7 +192,6 @@ export default function TimelinePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Status Filter */}
           <Select name="timeline-status-filter" value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
@@ -227,16 +200,18 @@ export default function TimelinePage() {
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="BEHIND_SCHEDULE">Behind Schedule</SelectItem>
               <SelectItem value="DELAYED">Delayed</SelectItem>
               <SelectItem value="DISRUPTED">Disrupted</SelectItem>
               <SelectItem value="COMPLETED">Completed</SelectItem>
               <SelectItem value="SHIPPED">Shipped</SelectItem>
+              <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+              <SelectItem value="CUSTOMS">Customs</SelectItem>
               <SelectItem value="DELIVERED">Delivered</SelectItem>
               <SelectItem value="CANCELLED">Cancelled</SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Factory Filter */}
           <Select name="timeline-factory-filter" value={factoryFilter} onValueChange={setFactoryFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Factory" />
@@ -251,7 +226,6 @@ export default function TimelinePage() {
             </SelectContent>
           </Select>
 
-          {/* Priority Filter */}
           <Select name="timeline-priority-filter" value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Priority" />
@@ -265,7 +239,6 @@ export default function TimelinePage() {
             </SelectContent>
           </Select>
 
-          {/* Date Range: From */}
           <div>
             <label htmlFor="timeline-date-from" className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">From</label>
             <Input
@@ -278,7 +251,6 @@ export default function TimelinePage() {
             />
           </div>
 
-          {/* Date Range: To */}
           <div>
             <label htmlFor="timeline-date-to" className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">To</label>
             <Input

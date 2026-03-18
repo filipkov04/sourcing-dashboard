@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Plus, Factory, MessageSquare, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SourcyAvatar } from "@/components/chat/sourcy-avatar";
@@ -66,7 +66,7 @@ export function ConversationSidebar({
   const [search, setSearch] = useState("");
 
   // Filter conversations by search
-  const filtered = conversations.filter((conv) => {
+  const filtered = useMemo(() => conversations.filter((conv) => {
     if (search.trim()) {
       const q = search.toLowerCase();
       const matchesSubject = conv.subject?.toLowerCase().includes(q);
@@ -82,11 +82,11 @@ export function ConversationSidebar({
       return matchesSubject || matchesFactory || matchesParticipant || matchesLastMessage;
     }
     return true;
-  });
+  }), [conversations, search]);
 
   // Separate pinned and unpinned
-  const pinned = filtered.filter((c) => c.pinned);
-  const unpinned = filtered.filter((c) => !c.pinned);
+  const pinned = useMemo(() => filtered.filter((c) => c.pinned), [filtered]);
+  const unpinned = useMemo(() => filtered.filter((c) => !c.pinned), [filtered]);
 
   /**
    * For DIRECT conversations, resolve the other participant's display name

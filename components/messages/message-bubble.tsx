@@ -38,7 +38,6 @@ function formatFileSize(bytes: number): string {
 }
 
 /** Detect emoji-only messages (1-3 emojis, no other text) */
-const EMOJI_REGEX = /^\p{Emoji_Presentation}(\uFE0F|\u200D\p{Emoji_Presentation})*/u;
 function isEmojiOnly(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;

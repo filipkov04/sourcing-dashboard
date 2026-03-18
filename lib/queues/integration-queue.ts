@@ -5,7 +5,7 @@ export type IntegrationJobData = {
   integrationId: string;
   factoryId: string;
   organizationId: string;
-  type: "REST" | "SFTP" | "WEBHOOK" | "MANUAL";
+  type: "REST" | "SFTP" | "WEBHOOK" | "MANUAL" | "CARRIER_TRACKING";
 };
 
 export const integrationQueue = new Queue("integration-sync", {

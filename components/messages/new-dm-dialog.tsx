@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { X, Search, Loader2, MessageSquare, Check, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createConversation, type ConversationDetail } from "@/lib/use-conversations";
@@ -57,13 +57,13 @@ export function NewDMDialog({ currentUserId, onCreated, onClose }: NewDMDialogPr
     fetchMembers();
   }, [currentUserId]);
 
-  const filteredMembers = search
+  const filteredMembers = useMemo(() => search
     ? members.filter(
         (m) =>
           m.name?.toLowerCase().includes(search.toLowerCase()) ||
           m.email.toLowerCase().includes(search.toLowerCase())
       )
-    : members;
+    : members, [members, search]);
 
   const isGroup = selected.size > 1;
 

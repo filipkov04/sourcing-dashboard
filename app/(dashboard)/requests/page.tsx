@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -230,23 +230,27 @@ export default function RequestsPage() {
   }
 
   // For non-admins, only show their own requests
-  const visibleRequests = isAdmin
-    ? requests
-    : requests.filter((r) => r.requester.id === userId);
+  const visibleRequests = useMemo(
+    () => isAdmin ? requests : requests.filter((r) => r.requester.id === userId),
+    [requests, isAdmin, userId]
+  );
 
   // Apply filters
-  const filteredRequests = visibleRequests.filter((r) => {
+  const filteredRequests = useMemo(() => visibleRequests.filter((r) => {
     if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
     if (typeFilter === "ORDER" && !r.type.startsWith("ORDER")) return false;
     if (typeFilter === "FACTORY" && !r.type.startsWith("FACTORY")) return false;
     if (typeFilter === "EDIT" && !r.type.includes("EDIT")) return false;
     if (typeFilter === "DELETE" && !r.type.includes("DELETE")) return false;
     return true;
-  });
+  }), [visibleRequests, statusFilter, typeFilter]);
 
-  const pendingCount = isAdmin
-    ? visibleRequests.filter((r) => r.status === "PENDING").length
-    : visibleRequests.filter((r) => r.status === "NEEDS_INFO").length;
+  const pendingCount = useMemo(
+    () => isAdmin
+      ? visibleRequests.filter((r) => r.status === "PENDING").length
+      : visibleRequests.filter((r) => r.status === "NEEDS_INFO").length,
+    [visibleRequests, isAdmin]
+  );
 
   if (loading) {
     return (

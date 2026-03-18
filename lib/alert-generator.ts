@@ -67,6 +67,7 @@ export async function generateAlertsForOrganization(organizationId: string) {
     const isDueSoon = !isOverdue && order.expectedDate <= threeDaysFromNow;
     const blockedStages = order.stages.filter((s) => s.status === "BLOCKED");
     const delayedStages = order.stages.filter((s) => s.status === "DELAYED");
+    const behindScheduleStages = order.stages.filter((s) => s.status === "BEHIND_SCHEDULE");
 
     // 1. Overdue order
     if (isOverdue) {
@@ -117,6 +118,19 @@ export async function generateAlertsForOrganization(organizationId: string) {
         projectId: order.projectId,
         title: "Stage delayed",
         message: `Stage "${stage.name}" on order ${order.orderNumber} (${order.productName}) is delayed. Factory: ${order.factory.name}.`,
+        severity: "WARNING",
+        orderId: order.id,
+        factoryId: order.factory.id,
+      });
+    }
+
+    // 5. Behind schedule stages
+    for (const stage of behindScheduleStages) {
+      alerts.push({
+        organizationId,
+        projectId: order.projectId,
+        title: "Stage behind schedule",
+        message: `Stage "${stage.name}" on order ${order.orderNumber} (${order.productName}) is behind schedule. Factory: ${order.factory.name}. Progress: ${stage.progress}%.`,
         severity: "WARNING",
         orderId: order.id,
         factoryId: order.factory.id,

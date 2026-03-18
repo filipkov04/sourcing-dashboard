@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, error, notFound, unauthorized, handleError, created , projectScope } from "@/lib/api";
+import { success, error, notFound, unauthorized, handleError, created, projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { serverBroadcast } from "@/lib/realtime-server";
 import { supabase, CHAT_ATTACHMENT_BUCKET, getChatAttachmentUrl } from "@/lib/supabase";

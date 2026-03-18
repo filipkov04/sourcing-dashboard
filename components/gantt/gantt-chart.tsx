@@ -47,7 +47,7 @@ type RiskLevel = "critical" | "at-risk" | "none";
 /** Determine risk level for an order */
 function getRiskLevel(order: GanttOrder): RiskLevel {
   // Completed/shipped/delivered/cancelled are not at risk
-  const doneStatuses = ["COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED"];
+  const doneStatuses = ["COMPLETED", "SHIPPED", "IN_TRANSIT", "CUSTOMS", "DELIVERED", "CANCELLED"];
   if (doneStatuses.includes(order.status)) return "none";
 
   // Explicitly delayed or disrupted → critical
@@ -656,7 +656,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
               (barWidth * order.overallProgress) / 100;
 
             // Overdue extension: if today is past expectedDate and order not done
-            const doneStatuses = ["COMPLETED", "SHIPPED", "DELIVERED", "CANCELLED"];
+            const doneStatuses = ["COMPLETED", "SHIPPED", "IN_TRANSIT", "CUSTOMS", "DELIVERED", "CANCELLED"];
             const isOverdue = !doneStatuses.includes(order.status) && todayInRange && todayX > barX + barWidth;
             const overdueWidth = isOverdue ? todayX - (barX + barWidth) : 0;
 

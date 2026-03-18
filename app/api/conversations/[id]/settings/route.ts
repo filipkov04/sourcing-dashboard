@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { success, notFound, unauthorized, handleError , projectScope } from "@/lib/api";
+import { success, notFound, unauthorized, handleError, projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 type RouteParams = { params: Promise<{ id: string }> };

@@ -209,7 +209,7 @@ export default function IntegrationDetailPage() {
     setIsDeleting(true);
     try {
       await fetch(`/api/integrations/${integrationId}`, { method: "DELETE" });
-      router.push("/integrations");
+      router.push("/settings/integrations");
     } catch {
       setIsDeleting(false);
     }
@@ -235,7 +235,7 @@ export default function IntegrationDetailPage() {
   if (!integration) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => router.push("/integrations")}>
+        <Button variant="ghost" onClick={() => router.push("/settings/integrations")}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
         <p className="text-zinc-400">Integration not found.</p>
@@ -262,7 +262,7 @@ export default function IntegrationDetailPage() {
       <div>
         <Button
           variant="ghost"
-          onClick={() => router.push("/integrations")}
+          onClick={() => router.push("/settings/integrations")}
           className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 mb-2"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />

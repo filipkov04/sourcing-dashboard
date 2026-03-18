@@ -5,7 +5,7 @@ export const MIN_NODE_GAP = 200;
 export const EDGE_PADDING = 80;
 
 /** Convert a Date to days since epoch (integer) */
-function toDayIndex(d: Date): number {
+export function toDayIndex(d: Date): number {
   return Math.floor(d.getTime() / (1000 * 60 * 60 * 24));
 }
 

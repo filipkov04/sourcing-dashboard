@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { EDGE_PADDING, PIXELS_PER_DAY } from "./timeline-date-utils";
+import { EDGE_PADDING, PIXELS_PER_DAY, toDayIndex } from "./timeline-date-utils";
 
 type TimelineTimeAxisProps = {
   minDate: Date;
@@ -18,10 +18,6 @@ type Tick = {
   /** If true, only render the tick line (no label) */
   tickOnly?: boolean;
 };
-
-function toDayIndex(d: Date): number {
-  return Math.floor(d.getTime() / (1000 * 60 * 60 * 24));
-}
 
 function dateFromDayIndex(dayIndex: number): Date {
   return new Date(dayIndex * 1000 * 60 * 60 * 24);

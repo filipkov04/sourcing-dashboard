@@ -220,7 +220,7 @@ export default function IntegrationDocsPage() {
       <div>
         <Button
           variant="ghost"
-          onClick={() => router.push("/integrations")}
+          onClick={() => router.push("/settings/integrations")}
           className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 mb-2"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />

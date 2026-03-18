@@ -50,6 +50,7 @@ const ORDER_STATUS_MAP: Record<string, OrderStatus> = {
   delayed: OrderStatus.DELAYED,
   late: OrderStatus.DELAYED,
   behind: OrderStatus.DELAYED,
+  behindschedule: OrderStatus.BEHIND_SCHEDULE,
   disrupted: OrderStatus.DISRUPTED,
   blocked: OrderStatus.DISRUPTED,
   stopped: OrderStatus.DISRUPTED,

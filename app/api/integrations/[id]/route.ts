@@ -2,8 +2,7 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { success, unauthorized, forbidden, notFound, handleError, noContent } from "@/lib/api";
 import { NextRequest } from "next/server";
-import { encryptCredentials } from "@/lib/integrations/encryption";
-import { getCredentials } from "@/lib/integrations/encryption";
+import { encryptCredentials, getCredentials } from "@/lib/integrations/encryption";
 
 // GET /api/integrations/[id] — get integration details
 export async function GET(

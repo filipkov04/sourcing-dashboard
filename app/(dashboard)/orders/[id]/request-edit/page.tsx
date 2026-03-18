@@ -122,7 +122,7 @@ export default function OrderEditRequestPage() {
             }))
           );
         }
-      } catch (err) {
+      } catch {
         setFetchError("Failed to load order");
       } finally {
         setIsFetching(false);

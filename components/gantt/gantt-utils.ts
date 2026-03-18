@@ -1,6 +1,5 @@
 // Gantt chart layout constants
 export const DEFAULT_PIXELS_PER_DAY = 32;
-export const PIXELS_PER_DAY = DEFAULT_PIXELS_PER_DAY; // kept for backward compat
 export const ROW_HEIGHT = 54;
 export const HEADER_HEIGHT = 48;
 export const LEFT_LABEL_WIDTH = 280;
@@ -199,6 +198,8 @@ export const statusBarColors: Record<string, string> = {
   DISRUPTED: "#ef4444",   // red-500
   COMPLETED: "#22c55e",   // green-500
   SHIPPED: "#a855f7",     // purple-500
+  IN_TRANSIT: "#8b5cf6",  // violet-500
+  CUSTOMS: "#6366f1",     // indigo-500
   DELIVERED: "#71717a",   // zinc-500
   CANCELLED: "#a1a1aa",   // zinc-400
 };
@@ -212,6 +213,8 @@ export const statusTrackColors: Record<string, string> = {
   DISRUPTED: "#fecaca",
   COMPLETED: "#dcfce7",
   SHIPPED: "#f3e8ff",
+  IN_TRANSIT: "#ede9fe",
+  CUSTOMS: "#e0e7ff",
   DELIVERED: "#e4e4e7",
   CANCELLED: "#e4e4e7",
 };
@@ -225,6 +228,8 @@ export const statusBarColorsDark: Record<string, string> = {
   DISRUPTED: "#dc2626",
   COMPLETED: "#16a34a",
   SHIPPED: "#9333ea",
+  IN_TRANSIT: "#7c3aed",
+  CUSTOMS: "#4f46e5",
   DELIVERED: "#52525b",
   CANCELLED: "#71717a",
 };
@@ -237,6 +242,8 @@ export const statusTrackColorsDark: Record<string, string> = {
   DISRUPTED: "#450a0a",
   COMPLETED: "#052e16",
   SHIPPED: "#3b0764",
+  IN_TRANSIT: "#2e1065",
+  CUSTOMS: "#1e1b4b",
   DELIVERED: "#27272a",
   CANCELLED: "#27272a",
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { X, Search, Forward, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, type Conversation, type Message } from "@/lib/use-conversations";
@@ -19,8 +19,9 @@ export function ForwardDialog({ message, onClose, onForwarded }: ForwardDialogPr
   const [forwarding, setForwarding] = useState(false);
 
   // Filter out current conversation
-  const filteredConversations = conversations.filter(
-    (c) => c.id !== message.conversationId
+  const filteredConversations = useMemo(
+    () => conversations.filter((c) => c.id !== message.conversationId),
+    [conversations, message.conversationId]
   );
 
   function toggleSelection(id: string) {

@@ -9,14 +9,12 @@ const SECTION_MAP: Record<string, { label: string; href: string }> = {
   dashboard: { label: "Home", href: "/dashboard" },
   factories: { label: "Factories", href: "/factories" },
   orders: { label: "Orders", href: "/orders" },
-  timeline: { label: "Timeline", href: "/timeline" },
   team: { label: "Team", href: "/team" },
   requests: { label: "Requests", href: "/requests" },
   messages: { label: "Messages", href: "/messages" },
   settings: { label: "Settings", href: "/settings" },
   alerts: { label: "Alerts", href: "/alerts" },
   analytics: { label: "Analytics", href: "/analytics" },
-  integrations: { label: "Integrations", href: "/integrations" },
 };
 
 interface BreadcrumbNavProps {
