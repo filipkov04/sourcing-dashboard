@@ -557,14 +557,14 @@
 
 | Task # | Task Name | Developer | What You're Doing | What Gets Created | Time | Status |
 |--------|-----------|-----------|-------------------|-------------------|------|--------|
-| 9.1 | Inventory Database Models | Filip | Design inventory schema: Product, SKU, Stock, InventoryTransaction, InventoryLocation | Prisma schema with inventory tables, unique constraints, indexes | 3h | ⏳ |
-| 9.2 | Product Catalog Model | Filip | Create Product model with COGS, weight, dimensions, HS code, origin country, tags | Product table with all sourcing metadata fields | 2h | ⏳ |
-| 9.3 | Stock Level Tracking | Filip | Build stock tracking: on-hand, reserved, available, backorder quantities per location | Real-time inventory balance calculations | 3h | ⏳ |
-| 9.4 | Product Catalog Page | Filip | Build product catalog UI with table, search, filters, bulk selection | Page at /products showing SKU catalog with inventory levels | 4h | ⏳ |
-| 9.5 | Product Create Form | Filip | Build form to add new product with SKU, COGS, weight, dimensions, tags | Page at /products/new with comprehensive product form | 3h | ⏳ |
-| 9.6 | Product Bulk Edit | Filip | Add bulk-edit capability for COGS, tags, lead times across multiple SKUs | Checkbox selection + bulk update modal | 3h | ⏳ |
-| 9.7 | SKU Tagging System | Filip | Implement tag management: create tags, assign to products, filter by tags | Tag CRUD + filter UI (supplier, origin, material, season, status) | 2h | ⏳ |
-| 9.8 | Product API Endpoints | Filip | Create Product APIs: GET list, GET by ID, POST create, PATCH update, DELETE | Complete product CRUD API with pagination, search, filters | 2h | ⏳ |
+| 9.1 | Inventory Database Models | Filip | Design inventory schema: Product, SKU, Stock, InventoryTransaction, InventoryLocation | Prisma schema with inventory tables, unique constraints, indexes | 3h | ✅ |
+| 9.2 | Product Catalog Model | Filip | Create Product model with COGS, weight, dimensions, HS code, origin country, tags | Product table with all sourcing metadata fields | 2h | ✅ |
+| 9.3 | Stock Level Tracking | Filip | Build stock tracking: on-hand, reserved, available, backorder quantities per location | Real-time inventory balance calculations | 3h | ✅ |
+| 9.4 | Product Catalog Page | Filip | Build product catalog UI with table, search, filters, bulk selection | Page at /products showing SKU catalog with inventory levels | 4h | ✅ |
+| 9.5 | Product Create Form | Filip | Build form to add new product with SKU, COGS, weight, dimensions, tags | Page at /products/new with comprehensive product form | 3h | ✅ |
+| 9.6 | Product Bulk Edit | Filip | Add bulk-edit capability for COGS, tags, lead times across multiple SKUs | Checkbox selection + bulk update modal | 3h | ✅ |
+| 9.7 | SKU Tagging System | Filip | Implement tag management: create tags, assign to products, filter by tags | Tag CRUD + filter UI (supplier, origin, material, season, status) | 2h | ✅ |
+| 9.8 | Product API Endpoints | Filip | Create Product APIs: GET list, GET by ID, POST create, PATCH update, DELETE | Complete product CRUD API with pagination, search, filters | 2h | ✅ |
 
 **What Filip Creates This Week:** Complete product catalog with inventory tracking foundation.
 
