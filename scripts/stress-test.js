@@ -84,6 +84,15 @@ const tests = [
   { name: 'Shipments In Transit API', path: '/api/dashboard/shipments-in-transit', expectedStatus: [200, 307, 401] },
   { name: 'Map Vehicles API', path: '/api/dashboard/map-vehicles', expectedStatus: [200, 307, 401] },
 
+  // Product Catalog (Tasks 9.1-9.8)
+  { name: 'Products Page', path: '/products', expectedStatus: [200, 302, 307] },
+  { name: 'Products API', path: '/api/products', expectedStatus: [200, 307, 401] },
+  { name: 'Products Search', path: '/api/products?search=test', expectedStatus: [200, 307, 401] },
+  { name: 'Products Tag Filter', path: '/api/products?tag=sample', expectedStatus: [200, 307, 401] },
+  { name: 'Product Detail (404)', path: '/api/products/nonexistent-id', expectedStatus: [307, 401, 404] },
+  { name: 'Inventory Locations API', path: '/api/inventory/locations', expectedStatus: [200, 307, 401] },
+  { name: 'Inventory Stock API', path: '/api/inventory/stock?productId=test', expectedStatus: [200, 307, 401] },
+
   // Integration System (Tasks 6.1-6.6, 7.1-7.4)
   { name: 'Integrations Page', path: '/integrations', expectedStatus: [200, 302, 307] },
   { name: 'Integrations List API', path: '/api/integrations', expectedStatus: [200, 307, 401] },

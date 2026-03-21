@@ -364,3 +364,27 @@ export function isApiError(
 ): response is ApiErrorResponse {
   return response.success === false;
 }
+
+// ============================================
+// PRODUCT & INVENTORY TYPES
+// ============================================
+
+export type ProductListItem = Prisma.ProductGetPayload<{
+  include: {
+    _count: { select: { stockLevels: true; transactions: true } };
+    stockLevels: { select: { onHand: true; reserved: true; available: true; inTransit: true; backorder: true; runwayStatus: true; totalValue: true } };
+  };
+}>;
+
+export type ProductWithStock = Prisma.ProductGetPayload<{
+  include: {
+    stockLevels: { include: { location: true } };
+    _count: { select: { transactions: true } };
+  };
+}>;
+
+export type InventoryLocationItem = Prisma.InventoryLocationGetPayload<{
+  include: {
+    _count: { select: { stockLevels: true } };
+  };
+}>;

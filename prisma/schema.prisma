@@ -86,6 +86,10 @@ model Organization {
   chartFolders  ChartFolder[]
   savedReports  SavedReport[]
 
+  // Inventory & Products
+  products           Product[]
+  inventoryLocations InventoryLocation[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -114,6 +118,10 @@ model Project {
   chartFolders   ChartFolder[]
   savedReports   SavedReport[]
   integrations   Integration[]
+
+  // Inventory & Products
+  products           Product[]
+  inventoryLocations InventoryLocation[]
 
   activeUsers    User[] @relation("ActiveProject")
 
@@ -961,4 +969,175 @@ model ReportChart {
   @@unique([reportId, chartId])
   @@index([reportId])
   @@index([chartId])
+}
+
+// ============================================
+// INVENTORY & PRODUCTS (Phase 4 — Week 9)
+// ============================================
+
+enum RunwayStatus {
+  HEALTHY       // >30 days of stock
+  WARNING       // 15-30 days
+  CRITICAL      // <15 days
+  OUT_OF_STOCK
+}
+
+enum LocationType {
+  WAREHOUSE
+  FACTORY
+  STORE
+  VIRTUAL
+}
+
+enum TransactionType {
+  RECEIPT        // Receiving stock from supplier
+  ADJUSTMENT     // Manual stock correction
+  SALE           // Stock sold
+  TRANSFER       // Move between locations
+  RETURN         // Customer return
+  DAMAGE         // Stock damaged/destroyed
+  RESERVATION    // Reserve for order
+}
+
+model Product {
+  id                String   @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId         String?
+  project           Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  // Product Identity
+  sku               String
+  name              String
+  description       String?  @db.Text
+  category          String?
+
+  // Physical Properties
+  weight            Float?   // kg
+  length            Float?   // cm
+  width             Float?   // cm
+  height            Float?   // cm
+  volumeCBM         Float?   // auto-calculated cubic meters
+  isBulkCargo       Boolean  @default(false) // >1 CBM
+
+  // Procurement Data
+  cogs              Float?   // Cost of Goods Sold per unit
+  currency          String   @default("USD")
+  hsCode            String?  // Harmonized System code for customs
+  originCountry     String?  // Country of manufacture
+
+  // Inventory Thresholds
+  minStock          Int?     // Reorder point
+  maxStock          Int?     // Max inventory level
+  safetyStock       Int?     // Buffer stock for lead time
+
+  // Sourcing Metadata
+  tags              String[] // [supplier, season, material, status]
+  leadTimeProdDays  Int?     // Production lead time
+  leadTimeShipDays  Int?     // Shipping lead time
+  moq               Int?     // Minimum order quantity
+
+  // Relationships
+  stockLevels       Stock[]
+  transactions      InventoryTransaction[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([organizationId, sku])
+  @@index([organizationId, sku])
+  @@index([organizationId, category])
+  @@index([projectId])
+}
+
+model InventoryLocation {
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId         String?
+  project           Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  name              String   // "Main Warehouse", "Factory A", "Store NYC"
+  type              LocationType // WAREHOUSE, FACTORY, STORE, VIRTUAL
+  address           String?
+  isDefault         Boolean  @default(false)
+
+  stockLevels       Stock[]
+  transactions      InventoryTransaction[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([projectId])
+}
+
+model Stock {
+  id                String   @id @default(cuid())
+  organizationId    String
+  projectId         String?
+
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId        String
+  location          InventoryLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // Stock Quantities
+  onHand            Int      @default(0)  // Physical stock available
+  reserved          Int      @default(0)  // Allocated to orders
+  available         Int      @default(0)  // onHand - reserved
+  inTransit         Int      @default(0)  // Inbound shipments
+  backorder         Int      @default(0)  // Negative stock
+
+  // Value Tracking
+  avgCost           Float?   // Weighted average cost
+  totalValue        Float?   // onHand * avgCost
+
+  // Calculated Fields
+  daysOfStock       Float?   // available / dailySalesVelocity
+  runwayStatus      RunwayStatus?
+
+  lastCountDate     DateTime?
+  lastCountBy       String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([productId, locationId])
+  @@index([organizationId, productId])
+  @@index([runwayStatus])
+  @@index([projectId])
+}
+
+model InventoryTransaction {
+  id                String   @id @default(cuid())
+  organizationId    String
+  projectId         String?
+
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id])
+  locationId        String
+  location          InventoryLocation @relation(fields: [locationId], references: [id])
+
+  // Transaction Details
+  type              TransactionType
+  quantity          Int      // Positive or negative
+  reason            String?  // "Damaged", "Lost", "Found", "Cycle Count"
+  reference         String?  // PO number, shipment ID, etc.
+
+  // Snapshot
+  balanceBefore     Int
+  balanceAfter      Int
+  costBefore        Float?
+  costAfter         Float?
+
+  // Audit
+  performedBy       String
+  performedAt       DateTime @default(now())
+  notes             String?  @db.Text
+
+  @@index([organizationId, productId])
+  @@index([organizationId, type])
+  @@index([performedAt])
+  @@index([projectId])
 }

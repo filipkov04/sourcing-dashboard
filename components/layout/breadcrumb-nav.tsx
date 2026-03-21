@@ -9,6 +9,7 @@ const SECTION_MAP: Record<string, { label: string; href: string }> = {
   dashboard: { label: "Home", href: "/dashboard" },
   factories: { label: "Factories", href: "/factories" },
   orders: { label: "Orders", href: "/orders" },
+  products: { label: "Products", href: "/products" },
   team: { label: "Team", href: "/team" },
   requests: { label: "Requests", href: "/requests" },
   messages: { label: "Messages", href: "/messages" },
