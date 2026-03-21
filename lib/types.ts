@@ -124,13 +124,14 @@ export type FactoryFormData = {
  * Order creation form data
  */
 export type OrderFormData = {
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   productSKU?: string;
   quantity: number;
   unit: string;
   factoryId: string;
-  orderDate: Date | string;
+  expectedStartDate: Date | string;
+  placedDate?: Date | string | null;
   expectedDate: Date | string;
   priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   notes?: string;

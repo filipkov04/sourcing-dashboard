@@ -17,11 +17,11 @@ import { AnimatedNumber } from "@/components/animated-number";
 
 type Order = {
   id: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   status: string;
   overallProgress: number;
-  orderDate: string;
+  expectedStartDate: string;
   expectedDate: string;
   priority: string;
   factory: {
@@ -90,7 +90,7 @@ export function TimelineTab() {
     if (!dateFrom && !dateTo) return orders;
 
     return orders.filter((order) => {
-      const orderStart = new Date(order.orderDate);
+      const orderStart = new Date(order.expectedStartDate);
       const orderEnd = new Date(order.expectedDate);
 
       if (dateFrom) {

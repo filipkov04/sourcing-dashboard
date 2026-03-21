@@ -6,7 +6,7 @@ import { AlertTriangle, AlertCircle, CheckCircle, Clock } from "lucide-react";
 
 type Forecast = {
   orderId: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   status: string;
   factoryName: string;
@@ -105,7 +105,7 @@ export function ForecastTimeline({ forecasts, summary }: ForecastTimelineProps) 
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[#EB5D2E]">{forecast.orderNumber}</span>
+                  <span className="text-sm font-medium text-[#EB5D2E]">{forecast.orderNumber || "No PO#"}</span>
                   <span className="text-sm text-gray-700 dark:text-zinc-300 truncate">{forecast.productName}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500 dark:text-zinc-400">

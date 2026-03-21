@@ -121,7 +121,7 @@ export async function GET() {
     }));
 
     // By Stage (from delayed/blocked stages) — with order details
-    type StageIncident = { orderId: string; orderNumber: string; productName: string; factoryName: string; status: string };
+    type StageIncident = { orderId: string; orderNumber: string | null; productName: string; factoryName: string; status: string };
     const stageMap = new Map<string, { delayed: number; blocked: number; orders: StageIncident[] }>();
     for (const s of delayedStages) {
       let entry = stageMap.get(s.name);

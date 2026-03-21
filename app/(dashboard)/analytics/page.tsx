@@ -50,7 +50,7 @@ type DelayAnalysisData = {
     delayedCount: number;
     blockedCount: number;
     totalIncidents: number;
-    orders: Array<{ orderId: string; orderNumber: string; productName: string; factoryName: string; status: string }>;
+    orders: Array<{ orderId: string; orderNumber: string | null; productName: string; factoryName: string; status: string }>;
   }>;
   trend: Array<{ month: string; totalOrders: number; delayedOrders: number; delayRate: number }>;
 };
@@ -75,12 +75,12 @@ type HistoricalDelayData = {
     stageName: string;
     delayIncidents: number;
     avgResolutionDays: number;
-    reasons: Array<{ content: string; orderId: string; orderNumber: string; factoryName: string }>;
-    orders: Array<{ orderId: string; orderNumber: string; productName: string; factoryName: string; delayType: string; incidentCount: number }>;
+    reasons: Array<{ content: string; orderId: string; orderNumber: string | null; factoryName: string }>;
+    orders: Array<{ orderId: string; orderNumber: string | null; productName: string; factoryName: string; delayType: string; incidentCount: number }>;
   }>;
   recentLateOrders: Array<{
     orderId: string;
-    orderNumber: string;
+    orderNumber: string | null;
     productName: string;
     factoryName: string;
     expectedDate: string;
@@ -94,7 +94,7 @@ type ForecastData = {
   summary: { total: number; onTrack: number; atRisk: number; critical: number };
   forecasts: Array<{
     orderId: string;
-    orderNumber: string;
+    orderNumber: string | null;
     productName: string;
     status: string;
     factoryName: string;

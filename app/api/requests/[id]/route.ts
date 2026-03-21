@@ -229,7 +229,8 @@ export async function PATCH(
               unit: (data.unit as string) || "pieces",
               factoryId: data.factoryId as string,
               ...projectScope(session),
-              orderDate: data.orderDate ? new Date(data.orderDate as string) : new Date(),
+              expectedStartDate: data.expectedStartDate ? new Date(data.expectedStartDate as string) : new Date(),
+              placedDate: data.placedDate ? new Date(data.placedDate as string) : null,
               expectedDate: data.expectedDate ? new Date(data.expectedDate as string) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
               priority: (data.priority as "LOW" | "NORMAL" | "HIGH" | "URGENT") || "NORMAL",
               notes: (data.notes as string) || null,
@@ -266,7 +267,7 @@ export async function PATCH(
           if (changes && request.targetOrderId) {
             const currentOrder = await tx.order.findUnique({ where: { id: request.targetOrderId } });
             const allowedFields = ["productName", "productSKU", "orderNumber", "quantity", "unit", "notes", "priority", "factoryId"];
-            const dateFields = ["orderDate", "expectedDate"];
+            const dateFields = ["expectedStartDate", "placedDate", "expectedDate"];
             const updateData: Record<string, unknown> = {};
 
             for (const [key, value] of Object.entries(changes)) {

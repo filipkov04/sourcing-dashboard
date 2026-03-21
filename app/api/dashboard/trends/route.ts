@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
       where: {
         organizationId,
         ...(projectId ? { projectId } : {}),
-        orderDate: {
+        expectedStartDate: {
           gte: from,
         },
       },
       select: {
-        orderDate: true,
+        expectedStartDate: true,
         status: true,
       },
     });
@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
 
     // Count orders by week and status
     orders.forEach((order) => {
-      const orderDate = new Date(order.orderDate);
-      const weekKey = getWeekLabel(orderDate);
+      const expectedStartDate = new Date(order.expectedStartDate);
+      const weekKey = getWeekLabel(expectedStartDate);
 
       if (weeklyData.has(weekKey)) {
         const weekStats = weeklyData.get(weekKey)!;

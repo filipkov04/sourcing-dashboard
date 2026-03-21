@@ -35,12 +35,12 @@ type HistoricalDelayData = {
     stageName: string;
     delayIncidents: number;
     avgResolutionDays: number;
-    reasons: Array<{ content: string; orderId: string; orderNumber: string; factoryName: string }>;
-    orders: Array<{ orderId: string; orderNumber: string; productName: string; factoryName: string; delayType: string; incidentCount: number }>;
+    reasons: Array<{ content: string; orderId: string; orderNumber: string | null; factoryName: string }>;
+    orders: Array<{ orderId: string; orderNumber: string | null; productName: string; factoryName: string; delayType: string; incidentCount: number }>;
   }>;
   recentLateOrders: Array<{
     orderId: string;
-    orderNumber: string;
+    orderNumber: string | null;
     productName: string;
     factoryName: string;
     expectedDate: string;
@@ -213,7 +213,7 @@ export function HistoricalDelayChart({ data }: HistoricalDelayChartProps) {
                             order.delayType === "BLOCKED" ? "bg-red-500" : "bg-amber-500"
                           }`}
                         />
-                        <span className="font-medium text-gray-700 dark:text-zinc-300 hover:underline">{order.orderNumber}</span>
+                        <span className="font-medium text-gray-700 dark:text-zinc-300 hover:underline">{order.orderNumber || "No PO#"}</span>
                         <span className="text-gray-400 dark:text-zinc-600">&middot;</span>
                         <span className="truncate">{order.productName}</span>
                         <span className="text-gray-400 dark:text-zinc-600">&middot;</span>
@@ -248,7 +248,7 @@ export function HistoricalDelayChart({ data }: HistoricalDelayChartProps) {
                         <div className="flex-1 min-w-0">
                           <p className="text-gray-700 dark:text-zinc-300">{reason.content}</p>
                           <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                            {reason.orderNumber} &middot; {reason.factoryName}
+                            {reason.orderNumber || "No PO#"} &middot; {reason.factoryName}
                           </p>
                         </div>
                       </button>
@@ -279,7 +279,7 @@ export function HistoricalDelayChart({ data }: HistoricalDelayChartProps) {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-sm font-medium text-gray-900 dark:text-white flex-shrink-0">
-                      {order.orderNumber}
+                      {order.orderNumber || "No PO#"}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-zinc-400 truncate">
                       {order.productName}

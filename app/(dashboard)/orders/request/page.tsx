@@ -66,7 +66,7 @@ function OrderRequestForm() {
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("pieces");
   const [factoryId, setFactoryId] = useState("");
-  const [orderDate, setOrderDate] = useState(new Date().toISOString().split("T")[0]);
+  const [expectedStartDate, setExpectedStartDate] = useState(new Date().toISOString().split("T")[0]);
   const [expectedDate, setExpectedDate] = useState("");
   const [priority, setPriority] = useState("NORMAL");
   const [notes, setNotes] = useState("");
@@ -139,7 +139,7 @@ function OrderRequestForm() {
             quantity: parseInt(quantity),
             unit,
             factoryId: factoryId || undefined,
-            orderDate,
+            expectedStartDate,
             expectedDate: expectedDate || undefined,
             priority,
             notes: notes.trim() || undefined,
@@ -326,12 +326,12 @@ function OrderRequestForm() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderDate">Preferred Order Date</Label>
+                <Label htmlFor="expectedStartDate">Preferred Expected Start Date</Label>
                 <Input
-                  id="orderDate"
+                  id="expectedStartDate"
                   type="date"
-                  value={orderDate}
-                  onChange={(e) => setOrderDate(e.target.value)}
+                  value={expectedStartDate}
+                  onChange={(e) => setExpectedStartDate(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -342,7 +342,7 @@ function OrderRequestForm() {
                   type="date"
                   value={expectedDate}
                   onChange={(e) => setExpectedDate(e.target.value)}
-                  min={orderDate}
+                  min={expectedStartDate}
                   disabled={isLoading}
                 />
               </div>

@@ -198,14 +198,14 @@ export async function GET() {
         factory: { select: { name: true } },
       },
     });
-    const orderLookup = new Map<string, { orderNumber: string; productName: string; factoryName: string }>();
+    const orderLookup = new Map<string, { orderNumber: string | null; productName: string; factoryName: string }>();
     for (const o of allDelayedOrders) {
       orderLookup.set(o.id, { orderNumber: o.orderNumber, productName: o.productName, factoryName: o.factory.name });
     }
 
     // By Stage — aggregate delay events by stageName
-    type StageIncident = { orderId: string; orderNumber: string; productName: string; factoryName: string; delayType: string; incidentCount: number };
-    type RichReason = { content: string; orderId: string; orderNumber: string; factoryName: string };
+    type StageIncident = { orderId: string; orderNumber: string | null; productName: string; factoryName: string; delayType: string; incidentCount: number };
+    type RichReason = { content: string; orderId: string; orderNumber: string | null; factoryName: string };
     const stageMap = new Map<
       string,
       { incidents: number; resolutionDays: number[]; reasons: RichReason[]; orders: StageIncident[] }

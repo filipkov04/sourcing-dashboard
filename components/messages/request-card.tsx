@@ -9,7 +9,7 @@ export interface RequestCardData {
   status: string;
   data: Record<string, unknown>;
   requester: { id: string; name: string | null; email: string };
-  targetOrder?: { orderNumber: string; productName: string } | null;
+  targetOrder?: { orderNumber: string | null; productName: string } | null;
   targetFactory?: { name: string; location: string } | null;
 }
 
@@ -46,9 +46,9 @@ function getSummaryLine(request: RequestCardData): string {
   const { type, data, targetOrder, targetFactory } = request;
   if (type === "ORDER_REQUEST") return String(data.productName || "Untitled");
   if (type === "FACTORY_REQUEST") return String(data.name || "Untitled");
-  if (type === "ORDER_EDIT_REQUEST" && targetOrder) return `${targetOrder.productName} (#${targetOrder.orderNumber})`;
+  if (type === "ORDER_EDIT_REQUEST" && targetOrder) return `${targetOrder.productName}${targetOrder.orderNumber ? ` (#${targetOrder.orderNumber})` : ""}`;
   if (type === "FACTORY_EDIT_REQUEST" && targetFactory) return targetFactory.name;
-  if (type === "ORDER_DELETE_REQUEST" && targetOrder) return `${targetOrder.productName} (#${targetOrder.orderNumber})`;
+  if (type === "ORDER_DELETE_REQUEST" && targetOrder) return `${targetOrder.productName}${targetOrder.orderNumber ? ` (#${targetOrder.orderNumber})` : ""}`;
   if (type === "FACTORY_DELETE_REQUEST" && targetFactory) return targetFactory.name;
   return "Request";
 }

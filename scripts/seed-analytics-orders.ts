@@ -64,7 +64,7 @@ type OrderDef = {
   status: OrderStatus;
   priority: Priority;
   overallProgress: number;
-  orderDate: Date;
+  expectedStartDate: Date;
   expectedDate: Date;
   actualDate: Date | null;
   factoryId: string;
@@ -130,7 +130,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-025", productName: "Summer Collection Polo", productSKU: "POL-SUM-01",
     quantity: 2500, unit: "pieces", status: "IN_PROGRESS" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 65, orderDate: daysAgo(20), expectedDate: daysFromNow(15), actualDate: null,
+    overallProgress: 65, expectedStartDate: daysAgo(20), expectedDate: daysFromNow(15), actualDate: null,
     factoryId: FACTORIES.guangzhou, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(18), completedAt: daysAgo(13) },
@@ -142,7 +142,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-026", productName: "Hoodie Pullover", productSKU: "HOD-PUL-01",
     quantity: 1800, unit: "pieces", status: "IN_PROGRESS" as OrderStatus, priority: "HIGH" as Priority,
-    overallProgress: 40, orderDate: daysAgo(15), expectedDate: daysFromNow(20), actualDate: null,
+    overallProgress: 40, expectedStartDate: daysAgo(15), expectedDate: daysFromNow(20), actualDate: null,
     factoryId: FACTORIES.shenzhen, stages: STAGE_NAMES, tags: ["production", "urgent"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(13), completedAt: daysAgo(8) },
@@ -154,7 +154,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-027", productName: "Linen Shirt Classic", productSKU: "LSH-CLS-01",
     quantity: 1200, unit: "pieces", status: "IN_PROGRESS" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 25, orderDate: daysAgo(10), expectedDate: daysFromNow(25), actualDate: null,
+    overallProgress: 25, expectedStartDate: daysAgo(10), expectedDate: daysFromNow(25), actualDate: null,
     factoryId: FACTORIES.istanbul, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(8), completedAt: daysAgo(4) },
@@ -166,7 +166,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-028", productName: "Cargo Pants Utility", productSKU: "CRG-PNT-01",
     quantity: 3000, unit: "pieces", status: "IN_PROGRESS" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 80, orderDate: daysAgo(30), expectedDate: daysFromNow(5), actualDate: null,
+    overallProgress: 80, expectedStartDate: daysAgo(30), expectedDate: daysFromNow(5), actualDate: null,
     factoryId: FACTORIES.hochiminh, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(28), completedAt: daysAgo(20) },
@@ -180,7 +180,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-029", productName: "Winter Jacket Puffer", productSKU: "WNT-JKT-01",
     quantity: 800, unit: "pieces", status: "PENDING" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 0, orderDate: daysAgo(2), expectedDate: daysFromNow(45), actualDate: null,
+    overallProgress: 0, expectedStartDate: daysAgo(2), expectedDate: daysFromNow(45), actualDate: null,
     factoryId: FACTORIES.prato, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "NOT_STARTED", progress: 0, startedAt: null, completedAt: null },
@@ -192,7 +192,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-030", productName: "Silk Blend Top", productSKU: "SLK-TOP-01",
     quantity: 600, unit: "pieces", status: "PENDING" as OrderStatus, priority: "HIGH" as Priority,
-    overallProgress: 0, orderDate: daysAgo(1), expectedDate: daysFromNow(35), actualDate: null,
+    overallProgress: 0, expectedStartDate: daysAgo(1), expectedDate: daysFromNow(35), actualDate: null,
     factoryId: FACTORIES.bangkok, stages: STAGE_NAMES, tags: ["sample"],
     stageConfigs: [
       { status: "NOT_STARTED", progress: 0, startedAt: null, completedAt: null },
@@ -206,7 +206,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-031", productName: "Embroidered Kurta", productSKU: "EMB-KRT-01",
     quantity: 2000, unit: "pieces", status: "DELAYED" as OrderStatus, priority: "HIGH" as Priority,
-    overallProgress: 50, orderDate: daysAgo(40), expectedDate: daysAgo(5), actualDate: null,
+    overallProgress: 50, expectedStartDate: daysAgo(40), expectedDate: daysAgo(5), actualDate: null,
     factoryId: FACTORIES.mumbai, stages: STAGE_NAMES_ALT, tags: ["production", "urgent"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(38), completedAt: daysAgo(30) },
@@ -219,7 +219,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-032", productName: "Jogger Pants Fleece", productSKU: "JGR-FLC-01",
     quantity: 3500, unit: "pieces", status: "DELAYED" as OrderStatus, priority: "URGENT" as Priority,
-    overallProgress: 35, orderDate: daysAgo(35), expectedDate: daysAgo(2), actualDate: null,
+    overallProgress: 35, expectedStartDate: daysAgo(35), expectedDate: daysAgo(2), actualDate: null,
     factoryId: FACTORIES.dhaka, stages: STAGE_NAMES, tags: ["production", "urgent"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(33), completedAt: daysAgo(25) },
@@ -231,7 +231,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-033", productName: "Cotton Dress Summer", productSKU: "CTN-DRS-01",
     quantity: 1500, unit: "pieces", status: "DELAYED" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 70, orderDate: daysAgo(45), expectedDate: daysAgo(8), actualDate: null,
+    overallProgress: 70, expectedStartDate: daysAgo(45), expectedDate: daysAgo(8), actualDate: null,
     factoryId: FACTORIES.jakarta, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(43), completedAt: daysAgo(35) },
@@ -245,7 +245,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-034", productName: "Wool Coat Winter", productSKU: "WOL-COT-01",
     quantity: 400, unit: "pieces", status: "DISRUPTED" as OrderStatus, priority: "URGENT" as Priority,
-    overallProgress: 30, orderDate: daysAgo(50), expectedDate: daysAgo(10), actualDate: null,
+    overallProgress: 30, expectedStartDate: daysAgo(50), expectedDate: daysAgo(10), actualDate: null,
     factoryId: FACTORIES.dhaka, stages: STAGE_NAMES, tags: ["production", "urgent"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(48), completedAt: daysAgo(40) },
@@ -257,7 +257,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-035", productName: "Leather Bag Tote", productSKU: "LTH-BAG-01",
     quantity: 300, unit: "pieces", status: "DISRUPTED" as OrderStatus, priority: "HIGH" as Priority,
-    overallProgress: 15, orderDate: daysAgo(25), expectedDate: daysFromNow(10), actualDate: null,
+    overallProgress: 15, expectedStartDate: daysAgo(25), expectedDate: daysFromNow(10), actualDate: null,
     factoryId: FACTORIES.porto, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "BLOCKED", progress: 60, startedAt: daysAgo(23), completedAt: null },
@@ -283,7 +283,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-046", productName: "Summer Collection Polo", productSKU: "POL-SUM-01",
     quantity: 1800, unit: "pieces", status: "SHIPPED" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 100, orderDate: daysAgo(50), expectedDate: daysAgo(15), actualDate: daysAgo(14),
+    overallProgress: 100, expectedStartDate: daysAgo(50), expectedDate: daysAgo(15), actualDate: daysAgo(14),
     factoryId: FACTORIES.guangzhou, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(48), completedAt: daysAgo(40) },
@@ -297,7 +297,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-047", productName: "Wool Blend Cardigan", productSKU: "WOL-CRD-01",
     quantity: 500, unit: "pieces", status: "IN_PROGRESS" as OrderStatus, priority: "NORMAL" as Priority,
-    overallProgress: 50, orderDate: daysAgo(18), expectedDate: daysFromNow(12), actualDate: null,
+    overallProgress: 50, expectedStartDate: daysAgo(18), expectedDate: daysFromNow(12), actualDate: null,
     factoryId: FACTORIES.prato, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "COMPLETED", progress: 100, startedAt: daysAgo(16), completedAt: daysAgo(10) },
@@ -309,7 +309,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "ANA-048", productName: "Silk Blend Top", productSKU: "SLK-TOP-01",
     quantity: 700, unit: "pieces", status: "IN_PROGRESS" as OrderStatus, priority: "HIGH" as Priority,
-    overallProgress: 15, orderDate: daysAgo(7), expectedDate: daysFromNow(30), actualDate: null,
+    overallProgress: 15, expectedStartDate: daysAgo(7), expectedDate: daysFromNow(30), actualDate: null,
     factoryId: FACTORIES.bangkok, stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: [
       { status: "IN_PROGRESS", progress: 60, startedAt: daysAgo(5), completedAt: null },
@@ -326,10 +326,10 @@ function completedOrder(
   factoryId: string, daysAgoOrdered: number, expectedDays: number, actualDays: number,
   priority: Priority
 ): OrderDef[] {
-  const orderDate = daysAgo(daysAgoOrdered);
-  const expectedDate = new Date(orderDate);
+  const expectedStartDate = daysAgo(daysAgoOrdered);
+  const expectedDate = new Date(expectedStartDate);
   expectedDate.setDate(expectedDate.getDate() + expectedDays);
-  const actualDate = new Date(orderDate);
+  const actualDate = new Date(expectedStartDate);
   actualDate.setDate(actualDate.getDate() + actualDays);
 
   const totalDays = actualDays;
@@ -338,7 +338,7 @@ function completedOrder(
   return [{
     orderNumber, productName, productSKU: sku, quantity: qty, unit: "pieces",
     status: "COMPLETED", priority, overallProgress: 100,
-    orderDate, expectedDate, actualDate, factoryId,
+    expectedStartDate, expectedDate, actualDate, factoryId,
     stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: STAGE_NAMES.map((_, i) => {
       const startDay = i * stageLen;
@@ -346,8 +346,8 @@ function completedOrder(
       return {
         status: "COMPLETED" as StageStatus,
         progress: 100,
-        startedAt: new Date(orderDate.getTime() + startDay * 86400000),
-        completedAt: new Date(orderDate.getTime() + endDay * 86400000),
+        startedAt: new Date(expectedStartDate.getTime() + startDay * 86400000),
+        completedAt: new Date(expectedStartDate.getTime() + endDay * 86400000),
       };
     }),
   }];
@@ -357,10 +357,10 @@ function deliveredOrder(
   orderNumber: string, productName: string, sku: string, qty: number,
   factoryId: string, daysAgoOrdered: number, actualDays: number,
 ): OrderDef[] {
-  const orderDate = daysAgo(daysAgoOrdered);
-  const expectedDate = new Date(orderDate);
+  const expectedStartDate = daysAgo(daysAgoOrdered);
+  const expectedDate = new Date(expectedStartDate);
   expectedDate.setDate(expectedDate.getDate() + actualDays + 2);
-  const actualDate = new Date(orderDate);
+  const actualDate = new Date(expectedStartDate);
   actualDate.setDate(actualDate.getDate() + actualDays);
 
   const stageLen = Math.floor(actualDays / 4);
@@ -368,7 +368,7 @@ function deliveredOrder(
   return [{
     orderNumber, productName, productSKU: sku, quantity: qty, unit: "pieces",
     status: "DELIVERED", priority: "NORMAL", overallProgress: 100,
-    orderDate, expectedDate, actualDate, factoryId,
+    expectedStartDate, expectedDate, actualDate, factoryId,
     stages: STAGE_NAMES, tags: ["production"],
     stageConfigs: STAGE_NAMES.map((_, i) => {
       const startDay = i * stageLen;
@@ -376,8 +376,8 @@ function deliveredOrder(
       return {
         status: "COMPLETED" as StageStatus,
         progress: 100,
-        startedAt: new Date(orderDate.getTime() + startDay * 86400000),
-        completedAt: new Date(orderDate.getTime() + endDay * 86400000),
+        startedAt: new Date(expectedStartDate.getTime() + startDay * 86400000),
+        completedAt: new Date(expectedStartDate.getTime() + endDay * 86400000),
       };
     }),
   }];
@@ -407,13 +407,13 @@ async function seed() {
       await client.query(
         `INSERT INTO "Order" (
           id, "orderNumber", "productName", "productSKU", quantity, unit,
-          "overallProgress", status, "orderDate", "expectedDate", "actualDate",
+          "overallProgress", status, "expectedStartDate", "expectedDate", "actualDate",
           priority, tags, "organizationId", "factoryId", "createdAt", "updatedAt"
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
         [
           orderId, order.orderNumber, order.productName, order.productSKU,
           order.quantity, order.unit, order.overallProgress, order.status,
-          order.orderDate.toISOString(), order.expectedDate.toISOString(),
+          order.expectedStartDate.toISOString(), order.expectedDate.toISOString(),
           order.actualDate?.toISOString() || null,
           order.priority, `{${order.tags.map(t => `"${t}"`).join(",")}}`,
           ORG_ID, order.factoryId, now.toISOString(), now.toISOString(),

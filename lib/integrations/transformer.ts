@@ -179,12 +179,10 @@ export async function applyToDb(
   let synced = 0;
 
   for (const transformed of orders) {
-    const order = await prisma.order.findUnique({
+    const order = await prisma.order.findFirst({
       where: {
-        organizationId_orderNumber: {
-          organizationId,
-          orderNumber: transformed.orderNumber,
-        },
+        organizationId,
+        orderNumber: transformed.orderNumber,
       },
       include: { stages: { orderBy: { sequence: "asc" } } },
     });

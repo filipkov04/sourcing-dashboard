@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     if (period !== "all") {
       const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
-      where.orderDate = { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
+      where.expectedStartDate = { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
     }
 
     // Get all orders grouped by status
@@ -84,6 +84,8 @@ function getStatusColor(status: string): string {
     DISRUPTED: "#ef4444", // red-500
     COMPLETED: "#10b981", // green-500
     SHIPPED: "#8b5cf6", // purple-500
+    IN_TRANSIT: "#06b6d4", // cyan-500
+    CUSTOMS: "#a855f7", // purple-500
     DELIVERED: "#6b7280", // gray-500
     CANCELLED: "#9ca3af", // gray-400
   };

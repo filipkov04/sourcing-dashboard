@@ -29,7 +29,7 @@ export async function GET() {
       where: scope,
       select: {
         status: true,
-        orderDate: true,
+        expectedStartDate: true,
         updatedAt: true,
       },
     });
@@ -47,7 +47,7 @@ export async function GET() {
       const dayLabel = date.toLocaleDateString("en-US", { weekday: "short" });
 
       const created = orders.filter((o) => {
-        const d = new Date(o.orderDate);
+        const d = new Date(o.expectedStartDate);
         return d >= date && d < nextDate;
       }).length;
 
@@ -63,7 +63,7 @@ export async function GET() {
 
       // Active orders as of this day (created before nextDate and not yet completed)
       const active = orders.filter((o) => {
-        const created = new Date(o.orderDate);
+        const created = new Date(o.expectedStartDate);
         return created < nextDate && ["PENDING", "IN_PROGRESS", "BEHIND_SCHEDULE", "DELAYED", "DISRUPTED"].includes(o.status);
       }).length;
 

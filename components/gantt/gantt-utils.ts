@@ -37,7 +37,7 @@ export type GanttRange = {
 
 /** Compute the overall date range across all orders, with padding */
 export function computeGanttRange(
-  orders: Array<{ orderDate: string; expectedDate: string }>,
+  orders: Array<{ expectedStartDate: string; expectedDate: string }>,
   pixelsPerDay: number = DEFAULT_PIXELS_PER_DAY,
 ): GanttRange {
   if (orders.length === 0) {
@@ -58,11 +58,11 @@ export function computeGanttRange(
   let maxTime = -Infinity;
 
   for (const order of orders) {
-    const orderTime = new Date(order.orderDate).getTime();
+    const orderTime = new Date(order.expectedStartDate).getTime();
     const expectedTime = new Date(order.expectedDate).getTime();
     if (orderTime < minTime) minTime = orderTime;
     if (expectedTime > maxTime) maxTime = expectedTime;
-    // Also consider orderDate could be after expectedDate
+    // Also consider expectedStartDate could be after expectedDate
     if (expectedTime < minTime) minTime = expectedTime;
     if (orderTime > maxTime) maxTime = orderTime;
   }

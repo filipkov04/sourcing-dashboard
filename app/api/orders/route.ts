@@ -175,7 +175,8 @@ export async function POST(request: NextRequest) {
       quantity,
       unit,
       factoryId,
-      orderDate,
+      expectedStartDate,
+      placedDate,
       expectedDate,
       priority,
       notes,
@@ -184,10 +185,14 @@ export async function POST(request: NextRequest) {
       recurrenceEnabled,
       recurrenceIntervalDays,
       recurrenceNextDate,
+      autoReorder,
+      autoReorderOrderNumber,
+      autoReorderStartDate,
+      autoReorderEndDate,
     } = body;
 
-    // Validate required fields
-    if (!orderNumber || !productName || !quantity || !factoryId || !orderDate || !expectedDate) {
+    // Validate required fields (orderNumber is optional for auto-created orders)
+    if (!productName || !quantity || !factoryId || !expectedStartDate || !expectedDate) {
       return error("Missing required fields", 400);
     }
 
@@ -209,7 +214,7 @@ export async function POST(request: NextRequest) {
       if (recurrenceNextDate) {
         computedRecurrenceNextDate = new Date(recurrenceNextDate);
       } else {
-        const base = new Date(orderDate);
+        const base = new Date(expectedStartDate);
         computedRecurrenceNextDate = new Date(base.getTime() + recurrenceIntervalDays * 24 * 60 * 60 * 1000);
       }
     }
@@ -217,7 +222,7 @@ export async function POST(request: NextRequest) {
     // Create order with stages
     const order = await prisma.order.create({
       data: {
-        orderNumber,
+        orderNumber: orderNumber || null,
         productName,
         productSKU,
         productImage: productImage || null,
@@ -225,7 +230,8 @@ export async function POST(request: NextRequest) {
         unit: unit || "pieces",
         factoryId,
         ...projectScope(session),
-        orderDate: new Date(orderDate),
+        expectedStartDate: new Date(expectedStartDate),
+        placedDate: placedDate ? new Date(placedDate) : null,
         expectedDate: new Date(expectedDate),
         priority: priority || "NORMAL",
         notes,
@@ -234,12 +240,19 @@ export async function POST(request: NextRequest) {
         recurrenceIntervalDays: recurrenceEnabled ? (recurrenceIntervalDays || null) : null,
         recurrenceNextDate: recurrenceEnabled ? computedRecurrenceNextDate : null,
         recurrenceLastAlertAt: null,
+        autoReorder: recurrenceEnabled ? (autoReorder || false) : false,
+        autoReorderOrderNumber: recurrenceEnabled && autoReorder ? (autoReorderOrderNumber || null) : null,
+        autoReorderStartDate: recurrenceEnabled && autoReorder && autoReorderStartDate ? new Date(autoReorderStartDate) : null,
+        autoReorderEndDate: recurrenceEnabled && autoReorder && autoReorderEndDate ? new Date(autoReorderEndDate) : null,
         stages: stages
           ? {
-              create: stages.map((stage: { name: string; sequence: number; notes?: string }) => ({
+              create: stages.map((stage: { name: string; sequence: number; notes?: string; expectedStartDate?: string | null; expectedEndDate?: string | null; metadata?: { key: string; value: string }[] }) => ({
                 name: stage.name,
                 sequence: stage.sequence,
-                notes: stage.notes,
+                notes: stage.notes || null,
+                expectedStartDate: stage.expectedStartDate ? new Date(stage.expectedStartDate) : null,
+                expectedEndDate: stage.expectedEndDate ? new Date(stage.expectedEndDate) : null,
+                metadata: stage.metadata && stage.metadata.length > 0 ? stage.metadata : Prisma.JsonNull,
               })),
             }
           : undefined,

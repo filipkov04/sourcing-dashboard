@@ -64,7 +64,7 @@ export default function OrderEditRequestPage() {
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("pieces");
   const [factoryId, setFactoryId] = useState("");
-  const [orderDate, setOrderDate] = useState("");
+  const [expectedStartDate, setExpectedStartDate] = useState("");
   const [expectedDate, setExpectedDate] = useState("");
   const [priority, setPriority] = useState("NORMAL");
   const [notes, setNotes] = useState("");
@@ -101,13 +101,13 @@ export default function OrderEditRequestPage() {
 
         if (data.success) {
           const order = data.data;
-          setOrderNumber(order.orderNumber);
+          setOrderNumber(order.orderNumber ?? "");
           setProductName(order.productName);
           setProductSKU(order.productSKU || "");
           setQuantity(order.quantity.toString());
           setUnit(order.unit);
           setFactoryId(order.factoryId);
-          setOrderDate(order.orderDate.split("T")[0]);
+          setExpectedStartDate(order.expectedStartDate.split("T")[0]);
           setExpectedDate(order.expectedDate.split("T")[0]);
           setPriority(order.priority);
           setNotes(order.notes || "");
@@ -208,13 +208,13 @@ export default function OrderEditRequestPage() {
           data: {
             orderId: params.id,
             changes: {
-              orderNumber: orderNumber.trim(),
+              orderNumber: orderNumber.trim() || null,
               productName: productName.trim(),
               productSKU: productSKU.trim() || null,
               quantity: parseInt(quantity),
               unit,
               factoryId,
-              orderDate,
+              expectedStartDate,
               expectedDate,
               priority,
               notes: notes.trim() || null,
@@ -306,7 +306,7 @@ export default function OrderEditRequestPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Request Order Edit</h1>
           <p className="text-sm text-gray-500 dark:text-zinc-400">
-            Submit changes to order {orderNumber} for admin approval
+            Submit changes to order {orderNumber || "(no PO#)"} for admin approval
           </p>
         </div>
       </div>
@@ -347,7 +347,7 @@ export default function OrderEditRequestPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderNumber">Order Number *</Label>
+                <Label htmlFor="orderNumber">Order Number</Label>
                 <Input
                   id="orderNumber"
                   placeholder="PO-2024-001"
@@ -465,12 +465,12 @@ export default function OrderEditRequestPage() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderDate">Order Date *</Label>
+                <Label htmlFor="expectedStartDate">Expected Start Date *</Label>
                 <Input
-                  id="orderDate"
+                  id="expectedStartDate"
                   type="date"
-                  value={orderDate}
-                  onChange={(e) => setOrderDate(e.target.value)}
+                  value={expectedStartDate}
+                  onChange={(e) => setExpectedStartDate(e.target.value)}
                   disabled={isLoading}
                 />
               </div>

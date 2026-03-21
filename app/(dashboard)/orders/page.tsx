@@ -32,7 +32,7 @@ import {
 
 type Order = {
   id: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   productSKU: string | null;
   productImage: string | null;
@@ -41,7 +41,7 @@ type Order = {
   overallProgress: number;
   status: string;
   priority: string;
-  orderDate: string;
+  expectedStartDate: string;
   expectedDate: string;
   factory: {
     id: string;
@@ -612,8 +612,8 @@ export default function OrdersPage() {
                     </TableCell>
                   )}
                   <TableCell>
-                    <span className="font-medium text-[#FF4D15]">
-                      {order.orderNumber}
+                    <span className={`font-medium ${order.orderNumber ? "text-[#FF4D15]" : "text-gray-400 dark:text-zinc-500 italic"}`}>
+                      {order.orderNumber ?? "No PO#"}
                     </span>
                   </TableCell>
                   <TableCell>

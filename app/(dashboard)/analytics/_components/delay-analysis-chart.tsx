@@ -31,7 +31,7 @@ type DelayAnalysisData = {
     delayedCount: number;
     blockedCount: number;
     totalIncidents: number;
-    orders: Array<{ orderId: string; orderNumber: string; productName: string; factoryName: string; status: string }>;
+    orders: Array<{ orderId: string; orderNumber: string | null; productName: string; factoryName: string; status: string }>;
   }>;
   trend: Array<{ month: string; totalOrders: number; delayedOrders: number; delayRate: number }>;
 };
@@ -211,7 +211,7 @@ export function DelayAnalysisChart({ data }: DelayAnalysisChartProps) {
                           order.status === "BLOCKED" ? "bg-red-500" : "bg-amber-500"
                         }`}
                       />
-                      <span className="font-medium text-gray-700 dark:text-zinc-300 hover:underline">{order.orderNumber}</span>
+                      <span className="font-medium text-gray-700 dark:text-zinc-300 hover:underline">{order.orderNumber || "No PO#"}</span>
                       <span className="text-gray-400 dark:text-zinc-600">&middot;</span>
                       <span className="truncate">{order.productName}</span>
                       <span className="text-gray-400 dark:text-zinc-600">&middot;</span>

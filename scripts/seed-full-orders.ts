@@ -79,7 +79,7 @@ type OrderDef = {
   status: OrderStatus;
   priority: Priority;
   overallProgress: number;
-  orderDate: Date;
+  expectedStartDate: Date;
   expectedDate: Date;
   actualDate: Date | null;
   notes: string | null;
@@ -98,7 +98,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-001", productName: "Cotton T-Shirt Basic", productSKU: "TSH-BAS-WHT",
     quantity: 3000, unit: "pieces", status: "COMPLETED", priority: "NORMAL",
-    overallProgress: 100, orderDate: d(85), expectedDate: d(45), actualDate: d(48),
+    overallProgress: 100, expectedStartDate: d(85), expectedDate: d(45), actualDate: d(48),
     notes: "Standard white tee, 180gsm cotton. Client approved final sample on day 3.",
     tags: ["production", "basics"], factoryId: FACTORIES.guangzhou,
     stages: [
@@ -127,7 +127,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-002", productName: "Denim Jacket Oversized", productSKU: "DNM-JKT-OVR",
     quantity: 1200, unit: "pieces", status: "COMPLETED", priority: "HIGH",
-    overallProgress: 100, orderDate: d(95), expectedDate: d(50), actualDate: d(46),
+    overallProgress: 100, expectedStartDate: d(95), expectedDate: d(50), actualDate: d(46),
     notes: "Oversized fit, raw selvedge denim. Wash test needed before sewing.",
     tags: ["production", "denim", "premium"], factoryId: FACTORIES.shenzhen,
     stages: [
@@ -160,7 +160,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-003", productName: "Wool Coat Winter", productSKU: "WOL-COT-BLK",
     quantity: 500, unit: "pieces", status: "COMPLETED", priority: "URGENT",
-    overallProgress: 100, orderDate: d(130), expectedDate: d(68), actualDate: d(69),
+    overallProgress: 100, expectedStartDate: d(130), expectedDate: d(68), actualDate: d(69),
     notes: "Premium 80/20 wool blend. Sample approved after 2 rounds.",
     tags: ["production", "premium", "outerwear"], factoryId: FACTORIES.istanbul,
     stages: [
@@ -189,7 +189,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-004", productName: "Silk Scarf Collection", productSKU: "SLK-SCF-MIX",
     quantity: 2000, unit: "pieces", status: "COMPLETED", priority: "NORMAL",
-    overallProgress: 100, orderDate: d(55), expectedDate: d(25), actualDate: d(28),
+    overallProgress: 100, expectedStartDate: d(55), expectedDate: d(25), actualDate: d(28),
     notes: "4 colorways, digital print on silk twill.",
     tags: ["production", "accessories", "silk"], factoryId: FACTORIES.hochiminh,
     stages: [
@@ -217,7 +217,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-005", productName: "Hoodie Pullover", productSKU: "HOD-PUL-GRY",
     quantity: 5000, unit: "pieces", status: "COMPLETED", priority: "NORMAL",
-    overallProgress: 100, orderDate: d(100), expectedDate: d(55), actualDate: d(42),
+    overallProgress: 100, expectedStartDate: d(100), expectedDate: d(55), actualDate: d(42),
     notes: "High volume order. French terry 300gsm. Budget line.",
     tags: ["production", "bulk", "basics"], factoryId: FACTORIES.dhaka,
     stages: [
@@ -244,7 +244,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-006", productName: "Leather Belt Premium", productSKU: "LTH-BLT-TAN",
     quantity: 1000, unit: "pieces", status: "COMPLETED", priority: "HIGH",
-    overallProgress: 100, orderDate: d(70), expectedDate: d(30), actualDate: d(32),
+    overallProgress: 100, expectedStartDate: d(70), expectedDate: d(30), actualDate: d(32),
     notes: "Full grain Italian leather. Brass hardware. Handmade in Portugal.",
     tags: ["production", "leather", "premium"], factoryId: FACTORIES.porto,
     stages: [
@@ -271,7 +271,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-007", productName: "Embroidered Kurta", productSKU: "EMB-KRT-NVY",
     quantity: 1500, unit: "pieces", status: "COMPLETED", priority: "NORMAL",
-    overallProgress: 100, orderDate: d(60), expectedDate: d(20), actualDate: d(22),
+    overallProgress: 100, expectedStartDate: d(60), expectedDate: d(20), actualDate: d(22),
     notes: "Navy base with gold thread embroidery. Traditional patterns.",
     tags: ["production", "embroidery"], factoryId: FACTORIES.mumbai,
     stages: [
@@ -298,7 +298,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-008", productName: "Wool Blend Cardigan", productSKU: "WOL-CRD-CRM",
     quantity: 400, unit: "pieces", status: "COMPLETED", priority: "HIGH",
-    overallProgress: 100, orderDate: d(75), expectedDate: d(18), actualDate: d(20),
+    overallProgress: 100, expectedStartDate: d(75), expectedDate: d(18), actualDate: d(20),
     notes: "Cream wool-cashmere blend. Horn buttons. Made in Italy.",
     tags: ["production", "premium", "knitwear"], factoryId: FACTORIES.prato,
     stages: [
@@ -326,7 +326,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-009", productName: "Cotton Dress Summer", productSKU: "CTN-DRS-FLR",
     quantity: 800, unit: "pieces", status: "SHIPPED", priority: "NORMAL",
-    overallProgress: 100, orderDate: d(65), expectedDate: d(25), actualDate: d(24),
+    overallProgress: 100, expectedStartDate: d(65), expectedDate: d(25), actualDate: d(24),
     notes: "Floral print cotton poplin. Shipped via sea freight, ETA 3 weeks.",
     tags: ["production", "womenswear"], factoryId: FACTORIES.guangzhou,
     stages: [
@@ -351,7 +351,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-010", productName: "Silk Blend Top", productSKU: "SLK-TOP-IVR",
     quantity: 600, unit: "pieces", status: "DELIVERED", priority: "HIGH",
-    overallProgress: 100, orderDate: d(90), expectedDate: d(48), actualDate: d(50),
+    overallProgress: 100, expectedStartDate: d(90), expectedDate: d(48), actualDate: d(50),
     notes: "Ivory silk-cotton blend. Received and checked into warehouse.",
     tags: ["production", "premium", "womenswear"], factoryId: FACTORIES.bangkok,
     stages: [
@@ -377,7 +377,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-011", productName: "Summer Collection Polo", productSKU: "POL-SUM-NVY",
     quantity: 2500, unit: "pieces", status: "IN_PROGRESS", priority: "NORMAL",
-    overallProgress: 65, orderDate: d(22), expectedDate: future(18), actualDate: null,
+    overallProgress: 65, expectedStartDate: d(22), expectedDate: future(18), actualDate: null,
     notes: "Navy polo, pique cotton. Part of Summer 2026 collection.",
     tags: ["production", "menswear", "SS26"], factoryId: FACTORIES.guangzhou,
     stages: [
@@ -404,7 +404,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-012", productName: "Cargo Pants Utility", productSKU: "CRG-PNT-KHK",
     quantity: 1800, unit: "pieces", status: "IN_PROGRESS", priority: "HIGH",
-    overallProgress: 35, orderDate: d(14), expectedDate: future(28), actualDate: null,
+    overallProgress: 35, expectedStartDate: d(14), expectedDate: future(28), actualDate: null,
     notes: "Khaki utility cargo. 6-pocket design. YKK zippers throughout.",
     tags: ["production", "menswear"], factoryId: FACTORIES.shenzhen,
     stages: [
@@ -430,7 +430,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-013", productName: "Linen Shirt Classic", productSKU: "LSH-CLS-WHT",
     quantity: 1000, unit: "pieces", status: "IN_PROGRESS", priority: "NORMAL",
-    overallProgress: 85, orderDate: d(35), expectedDate: future(5), actualDate: null,
+    overallProgress: 85, expectedStartDate: d(35), expectedDate: future(5), actualDate: null,
     notes: "White 100% European linen. Pre-washed for softness.",
     tags: ["production", "linen", "menswear"], factoryId: FACTORIES.hochiminh,
     stages: [
@@ -459,7 +459,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-014", productName: "Cashmere Sweater V-Neck", productSKU: "CSH-SWT-BLU",
     quantity: 300, unit: "pieces", status: "IN_PROGRESS", priority: "URGENT",
-    overallProgress: 15, orderDate: d(8), expectedDate: future(40), actualDate: null,
+    overallProgress: 15, expectedStartDate: d(8), expectedDate: future(40), actualDate: null,
     notes: "100% Mongolian cashmere. Blue heather. Rush order for VIP client.",
     tags: ["production", "premium", "rush"], factoryId: FACTORIES.prato,
     stages: [
@@ -485,7 +485,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-015", productName: "Jogger Pants Fleece", productSKU: "JGR-FLC-BLK",
     quantity: 3000, unit: "pieces", status: "PENDING", priority: "NORMAL",
-    overallProgress: 0, orderDate: d(2), expectedDate: future(42), actualDate: null,
+    overallProgress: 0, expectedStartDate: d(2), expectedDate: future(42), actualDate: null,
     notes: "Black fleece joggers. Elastic waistband with drawstring. For Q4 drop.",
     tags: ["production", "basics", "Q4"], factoryId: FACTORIES.jakarta,
     stages: [
@@ -510,7 +510,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-016", productName: "Block Print Scarf", productSKU: "BLK-PRT-SCF",
     quantity: 200, unit: "pieces", status: "PENDING", priority: "LOW",
-    overallProgress: 0, orderDate: d(1), expectedDate: future(30), actualDate: null,
+    overallProgress: 0, expectedStartDate: d(1), expectedDate: future(30), actualDate: null,
     notes: "Hand block print sample run. 4 designs. For buyer approval before bulk.",
     tags: ["sample", "handmade"], factoryId: FACTORIES.mumbai,
     stages: [
@@ -535,7 +535,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-017", productName: "Cotton T-Shirt Premium", productSKU: "TSH-PRM-BLK",
     quantity: 4000, unit: "pieces", status: "DELAYED", priority: "HIGH",
-    overallProgress: 55, orderDate: d(45), expectedDate: d(5), actualDate: null,
+    overallProgress: 55, expectedStartDate: d(45), expectedDate: d(5), actualDate: null,
     notes: "Premium Supima cotton. Black. Was expected last week but sewing is behind.",
     tags: ["production", "basics", "urgent"], factoryId: FACTORIES.dhaka,
     stages: [
@@ -561,7 +561,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-018", productName: "Printed Maxi Dress", productSKU: "PRT-MXI-FLR",
     quantity: 1200, unit: "pieces", status: "DELAYED", priority: "NORMAL",
-    overallProgress: 68, orderDate: d(50), expectedDate: d(8), actualDate: null,
+    overallProgress: 68, expectedStartDate: d(50), expectedDate: d(8), actualDate: null,
     notes: "Floral print on rayon. QC found color bleeding — requires re-washing.",
     tags: ["production", "womenswear"], factoryId: FACTORIES.jakarta,
     stages: [
@@ -587,7 +587,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-019", productName: "Leather Tote Bag", productSKU: "LTH-TOT-BRN",
     quantity: 350, unit: "pieces", status: "DISRUPTED", priority: "URGENT",
-    overallProgress: 25, orderDate: d(30), expectedDate: future(10), actualDate: null,
+    overallProgress: 25, expectedStartDate: d(30), expectedDate: future(10), actualDate: null,
     notes: "Brown vegetable-tanned leather tote. Production halted — leather shipment stuck in customs.",
     tags: ["production", "leather", "urgent"], factoryId: FACTORIES.porto,
     stages: [
@@ -614,7 +614,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-020", productName: "Fleece Zip Hoodie", productSKU: "FLC-ZIP-GRY",
     quantity: 2500, unit: "pieces", status: "DISRUPTED", priority: "HIGH",
-    overallProgress: 40, orderDate: d(38), expectedDate: future(2), actualDate: null,
+    overallProgress: 40, expectedStartDate: d(38), expectedDate: future(2), actualDate: null,
     notes: "Grey fleece with full zip. DISRUPTED due to factory-wide labor dispute.",
     tags: ["production", "urgent"], factoryId: FACTORIES.dhaka,
     stages: [
@@ -640,7 +640,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-021", productName: "Silk Evening Gown", productSKU: "SLK-EVN-RED",
     quantity: 150, unit: "pieces", status: "CANCELLED", priority: "HIGH",
-    overallProgress: 10, orderDate: d(40), expectedDate: future(5), actualDate: null,
+    overallProgress: 10, expectedStartDate: d(40), expectedDate: future(5), actualDate: null,
     notes: "CANCELLED: Client pulled the collection. Partial fabric already cut — to be credited.",
     tags: ["cancelled", "womenswear"], factoryId: FACTORIES.istanbul,
     stages: [
@@ -666,7 +666,7 @@ const orders: OrderDef[] = [
   {
     orderNumber: "PO-2025-022", productName: "Linen Blazer Unstructured", productSKU: "LIN-BLZ-BEG",
     quantity: 450, unit: "pieces", status: "IN_PROGRESS", priority: "HIGH",
-    overallProgress: 55, orderDate: d(28), expectedDate: future(2), actualDate: null,
+    overallProgress: 55, expectedStartDate: d(28), expectedDate: future(2), actualDate: null,
     notes: "Beige unstructured linen blazer. Due in 2 days but only 55% complete — AT RISK.",
     tags: ["production", "menswear", "at-risk"], factoryId: FACTORIES.istanbul,
     stages: [
@@ -702,20 +702,20 @@ function makeCompletedSimple(
   factoryId: string, daysAgoOrdered: number, actualDays: number,
   priority: Priority, tags: string[]
 ): OrderDef[] {
-  const orderDate = d(daysAgoOrdered);
-  const expectedDate = new Date(orderDate.getTime() + (actualDays + 2) * 86400000);
-  const actualDate = new Date(orderDate.getTime() + actualDays * 86400000);
+  const expectedStartDate = d(daysAgoOrdered);
+  const expectedDate = new Date(expectedStartDate.getTime() + (actualDays + 2) * 86400000);
+  const actualDate = new Date(expectedStartDate.getTime() + actualDays * 86400000);
   const stageLen = Math.floor(actualDays / 4);
 
   const stageNames = ["Cutting", "Sewing", "Quality Check", "Packaging"];
   return [{
     orderNumber, productName, productSKU: sku, quantity: qty, unit: "pieces",
     status: "COMPLETED", priority, overallProgress: 100,
-    orderDate, expectedDate, actualDate, factoryId,
+    expectedStartDate, expectedDate, actualDate, factoryId,
     notes: null, tags,
     stages: stageNames.map((name, i) => {
-      const start = new Date(orderDate.getTime() + i * stageLen * 86400000);
-      const end = new Date(orderDate.getTime() + (i === 3 ? actualDays : (i + 1) * stageLen) * 86400000);
+      const start = new Date(expectedStartDate.getTime() + i * stageLen * 86400000);
+      const end = new Date(expectedStartDate.getTime() + (i === 3 ? actualDays : (i + 1) * stageLen) * 86400000);
       const expectedEnd = new Date(end.getTime() + 2 * 86400000);
       return {
         name, sequence: i + 1, status: "COMPLETED" as StageStatus, progress: 100,
@@ -776,13 +776,13 @@ async function seed() {
       await client.query(
         `INSERT INTO "Order" (
           id, "orderNumber", "productName", "productSKU", quantity, unit,
-          "overallProgress", status, "orderDate", "expectedDate", "actualDate",
+          "overallProgress", status, "expectedStartDate", "expectedDate", "actualDate",
           notes, priority, tags, "organizationId", "factoryId", "createdAt", "updatedAt"
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
         [
           orderId, order.orderNumber, order.productName, order.productSKU,
           order.quantity, order.unit, order.overallProgress, order.status,
-          order.orderDate.toISOString(), order.expectedDate.toISOString(),
+          order.expectedStartDate.toISOString(), order.expectedDate.toISOString(),
           order.actualDate?.toISOString() || null,
           order.notes, order.priority,
           `{${order.tags.map(t => `"${t}"`).join(",")}}`,
@@ -820,7 +820,7 @@ async function seed() {
       allEvents.push({
         orderId, stageId: null, eventType: "ORDER_CREATED",
         field: null, oldValue: null, newValue: null, stageName: null,
-        createdAt: order.orderDate,
+        createdAt: order.expectedStartDate,
       });
 
       // ── Generate STATUS_CHANGE events for stages that have started/completed ──
@@ -927,7 +927,7 @@ async function seed() {
         allComments.push({
           orderId, content: "This is marked URGENT. Please prioritize and keep daily updates on progress.",
           authorId: USERS.palo.id, authorName: USERS.palo.name,
-          createdAt: new Date(order.orderDate.getTime() + 86400000),
+          createdAt: new Date(order.expectedStartDate.getTime() + 86400000),
         });
       }
 
@@ -958,7 +958,7 @@ async function seed() {
           stageId: "order-info", orderId, type: "NOTE",
           content: `Priority escalation: ${order.notes || "Requires immediate attention."}`,
           authorId: USERS.palo.id, authorName: USERS.palo.name,
-          createdAt: new Date(order.orderDate.getTime() + 2 * 86400000),
+          createdAt: new Date(order.expectedStartDate.getTime() + 2 * 86400000),
         });
       }
 

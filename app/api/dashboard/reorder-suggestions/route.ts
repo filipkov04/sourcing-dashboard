@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         factory: { select: { id: true, name: true } },
         stages: { select: { name: true, sequence: true }, orderBy: { sequence: "asc" } },
       },
-      orderBy: { orderDate: "desc" },
+      orderBy: { expectedStartDate: "desc" },
     });
 
     if (orders.length === 0) {
@@ -77,18 +77,18 @@ export async function GET(request: NextRequest) {
 
       // Sort by date descending
       productOrders.sort(
-        (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+        (a, b) => new Date(b.expectedStartDate).getTime() - new Date(a.expectedStartDate).getTime()
       );
 
       const latest = productOrders[0];
-      const lastOrderDate = new Date(latest.orderDate);
+      const lastOrderDate = new Date(latest.expectedStartDate);
 
       // Calculate average quantity
       const totalQty = productOrders.reduce((sum, o) => sum + o.quantity, 0);
       const avgQuantity = Math.round(totalQty / orderCount);
 
       // Check seasonal match: was this product ordered in current or next month historically?
-      const orderMonths = productOrders.map((o) => new Date(o.orderDate).getMonth());
+      const orderMonths = productOrders.map((o) => new Date(o.expectedStartDate).getMonth());
       const isSeasonal =
         orderMonths.includes(currentMonth) || orderMonths.includes(nextMonth);
 
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
         lastQuantity: latest.quantity,
         unit: latest.unit,
         avgQuantity,
-        lastOrderDate: latest.orderDate.toISOString(),
+        lastOrderDate: latest.expectedStartDate.toISOString(),
         factoryId: latest.factory.id,
         factoryName: latest.factory.name,
         orderCount,

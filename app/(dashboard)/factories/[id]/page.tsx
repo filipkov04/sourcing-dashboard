@@ -50,7 +50,7 @@ type OrderStage = {
 
 type Order = {
   id: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   quantity: number;
   unit: string;
@@ -83,6 +83,8 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
   COMPLETED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
   SHIPPED: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  IN_TRANSIT: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400",
+  CUSTOMS: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   DELIVERED: "bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300",
   CANCELLED: "bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400",
 };
@@ -102,6 +104,8 @@ const statusBarFills: Record<string, string> = {
   DISRUPTED: "#ef4444",
   COMPLETED: "#22c55e",
   SHIPPED: "#a855f7",
+  IN_TRANSIT: "#6366f1",
+  CUSTOMS: "#d97706",
   DELIVERED: "#71717a",
   CANCELLED: "#a1a1aa",
 };
@@ -611,7 +615,7 @@ export default function FactoryDetailPage() {
                         className="border-b border-gray-200 dark:border-zinc-700/50 hover:bg-gray-50 dark:hover:bg-zinc-700/30 cursor-pointer transition-colors"
                       >
                         <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
-                          {order.orderNumber}
+                          {order.orderNumber ? order.orderNumber : <span className="italic text-gray-400 dark:text-zinc-500">No PO#</span>}
                         </td>
                         <td className="py-3 px-4 text-gray-700 dark:text-zinc-300">
                           {order.productName}

@@ -169,7 +169,7 @@ export function ordersToVehicles(orders: any[]): MapVehicle[] {
         trackingStatus: order.trackingStatus,
         estimatedArrival: order.estimatedArrival,
         lastTrackingSync: order.lastTrackingSync,
-        orderDate: order.orderDate,
+        expectedStartDate: order.expectedStartDate,
         expectedDate: order.expectedDate,
         currentLocation: order.currentLocation,
         lat: coords[1],

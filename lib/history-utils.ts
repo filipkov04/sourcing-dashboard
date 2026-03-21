@@ -35,7 +35,8 @@ function formatFieldName(field: string): string {
     priority: "Priority",
     expectedDate: "Expected Date",
     actualDate: "Actual Date",
-    orderDate: "Order Date",
+    expectedStartDate: "Expected Start Date",
+    placedDate: "Placed Date",
     productName: "Product Name",
     productSKU: "SKU",
     quantity: "Quantity",
@@ -92,7 +93,7 @@ function formatValue(field: string | null, value: string | null): string {
   if (field === "status") return formatStatusValue(value);
   if (field === "priority") return formatPriorityValue(value);
   if (field === "progress") return `${value}%`;
-  if (field === "expectedDate" || field === "actualDate" || field === "orderDate") {
+  if (field === "expectedDate" || field === "actualDate" || field === "expectedStartDate" || field === "placedDate") {
     return formatDateValue(value);
   }
   if (field === "tags") {

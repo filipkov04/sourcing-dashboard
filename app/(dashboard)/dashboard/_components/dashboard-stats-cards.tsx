@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useId } from "react";
+import { useEffect, useState, useCallback, useId, useRef } from "react";
 import { Package, Activity, CheckCircle, Target, Clock, Calendar, RefreshCw } from "lucide-react";
 import { useAutoRefresh, formatTimeAgo } from "@/lib/use-auto-refresh";
 import { AnimatedNumber } from "@/components/animated-number";
@@ -93,8 +93,11 @@ export function DashboardStatsCards() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
+  const hasLoadedOnce = useRef(false);
+
   const fetchStats = useCallback(async () => {
-    setIsLoading(true);
+    // Only show skeleton on initial load, not on background refreshes
+    if (!hasLoadedOnce.current) setIsLoading(true);
     try {
       let url = `/api/dashboard/stats?period=${period}`;
       if (period === "custom" && customFrom && customTo) {
@@ -108,6 +111,7 @@ export function DashboardStatsCards() {
     } catch (error) {
       console.error("Failed to fetch dashboard stats:", error);
     } finally {
+      hasLoadedOnce.current = true;
       setIsLoading(false);
     }
   }, [period, customFrom, customTo]);
@@ -128,6 +132,7 @@ export function DashboardStatsCards() {
   }, [lastUpdated]);
 
   function handlePeriodChange(p: Period) {
+    hasLoadedOnce.current = false;
     if (p === "custom") {
       setShowCustom(true);
       setPeriod("custom");

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { success, notFound, unauthorized, forbidden, noContent, handleError, error , projectScope } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { logOrderEvent, OrderEventType } from "@/lib/history";
@@ -144,7 +145,8 @@ export async function PATCH(
       quantity,
       unit,
       factoryId,
-      orderDate,
+      expectedStartDate,
+      placedDate,
       expectedDate,
       priority,
       status,
@@ -154,14 +156,15 @@ export async function PATCH(
       recurrenceEnabled,
       recurrenceIntervalDays,
       recurrenceNextDate,
+      autoReorder,
+      autoReorderOrderNumber,
+      autoReorderStartDate,
+      autoReorderEndDate,
       trackingNumber,
       shippingMethod,
     } = body;
 
-    // Validate required fields if provided
-    if (orderNumber !== undefined && orderNumber !== null && !orderNumber.trim()) {
-      return error("Order number cannot be empty", 400);
-    }
+    // Validate required fields if provided (orderNumber is optional — empty string treated as null)
     if (productName !== undefined && productName !== null && !productName.trim()) {
       return error("Product name cannot be empty", 400);
     }
@@ -184,14 +187,15 @@ export async function PATCH(
 
     // Build update data
     const updateData: Record<string, unknown> = {};
-    if (orderNumber !== undefined && orderNumber !== null) updateData.orderNumber = orderNumber.trim();
+    if (orderNumber !== undefined) updateData.orderNumber = orderNumber ? orderNumber.trim() : null;
     if (productName !== undefined && productName !== null) updateData.productName = productName.trim();
     if (productSKU !== undefined) updateData.productSKU = productSKU ? productSKU.trim() : null;
     if (productImage !== undefined) updateData.productImage = productImage || null;
     if (quantity !== undefined) updateData.quantity = quantity;
     if (unit !== undefined) updateData.unit = unit;
     if (factoryId !== undefined) updateData.factoryId = factoryId;
-    if (orderDate !== undefined) updateData.orderDate = new Date(orderDate);
+    if (expectedStartDate !== undefined) updateData.expectedStartDate = new Date(expectedStartDate);
+    if (placedDate !== undefined) updateData.placedDate = placedDate ? new Date(placedDate) : null;
     if (expectedDate !== undefined) updateData.expectedDate = new Date(expectedDate);
     if (priority !== undefined) updateData.priority = priority;
     if (status !== undefined) {
@@ -250,7 +254,7 @@ export async function PATCH(
         updateData.recurrenceNextDate = recurrenceNextDate ? new Date(recurrenceNextDate) : null;
       } else if (recurrenceIntervalDays !== undefined && recurrenceIntervalDays) {
         // Recompute from order date + interval
-        const baseDate = orderDate ? new Date(orderDate) : existingOrder.orderDate;
+        const baseDate = expectedStartDate ? new Date(expectedStartDate) : existingOrder.expectedStartDate;
         updateData.recurrenceNextDate = new Date(new Date(baseDate).getTime() + recurrenceIntervalDays * 24 * 60 * 60 * 1000);
       }
       // Reset alert timestamp when next date changes so a new alert fires
@@ -259,9 +263,35 @@ export async function PATCH(
       }
     }
 
+    // Handle auto-reorder fields
+    if (autoReorder !== undefined) {
+      updateData.autoReorder = autoReorder;
+      if (!autoReorder) {
+        updateData.autoReorderOrderNumber = null;
+        updateData.autoReorderStartDate = null;
+        updateData.autoReorderEndDate = null;
+      }
+    }
+    if (autoReorderOrderNumber !== undefined) {
+      updateData.autoReorderOrderNumber = autoReorderOrderNumber || null;
+    }
+    if (autoReorderStartDate !== undefined) {
+      updateData.autoReorderStartDate = autoReorderStartDate ? new Date(autoReorderStartDate) : null;
+    }
+    if (autoReorderEndDate !== undefined) {
+      updateData.autoReorderEndDate = autoReorderEndDate ? new Date(autoReorderEndDate) : null;
+    }
+    // If recurrence was disabled, also disable auto-reorder
+    if (recurrenceEnabled === false) {
+      updateData.autoReorder = false;
+      updateData.autoReorderOrderNumber = null;
+      updateData.autoReorderStartDate = null;
+      updateData.autoReorderEndDate = null;
+    }
+
     // Handle stages update — upsert to preserve IDs, metadata, timestamps, and relations
     if (stages !== undefined) {
-      type StageInput = { id?: string; name: string; sequence: number; progress?: number; status?: "NOT_STARTED" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED"; notes?: string };
+      type StageInput = { id?: string; name: string; sequence: number; progress?: number; status?: "NOT_STARTED" | "IN_PROGRESS" | "BEHIND_SCHEDULE" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED"; notes?: string; expectedStartDate?: string | null; expectedEndDate?: string | null; metadata?: { key: string; value: string }[] };
       const incomingStages: StageInput[] = stages;
       const existingStageIds = existingOrder.stages.map((s) => s.id);
       const incomingIds = incomingStages.filter((s) => s.id).map((s) => s.id!);
@@ -277,13 +307,18 @@ export async function PATCH(
       // Update existing stages and create new ones
       for (const stage of incomingStages) {
         if (stage.id && existingStageIds.includes(stage.id)) {
-          // Update existing — only touch name and sequence, preserve everything else
+          // Update existing — touch name, sequence, and optional detail fields
+          const stageUpdate: Record<string, unknown> = {
+            name: stage.name,
+            sequence: stage.sequence,
+          };
+          if (stage.notes !== undefined) stageUpdate.notes = stage.notes || null;
+          if (stage.expectedStartDate !== undefined) stageUpdate.expectedStartDate = stage.expectedStartDate ? new Date(stage.expectedStartDate) : null;
+          if (stage.expectedEndDate !== undefined) stageUpdate.expectedEndDate = stage.expectedEndDate ? new Date(stage.expectedEndDate) : null;
+          if (stage.metadata !== undefined) stageUpdate.metadata = stage.metadata && stage.metadata.length > 0 ? stage.metadata : Prisma.JsonNull;
           await prisma.orderStage.update({
             where: { id: stage.id },
-            data: {
-              name: stage.name,
-              sequence: stage.sequence,
-            },
+            data: stageUpdate,
           });
         } else {
           // Create new stage
@@ -295,6 +330,9 @@ export async function PATCH(
               progress: stage.progress || 0,
               status: stage.status || "NOT_STARTED",
               notes: stage.notes || null,
+              expectedStartDate: stage.expectedStartDate ? new Date(stage.expectedStartDate) : null,
+              expectedEndDate: stage.expectedEndDate ? new Date(stage.expectedEndDate) : null,
+              metadata: stage.metadata && stage.metadata.length > 0 ? stage.metadata : Prisma.JsonNull,
             },
           });
         }
@@ -444,15 +482,29 @@ export async function PATCH(
       });
     }
 
-    // Order date change
-    if (orderDate !== undefined) {
-      const oldDate = existingOrder.orderDate.toISOString().split("T")[0];
-      const newDate = new Date(orderDate).toISOString().split("T")[0];
+    // Expected start date change
+    if (expectedStartDate !== undefined) {
+      const oldDate = existingOrder.expectedStartDate.toISOString().split("T")[0];
+      const newDate = new Date(expectedStartDate).toISOString().split("T")[0];
       if (oldDate !== newDate) {
         fieldsToTrack.push({
-          field: "orderDate",
-          oldValue: existingOrder.orderDate.toISOString(),
-          newValue: new Date(orderDate).toISOString(),
+          field: "expectedStartDate",
+          oldValue: existingOrder.expectedStartDate.toISOString(),
+          newValue: new Date(expectedStartDate).toISOString(),
+          eventType: "FIELD_CHANGE",
+        });
+      }
+    }
+
+    // Placed date change
+    if (placedDate !== undefined) {
+      const oldDate = existingOrder.placedDate?.toISOString().split("T")[0] || null;
+      const newDate = placedDate ? new Date(placedDate).toISOString().split("T")[0] : null;
+      if (oldDate !== newDate) {
+        fieldsToTrack.push({
+          field: "placedDate",
+          oldValue: existingOrder.placedDate?.toISOString() || null,
+          newValue: placedDate ? new Date(placedDate).toISOString() : null,
           eventType: "FIELD_CHANGE",
         });
       }

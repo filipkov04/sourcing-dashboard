@@ -16,7 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { SortableStageItem } from "./sortable-stage-item";
+import { SortableStageItem, Stage } from "./sortable-stage-item";
 
 type BaseStage = {
   id: string;
@@ -29,7 +29,9 @@ interface SortableStageListProps<T extends BaseStage> {
   onReorder: (stages: T[]) => void;
   onNameChange: (id: string, name: string) => void;
   onRemove: (id: string) => void;
+  onStageUpdate?: (id: string, updates: Partial<Stage>) => void;
   isLoading: boolean;
+  showDetails?: boolean;
 }
 
 export function SortableStageList<T extends BaseStage>({
@@ -37,9 +39,12 @@ export function SortableStageList<T extends BaseStage>({
   onReorder,
   onNameChange,
   onRemove,
+  onStageUpdate,
   isLoading,
+  showDetails = false,
 }: SortableStageListProps<T>) {
   const [isMounted, setIsMounted] = useState(false);
+  const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setIsMounted(true);
@@ -69,23 +74,38 @@ export function SortableStageList<T extends BaseStage>({
     }
   }
 
+  const toggleExpand = (id: string) => {
+    setExpandedStages((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const renderItems = () =>
+    stages.map((stage, index) => (
+      <SortableStageItem
+        key={stage.id}
+        stage={stage as unknown as Stage}
+        index={index}
+        onNameChange={onNameChange}
+        onRemove={onRemove}
+        onStageUpdate={onStageUpdate}
+        canRemove={stages.length > 1}
+        isLoading={isLoading}
+        showDetails={showDetails}
+        expanded={expandedStages.has(stage.id)}
+        onToggleExpand={toggleExpand}
+      />
+    ));
+
   // Render without DnD on server side to prevent hydration mismatch
   if (!isMounted) {
-    return (
-      <div className="space-y-4">
-        {stages.map((stage, index) => (
-          <SortableStageItem
-            key={stage.id}
-            stage={stage}
-            index={index}
-            onNameChange={onNameChange}
-            onRemove={onRemove}
-            canRemove={stages.length > 1}
-            isLoading={isLoading}
-          />
-        ))}
-      </div>
-    );
+    return <div className="space-y-4">{renderItems()}</div>;
   }
 
   return (
@@ -98,19 +118,7 @@ export function SortableStageList<T extends BaseStage>({
         items={stages.map((s) => s.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-4">
-          {stages.map((stage, index) => (
-            <SortableStageItem
-              key={stage.id}
-              stage={stage}
-              index={index}
-              onNameChange={onNameChange}
-              onRemove={onRemove}
-              canRemove={stages.length > 1}
-              isLoading={isLoading}
-            />
-          ))}
-        </div>
+        <div className="space-y-4">{renderItems()}</div>
       </SortableContext>
     </DndContext>
   );

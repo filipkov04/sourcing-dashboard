@@ -32,12 +32,18 @@ type Factory = {
   location: string;
 };
 
+type MetadataEntry = { key: string; value: string };
+
 type Stage = {
   id: string;
   name: string;
   sequence: number;
   progress: number;
   status: string;
+  expectedStartDate?: string;
+  expectedEndDate?: string;
+  notes?: string;
+  metadata?: MetadataEntry[];
 };
 
 const defaultStages = [
@@ -67,7 +73,8 @@ export default function EditOrderPage() {
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("pieces");
   const [factoryId, setFactoryId] = useState("");
-  const [orderDate, setOrderDate] = useState("");
+  const [expectedStartDate, setExpectedStartDate] = useState("");
+  const [placedDate, setPlacedDate] = useState("");
   const [expectedDate, setExpectedDate] = useState("");
   const [priority, setPriority] = useState("NORMAL");
   const [status, setStatus] = useState("PENDING");
@@ -87,6 +94,12 @@ export default function EditOrderPage() {
   const [recurrenceInterval, setRecurrenceInterval] = useState("60");
   const [recurrenceCustomDays, setRecurrenceCustomDays] = useState("");
   const [recurrenceNextDate, setRecurrenceNextDate] = useState("");
+
+  // Auto-reorder state
+  const [autoReorder, setAutoReorder] = useState(false);
+  const [autoReorderOrderNumber, setAutoReorderOrderNumber] = useState("");
+  const [autoReorderStartDate, setAutoReorderStartDate] = useState("");
+  const [autoReorderEndDate, setAutoReorderEndDate] = useState("");
 
   // Fetch factories
   useEffect(() => {
@@ -118,14 +131,15 @@ export default function EditOrderPage() {
 
         if (data.success) {
           const order = data.data;
-          setDetail(`${order.orderNumber} — ${order.productName}`);
-          setOrderNumber(order.orderNumber);
+          setDetail(`${order.orderNumber ?? "—"} — ${order.productName}`);
+          setOrderNumber(order.orderNumber ?? "");
           setProductName(order.productName);
           setProductSKU(order.productSKU || "");
           setQuantity(order.quantity.toString());
           setUnit(order.unit);
           setFactoryId(order.factoryId);
-          setOrderDate(order.orderDate.split("T")[0]);
+          setExpectedStartDate(order.expectedStartDate.split("T")[0]);
+          setPlacedDate(order.placedDate ? order.placedDate.split("T")[0] : "");
           setExpectedDate(order.expectedDate.split("T")[0]);
           setPriority(order.priority);
           setStatus(order.status);
@@ -134,12 +148,20 @@ export default function EditOrderPage() {
           setProductImage(order.productImage || null);
           setProductImagePreview(order.productImage || null);
           setStages(
-            order.stages.map((s: { id: string; name: string; sequence: number; progress: number; status: string }) => ({
+            order.stages.map((s: { id: string; name: string; sequence: number; progress: number; status: string; expectedStartDate?: string; expectedEndDate?: string; notes?: string; metadata?: unknown }) => ({
               id: s.id,
               name: s.name,
               sequence: s.sequence,
               progress: s.progress,
               status: s.status,
+              expectedStartDate: s.expectedStartDate ? new Date(s.expectedStartDate).toISOString().split("T")[0] : "",
+              expectedEndDate: s.expectedEndDate ? new Date(s.expectedEndDate).toISOString().split("T")[0] : "",
+              notes: s.notes || "",
+              metadata: s.metadata && typeof s.metadata === "object"
+                ? Array.isArray(s.metadata)
+                  ? (s.metadata as { key: string; value: unknown }[]).map(({ key, value }) => ({ key, value: String(value) }))
+                  : Object.entries(s.metadata as Record<string, unknown>).map(([key, value]) => ({ key, value: String(value) }))
+                : [],
             }))
           );
           // Populate tracking fields
@@ -158,6 +180,15 @@ export default function EditOrderPage() {
           }
           if (order.recurrenceNextDate) {
             setRecurrenceNextDate(order.recurrenceNextDate.split("T")[0]);
+          }
+          // Populate auto-reorder fields
+          setAutoReorder(order.autoReorder || false);
+          setAutoReorderOrderNumber(order.autoReorderOrderNumber || "");
+          if (order.autoReorderStartDate) {
+            setAutoReorderStartDate(order.autoReorderStartDate.split("T")[0]);
+          }
+          if (order.autoReorderEndDate) {
+            setAutoReorderEndDate(order.autoReorderEndDate.split("T")[0]);
           }
         }
       } catch (err) {
@@ -198,6 +229,10 @@ export default function EditOrderPage() {
 
   const updateStageName = (id: string, name: string) => {
     setStages(stages.map((s) => (s.id === id ? { ...s, name } : s)));
+  };
+
+  const updateStage = (id: string, updates: Partial<Stage>) => {
+    setStages(stages.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
 
   // Cleanup blob URL on unmount to prevent memory leak
@@ -245,11 +280,6 @@ export default function EditOrderPage() {
     setIsLoading(true);
 
     // Validation
-    if (!orderNumber.trim()) {
-      setError("Order number is required");
-      setIsLoading(false);
-      return;
-    }
     if (!productName.trim()) {
       setError("Product name is required");
       setIsLoading(false);
@@ -307,14 +337,15 @@ export default function EditOrderPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderNumber: orderNumber.trim(),
+          orderNumber: orderNumber.trim() || null,
           productName: productName.trim(),
           productSKU: productSKU.trim() || null,
           ...(productImageUrl !== undefined && { productImage: productImageUrl }),
           quantity: parseInt(quantity),
           unit,
           factoryId,
-          orderDate,
+          expectedStartDate,
+          placedDate: placedDate || null,
           expectedDate,
           priority,
           status,
@@ -326,6 +357,10 @@ export default function EditOrderPage() {
             sequence: s.sequence,
             progress: s.progress,
             status: s.status,
+            notes: s.notes || null,
+            expectedStartDate: s.expectedStartDate || null,
+            expectedEndDate: s.expectedEndDate || null,
+            metadata: (s.metadata || []).filter((m) => m.key.trim()),
           })),
           trackingNumber: trackingNumber.trim() || null,
           shippingMethod: shippingMethod || null,
@@ -334,6 +369,10 @@ export default function EditOrderPage() {
             ? parseInt(recurrenceInterval === "custom" ? recurrenceCustomDays : recurrenceInterval) || null
             : null,
           recurrenceNextDate: recurrenceEnabled && recurrenceNextDate ? recurrenceNextDate : null,
+          autoReorder: recurrenceEnabled ? autoReorder : false,
+          autoReorderOrderNumber: recurrenceEnabled && autoReorder && autoReorderOrderNumber ? autoReorderOrderNumber : null,
+          autoReorderStartDate: recurrenceEnabled && autoReorder && autoReorderStartDate ? autoReorderStartDate : null,
+          autoReorderEndDate: recurrenceEnabled && autoReorder && autoReorderEndDate ? autoReorderEndDate : null,
         }),
       });
 
@@ -393,12 +432,12 @@ export default function EditOrderPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Order</h1>
           <p className="text-sm text-gray-500 dark:text-zinc-400">
-            Update order {orderNumber}
+            Update order {orderNumber || "(no PO#)"}
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Error Message */}
         {error && (
           <div className="rounded-md bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 p-4 text-sm text-red-600 dark:text-red-300">
@@ -415,7 +454,7 @@ export default function EditOrderPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderNumber">Order Number *</Label>
+                <Label htmlFor="orderNumber">Order Number</Label>
                 <Input
                   id="orderNumber"
                   name="orderNumber"
@@ -607,13 +646,13 @@ export default function EditOrderPage() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderDate">Order Date *</Label>
+                <Label htmlFor="expectedStartDate">Expected Start Date *</Label>
                 <Input
-                  id="orderDate"
-                  name="orderDate"
+                  id="expectedStartDate"
+                  name="expectedStartDate"
                   type="date"
-                  value={orderDate}
-                  onChange={(e) => setOrderDate(e.target.value)}
+                  value={expectedStartDate}
+                  onChange={(e) => setExpectedStartDate(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -627,6 +666,22 @@ export default function EditOrderPage() {
                   onChange={(e) => setExpectedDate(e.target.value)}
                   disabled={isLoading}
                 />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="placedDate">Placed Date</Label>
+                <Input
+                  id="placedDate"
+                  name="placedDate"
+                  type="date"
+                  value={placedDate}
+                  onChange={(e) => setPlacedDate(e.target.value)}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-gray-500 dark:text-zinc-400">
+                  Optional — date the order was actually placed
+                </p>
               </div>
             </div>
           </CardContent>
@@ -646,7 +701,9 @@ export default function EditOrderPage() {
               onReorder={setStages}
               onNameChange={updateStageName}
               onRemove={removeStage}
+              onStageUpdate={updateStage}
               isLoading={isLoading}
+              showDetails
             />
 
             <Button
@@ -813,8 +870,8 @@ export default function EditOrderPage() {
                       value={recurrenceInterval}
                       onValueChange={(val) => {
                         setRecurrenceInterval(val);
-                        if (val !== "custom" && orderDate) {
-                          const d = new Date(orderDate);
+                        if (val !== "custom" && expectedStartDate) {
+                          const d = new Date(expectedStartDate);
                           d.setDate(d.getDate() + parseInt(val));
                           setRecurrenceNextDate(d.toISOString().split("T")[0]);
                         }
@@ -846,8 +903,8 @@ export default function EditOrderPage() {
                         value={recurrenceCustomDays}
                         onChange={(e) => {
                           setRecurrenceCustomDays(e.target.value);
-                          if (e.target.value && orderDate) {
-                            const d = new Date(orderDate);
+                          if (e.target.value && expectedStartDate) {
+                            const d = new Date(expectedStartDate);
                             d.setDate(d.getDate() + parseInt(e.target.value));
                             setRecurrenceNextDate(d.toISOString().split("T")[0]);
                           }
@@ -870,6 +927,64 @@ export default function EditOrderPage() {
                   <p className="text-xs text-gray-500 dark:text-zinc-400">
                     You&apos;ll receive a notification 7 days before this date to reorder.
                   </p>
+                </div>
+
+                {/* Auto-Reorder */}
+                <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="autoReorder" className="cursor-pointer">Auto-reorder</Label>
+                    <Switch
+                      id="autoReorder"
+                      checked={autoReorder}
+                      onCheckedChange={setAutoReorder}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {autoReorder && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">
+                        A new order will be automatically created on the next recurrence date with the same details. Stage dates will be shifted by the interval. You can modify the order after creation.
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="arOrderNumber" className="text-xs">Order Number</Label>
+                          <Input
+                            id="arOrderNumber"
+                            name="arOrderNumber"
+                            placeholder="Optional PO#"
+                            value={autoReorderOrderNumber}
+                            onChange={(e) => setAutoReorderOrderNumber(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="arStartDate" className="text-xs">Expected Start</Label>
+                          <Input
+                            id="arStartDate"
+                            name="arStartDate"
+                            type="date"
+                            value={autoReorderStartDate}
+                            onChange={(e) => setAutoReorderStartDate(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="arEndDate" className="text-xs">Expected End</Label>
+                          <Input
+                            id="arEndDate"
+                            name="arEndDate"
+                            type="date"
+                            value={autoReorderEndDate}
+                            onChange={(e) => setAutoReorderEndDate(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

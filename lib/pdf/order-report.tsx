@@ -33,12 +33,14 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "#ef4444",
   COMPLETED: "#10b981",
   SHIPPED: "#8b5cf6",
+  IN_TRANSIT: "#06b6d4",
+  CUSTOMS: "#a855f7",
   DELIVERED: "#6b7280",
   CANCELLED: "#9ca3af",
 };
 
 type OrderData = {
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   productSKU: string | null;
   quantity: number;
@@ -46,7 +48,8 @@ type OrderData = {
   status: string;
   priority: string;
   overallProgress: number;
-  orderDate: string;
+  expectedStartDate: string;
+  placedDate?: string | null;
   expectedDate: string;
   actualDate: string | null;
   notes: string | null;
@@ -75,20 +78,21 @@ export function SingleOrderPDF({ order }: { order: OrderData }) {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>SourceTrack</Text>
-          <Text style={styles.subtitle}>Order Report — {order.orderNumber}</Text>
+          <Text style={styles.subtitle}>Order Report — {order.orderNumber ?? "No PO#"}</Text>
         </View>
 
         {/* Order Details */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Details</Text>
-          <View style={styles.row}><Text style={styles.label}>Order Number</Text><Text style={styles.value}>{order.orderNumber}</Text></View>
+          <View style={styles.row}><Text style={styles.label}>Order Number</Text><Text style={styles.value}>{order.orderNumber ?? "No PO#"}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Product</Text><Text style={styles.value}>{order.productName}{order.productSKU ? ` (${order.productSKU})` : ""}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Quantity</Text><Text style={styles.value}>{order.quantity.toLocaleString()} {order.unit}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Status</Text><Text style={[styles.value, { color: statusColors[order.status] || "#1f2937" }]}>{order.status.replace("_", " ")}</Text></View>
+          <View style={styles.row}><Text style={styles.label}>Status</Text><Text style={[styles.value, { color: statusColors[order.status] || "#1f2937" }]}>{order.status.replace(/_/g, " ")}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Priority</Text><Text style={styles.value}>{order.priority}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Progress</Text><Text style={styles.value}>{order.overallProgress}%</Text></View>
           <View style={styles.row}><Text style={styles.label}>Factory</Text><Text style={styles.value}>{order.factory.name} — {order.factory.location}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Order Date</Text><Text style={styles.value}>{formatDate(order.orderDate)}</Text></View>
+          <View style={styles.row}><Text style={styles.label}>Expected Start Date</Text><Text style={styles.value}>{formatDate(order.expectedStartDate)}</Text></View>
+          {order.placedDate && <View style={styles.row}><Text style={styles.label}>Placed Date</Text><Text style={styles.value}>{formatDate(order.placedDate)}</Text></View>}
           <View style={styles.row}><Text style={styles.label}>Expected Date</Text><Text style={styles.value}>{formatDate(order.expectedDate)}</Text></View>
           {order.actualDate && <View style={styles.row}><Text style={styles.label}>Actual Date</Text><Text style={styles.value}>{formatDate(order.actualDate)}</Text></View>}
           {order.notes && <View style={styles.row}><Text style={styles.label}>Notes</Text><Text style={styles.value}>{order.notes}</Text></View>}
@@ -110,7 +114,7 @@ export function SingleOrderPDF({ order }: { order: OrderData }) {
               <View key={i} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: 30 }]}>{stage.sequence}</Text>
                 <Text style={[styles.tableCell, { flex: 1 }]}>{stage.name}</Text>
-                <Text style={[styles.tableCell, { width: 70 }]}>{stage.status.replace("_", " ")}</Text>
+                <Text style={[styles.tableCell, { width: 70 }]}>{stage.status.replace(/_/g, " ")}</Text>
                 <Text style={[styles.tableCell, { width: 55 }]}>{stage.progress}%</Text>
                 <Text style={[styles.tableCell, { width: 75 }]}>{stage.startedAt ? formatDate(stage.startedAt) : "—"}</Text>
                 <Text style={[styles.tableCell, { width: 75 }]}>{stage.completedAt ? formatDate(stage.completedAt) : "—"}</Text>
@@ -152,7 +156,7 @@ export function BulkOrdersPDF({ orders, orgName }: { orders: OrderData[]; orgNam
           <Text style={styles.sectionTitle}>Summary</Text>
           {Object.entries(statusCounts).map(([status, count]) => (
             <View key={status} style={styles.row}>
-              <Text style={styles.label}>{status.replace("_", " ")}</Text>
+              <Text style={styles.label}>{status.replace(/_/g, " ")}</Text>
               <Text style={[styles.value, { color: statusColors[status] || "#1f2937" }]}>{count}</Text>
             </View>
           ))}
@@ -171,10 +175,10 @@ export function BulkOrdersPDF({ orders, orgName }: { orders: OrderData[]; orgNam
           </View>
           {orders.map((order, i) => (
             <View key={i} style={styles.tableRow}>
-              <Text style={[styles.tableCell, { width: 70, color: "#EB5D2E" }]}>{order.orderNumber}</Text>
+              <Text style={[styles.tableCell, { width: 70, color: "#EB5D2E" }]}>{order.orderNumber ?? "No PO#"}</Text>
               <Text style={[styles.tableCell, { flex: 1 }]}>{order.productName}</Text>
               <Text style={[styles.tableCell, { width: 80 }]}>{order.factory.name}</Text>
-              <Text style={[styles.tableCell, { width: 60, color: statusColors[order.status] || "#4b5563" }]}>{order.status.replace("_", " ")}</Text>
+              <Text style={[styles.tableCell, { width: 60, color: statusColors[order.status] || "#4b5563" }]}>{order.status.replace(/_/g, " ")}</Text>
               <Text style={[styles.tableCell, { width: 45 }]}>{order.overallProgress}%</Text>
               <Text style={[styles.tableCell, { width: 65 }]}>{formatDate(order.expectedDate)}</Text>
             </View>

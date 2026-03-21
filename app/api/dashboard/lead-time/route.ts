@@ -4,7 +4,7 @@ import * as api from "@/lib/api";
 
 /**
  * GET /api/dashboard/lead-time
- * Compute avg/min/max lead time (orderDate → actualDate)
+ * Compute avg/min/max lead time (expectedStartDate → actualDate)
  * grouped by factory and product. Only from completed orders.
  */
 export async function GET() {
@@ -26,7 +26,7 @@ export async function GET() {
       select: {
         id: true,
         productName: true,
-        orderDate: true,
+        expectedStartDate: true,
         actualDate: true,
         expectedDate: true,
         factory: { select: { id: true, name: true } },
@@ -36,11 +36,11 @@ export async function GET() {
     // Calculate lead time in days for each order
     const ordersWithLeadTime = completedOrders.map((order) => {
       const leadDays = Math.ceil(
-        (new Date(order.actualDate!).getTime() - new Date(order.orderDate).getTime()) /
+        (new Date(order.actualDate!).getTime() - new Date(order.expectedStartDate).getTime()) /
           (1000 * 60 * 60 * 24)
       );
       const expectedDays = Math.ceil(
-        (new Date(order.expectedDate).getTime() - new Date(order.orderDate).getTime()) /
+        (new Date(order.expectedDate).getTime() - new Date(order.expectedStartDate).getTime()) /
           (1000 * 60 * 60 * 24)
       );
       return { ...order, leadDays, expectedDays };

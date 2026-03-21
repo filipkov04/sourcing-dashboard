@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
 interface OrderStatusChangeParams {
   orderId: string;
   organizationId: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   oldStatus: string;
   newStatus: string;
@@ -93,10 +93,11 @@ export async function notifyOrderStatusChange({
     const oldLabel = STATUS_LABELS[oldStatus] || oldStatus;
     const color = STATUS_COLORS[newStatus] || "#a1a1aa";
 
+    const displayNumber = orderNumber ?? "—";
     const isAlert = newStatus === "DELAYED" || newStatus === "DISRUPTED";
     const subject = isAlert
-      ? `Alert: Order ${orderNumber} is now ${newLabel}`
-      : `Order ${orderNumber} — ${newLabel}`;
+      ? `Alert: Order ${displayNumber} is now ${newLabel}`
+      : `Order ${displayNumber} — ${newLabel}`;
 
     const triggerLine = stageName
       ? `<p style="color: #a1a1aa; font-size: 13px; margin: 0 0 16px;">Triggered by stage: <strong style="color: #d4d4d8;">${stageName}</strong></p>`
@@ -113,7 +114,7 @@ export async function notifyOrderStatusChange({
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px;">
         <h2 style="color: #18181b; margin: 0 0 4px;">${productName}</h2>
-        <p style="color: #71717a; margin: 0 0 20px; font-size: 14px;">Order ${orderNumber}${factoryName ? ` · ${factoryName}` : ""}</p>
+        <p style="color: #71717a; margin: 0 0 20px; font-size: 14px;">Order ${displayNumber}${factoryName ? ` · ${factoryName}` : ""}</p>
         ${alertBanner}
         <div style="background: #f4f4f5; border-radius: 8px; padding: 16px; margin: 0 0 16px;">
           <p style="color: #71717a; font-size: 13px; margin: 0 0 4px;">Status changed</p>
@@ -133,7 +134,7 @@ export async function notifyOrderStatusChange({
     `;
 
     const text = [
-      `${productName} (Order ${orderNumber})${factoryName ? ` — ${factoryName}` : ""}`,
+      `${productName} (Order ${displayNumber})${factoryName ? ` — ${factoryName}` : ""}`,
       `Status: ${oldLabel} → ${newLabel}`,
       stageName ? `Triggered by stage: ${stageName}` : "",
       isAlert && newStatus === "DISRUPTED" ? "Production is blocked and requires immediate attention." : "",

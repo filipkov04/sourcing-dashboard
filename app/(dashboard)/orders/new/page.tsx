@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Upload, X, ImageIcon, Repeat } from "lucide-react";
+import { ArrowLeft, Plus, Upload, X, Repeat } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SortableStageList } from "@/components/sortable-stage-list";
 
@@ -25,10 +25,16 @@ type Factory = {
   location: string;
 };
 
+type MetadataEntry = { key: string; value: string };
+
 type Stage = {
   id: string;
   name: string;
   sequence: number;
+  expectedStartDate?: string;
+  expectedEndDate?: string;
+  notes?: string;
+  metadata?: MetadataEntry[];
 };
 
 const defaultStages = [
@@ -54,10 +60,10 @@ function NewOrderForm() {
   const [error, setError] = useState("");
   const [factories, setFactories] = useState<Factory[]>([]);
   const [stages, setStages] = useState<Stage[]>([
-    { id: "1", name: "Cutting", sequence: 1 },
-    { id: "2", name: "Sewing", sequence: 2 },
-    { id: "3", name: "Quality Check", sequence: 3 },
-    { id: "4", name: "Packaging", sequence: 4 },
+    { id: "1", name: "Cutting", sequence: 1, metadata: [] },
+    { id: "2", name: "Sewing", sequence: 2, metadata: [] },
+    { id: "3", name: "Quality Check", sequence: 3, metadata: [] },
+    { id: "4", name: "Packaging", sequence: 4, metadata: [] },
   ]);
 
   // Form state
@@ -67,7 +73,8 @@ function NewOrderForm() {
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("pieces");
   const [factoryId, setFactoryId] = useState("");
-  const [orderDate, setOrderDate] = useState(new Date().toISOString().split("T")[0]);
+  const [expectedStartDate, setExpectedStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [placedDate, setPlacedDate] = useState("");
   const [expectedDate, setExpectedDate] = useState("");
   const [priority, setPriority] = useState("NORMAL");
   const [notes, setNotes] = useState("");
@@ -82,6 +89,12 @@ function NewOrderForm() {
   const [recurrenceInterval, setRecurrenceInterval] = useState("60");
   const [recurrenceCustomDays, setRecurrenceCustomDays] = useState("");
   const [recurrenceNextDate, setRecurrenceNextDate] = useState("");
+
+  // Auto-reorder state
+  const [autoReorder, setAutoReorder] = useState(false);
+  const [autoReorderOrderNumber, setAutoReorderOrderNumber] = useState("");
+  const [autoReorderStartDate, setAutoReorderStartDate] = useState("");
+  const [autoReorderEndDate, setAutoReorderEndDate] = useState("");
 
   // Cleanup blob URL on unmount to prevent memory leak
   useEffect(() => {
@@ -133,10 +146,18 @@ function NewOrderForm() {
           }
           if (order.stages && order.stages.length > 0) {
             setStages(
-              order.stages.map((s: { id?: string; name: string; sequence: number }) => ({
+              order.stages.map((s: { id?: string; name: string; sequence: number; notes?: string; expectedStartDate?: string; expectedEndDate?: string; metadata?: unknown }) => ({
                 id: s.id || String(s.sequence),
                 name: s.name,
                 sequence: s.sequence,
+                expectedStartDate: s.expectedStartDate ? new Date(s.expectedStartDate).toISOString().split("T")[0] : "",
+                expectedEndDate: s.expectedEndDate ? new Date(s.expectedEndDate).toISOString().split("T")[0] : "",
+                notes: s.notes || "",
+                metadata: s.metadata && typeof s.metadata === "object"
+                  ? Array.isArray(s.metadata)
+                    ? (s.metadata as { key: string; value: unknown }[]).map(({ key, value }) => ({ key, value: String(value) }))
+                    : Object.entries(s.metadata as Record<string, unknown>).map(([key, value]) => ({ key, value: String(value) }))
+                  : [],
               }))
             );
           }
@@ -192,6 +213,10 @@ function NewOrderForm() {
     setStages(stages.map((s) => (s.id === id ? { ...s, name } : s)));
   };
 
+  const updateStage = (id: string, updates: Partial<Stage>) => {
+    setStages(stages.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+  };
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -222,11 +247,6 @@ function NewOrderForm() {
     setIsLoading(true);
 
     // Validation
-    if (!orderNumber.trim()) {
-      setError("Order number is required");
-      setIsLoading(false);
-      return;
-    }
     if (!productName.trim()) {
       setError("Product name is required");
       setIsLoading(false);
@@ -281,14 +301,15 @@ function NewOrderForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderNumber: orderNumber.trim(),
+          orderNumber: orderNumber.trim() || null,
           productName: productName.trim(),
           productSKU: productSKU.trim() || null,
           productImage: productImageUrl,
           quantity: parseInt(quantity),
           unit,
           factoryId,
-          orderDate,
+          expectedStartDate,
+          placedDate: placedDate || null,
           expectedDate,
           priority,
           notes: notes.trim() || null,
@@ -296,12 +317,20 @@ function NewOrderForm() {
           stages: validStages.map((s) => ({
             name: s.name,
             sequence: s.sequence,
+            notes: s.notes || null,
+            expectedStartDate: s.expectedStartDate || null,
+            expectedEndDate: s.expectedEndDate || null,
+            metadata: (s.metadata || []).filter((m) => m.key.trim()),
           })),
           recurrenceEnabled,
           recurrenceIntervalDays: recurrenceEnabled
             ? parseInt(recurrenceInterval === "custom" ? recurrenceCustomDays : recurrenceInterval) || null
             : null,
           recurrenceNextDate: recurrenceEnabled && recurrenceNextDate ? recurrenceNextDate : null,
+          autoReorder: recurrenceEnabled ? autoReorder : false,
+          autoReorderOrderNumber: recurrenceEnabled && autoReorder && autoReorderOrderNumber ? autoReorderOrderNumber : null,
+          autoReorderStartDate: recurrenceEnabled && autoReorder && autoReorderStartDate ? autoReorderStartDate : null,
+          autoReorderEndDate: recurrenceEnabled && autoReorder && autoReorderEndDate ? autoReorderEndDate : null,
         }),
       });
 
@@ -356,7 +385,7 @@ function NewOrderForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Error Message */}
         {error && (
           <div className="rounded-md bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 p-4 text-sm text-red-600 dark:text-red-300">
@@ -373,7 +402,7 @@ function NewOrderForm() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderNumber">Order Number *</Label>
+                <Label htmlFor="orderNumber">Order Number</Label>
                 <Input
                   id="orderNumber"
                   placeholder="PO-2024-001"
@@ -525,12 +554,12 @@ function NewOrderForm() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="orderDate">Order Date *</Label>
+                <Label htmlFor="expectedStartDate">Expected Start Date *</Label>
                 <Input
-                  id="orderDate"
+                  id="expectedStartDate"
                   type="date"
-                  value={orderDate}
-                  onChange={(e) => setOrderDate(e.target.value)}
+                  value={expectedStartDate}
+                  onChange={(e) => setExpectedStartDate(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -541,9 +570,24 @@ function NewOrderForm() {
                   type="date"
                   value={expectedDate}
                   onChange={(e) => setExpectedDate(e.target.value)}
-                  min={orderDate}
+                  min={expectedStartDate}
                   disabled={isLoading}
                 />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="placedDate">Placed Date</Label>
+                <Input
+                  id="placedDate"
+                  type="date"
+                  value={placedDate}
+                  onChange={(e) => setPlacedDate(e.target.value)}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-gray-500 dark:text-zinc-400">
+                  Optional — date the order was actually placed
+                </p>
               </div>
             </div>
           </CardContent>
@@ -563,7 +607,9 @@ function NewOrderForm() {
               onReorder={setStages}
               onNameChange={updateStageName}
               onRemove={removeStage}
+              onStageUpdate={updateStage}
               isLoading={isLoading}
+              showDetails
             />
 
             <Button
@@ -673,8 +719,8 @@ function NewOrderForm() {
                       value={recurrenceInterval}
                       onValueChange={(val) => {
                         setRecurrenceInterval(val);
-                        if (val !== "custom" && orderDate) {
-                          const d = new Date(orderDate);
+                        if (val !== "custom" && expectedStartDate) {
+                          const d = new Date(expectedStartDate);
                           d.setDate(d.getDate() + parseInt(val));
                           setRecurrenceNextDate(d.toISOString().split("T")[0]);
                         }
@@ -705,8 +751,8 @@ function NewOrderForm() {
                         value={recurrenceCustomDays}
                         onChange={(e) => {
                           setRecurrenceCustomDays(e.target.value);
-                          if (e.target.value && orderDate) {
-                            const d = new Date(orderDate);
+                          if (e.target.value && expectedStartDate) {
+                            const d = new Date(expectedStartDate);
                             d.setDate(d.getDate() + parseInt(e.target.value));
                             setRecurrenceNextDate(d.toISOString().split("T")[0]);
                           }
@@ -728,6 +774,61 @@ function NewOrderForm() {
                   <p className="text-xs text-gray-500 dark:text-zinc-400">
                     You&apos;ll receive a notification 7 days before this date to reorder.
                   </p>
+                </div>
+
+                {/* Auto-Reorder */}
+                <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="autoReorder" className="cursor-pointer">Auto-reorder</Label>
+                    <Switch
+                      id="autoReorder"
+                      checked={autoReorder}
+                      onCheckedChange={setAutoReorder}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {autoReorder && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">
+                        A new order will be automatically created on the next recurrence date with the same details. Stage dates will be shifted by the interval. You can modify the order after creation.
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="arOrderNumber" className="text-xs">Order Number</Label>
+                          <Input
+                            id="arOrderNumber"
+                            placeholder="Optional PO#"
+                            value={autoReorderOrderNumber}
+                            onChange={(e) => setAutoReorderOrderNumber(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="arStartDate" className="text-xs">Expected Start</Label>
+                          <Input
+                            id="arStartDate"
+                            type="date"
+                            value={autoReorderStartDate}
+                            onChange={(e) => setAutoReorderStartDate(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="arEndDate" className="text-xs">Expected End</Label>
+                          <Input
+                            id="arEndDate"
+                            type="date"
+                            value={autoReorderEndDate}
+                            onChange={(e) => setAutoReorderEndDate(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -46,9 +46,9 @@ function daysUntil(d: string | null): string {
   return `in ${diff}d`;
 }
 
-function progressPercent(orderDate: string, expectedDate: string | null): number {
+function progressPercent(expectedStartDate: string, expectedDate: string | null): number {
   if (!expectedDate) return 0;
-  const start = new Date(orderDate).getTime();
+  const start = new Date(expectedStartDate).getTime();
   const end = new Date(expectedDate).getTime();
   if (end <= start) return 100;
   return Math.min(100, Math.max(0, Math.round(((Date.now() - start) / (end - start)) * 100)));
@@ -109,7 +109,7 @@ export function ShipmentPanel({ vehicle, onClose }: ShipmentPanelProps) {
           <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
             <h5 className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 mb-2">Progress</h5>
             <div className="space-y-2">
-              <div className="flex justify-between text-xs"><span className="text-gray-500 dark:text-zinc-400">Order Date</span><span className="text-gray-900 dark:text-white">{formatDate(vehicle.orderDate)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-gray-500 dark:text-zinc-400">Expected Start Date</span><span className="text-gray-900 dark:text-white">{formatDate(vehicle.expectedStartDate)}</span></div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500 dark:text-zinc-400">ETA</span>
                 <span className="text-gray-900 dark:text-white">
@@ -119,9 +119,9 @@ export function ShipmentPanel({ vehicle, onClose }: ShipmentPanelProps) {
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex-1 h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-rose-500 transition-all" style={{ width: `${progressPercent(vehicle.orderDate, vehicle.estimatedArrival ?? vehicle.expectedDate)}%` }} />
+                  <div className="h-full rounded-full bg-rose-500 transition-all" style={{ width: `${progressPercent(vehicle.expectedStartDate, vehicle.estimatedArrival ?? vehicle.expectedDate)}%` }} />
                 </div>
-                <span className="text-[10px] text-gray-400 dark:text-zinc-500 tabular-nums">{progressPercent(vehicle.orderDate, vehicle.estimatedArrival ?? vehicle.expectedDate)}%</span>
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500 tabular-nums">{progressPercent(vehicle.expectedStartDate, vehicle.estimatedArrival ?? vehicle.expectedDate)}%</span>
               </div>
               <div className="flex justify-between text-xs"><span className="text-gray-500 dark:text-zinc-400">Quantity</span><span className="text-gray-900 dark:text-white">{vehicle.quantity.toLocaleString()} {vehicle.unit}</span></div>
             </div>

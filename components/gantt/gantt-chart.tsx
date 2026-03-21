@@ -30,11 +30,11 @@ import {
 
 type GanttOrder = {
   id: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   status: string;
   overallProgress: number;
-  orderDate: string;
+  expectedStartDate: string;
   expectedDate: string;
   factory: {
     id: string;
@@ -61,7 +61,7 @@ function getRiskLevel(order: GanttOrder): RiskLevel {
   if (daysUntilDue < 0) return "critical";
 
   // Check if progress is behind where it should be based on elapsed time
-  const orderStart = new Date(order.orderDate);
+  const orderStart = new Date(order.expectedStartDate);
   const totalDuration = Math.max(expected.getTime() - orderStart.getTime(), 1);
   const elapsed = today.getTime() - orderStart.getTime();
   const expectedProgress = Math.min(100, Math.round((elapsed / totalDuration) * 100));
@@ -382,7 +382,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-[#F97316] truncate">
-                    {order.orderNumber}
+                    {order.orderNumber || "No PO#"}
                   </span>
                 </div>
                 <div className="text-xs text-gray-500 dark:text-zinc-400 truncate">
@@ -641,7 +641,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
           {orders.map((order, i) => {
             const risk = riskLevels.get(order.id) || "none";
             const barX = dateToPixel(
-              new Date(order.orderDate),
+              new Date(order.expectedStartDate),
               range.minDate,
               pixelsPerDay,
             );
@@ -812,7 +812,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
           >
             <div className="flex items-center gap-3">
               <span className="font-semibold text-gray-900 dark:text-white">
-                {tooltip.order.orderNumber}
+                {tooltip.order.orderNumber || "No PO#"}
               </span>
               <span className="text-gray-400 dark:text-zinc-500">·</span>
               <span className="text-gray-500 dark:text-zinc-400 text-xs">
@@ -821,7 +821,7 @@ export function GanttChart({ orders, highlightCritical = true }: GanttChartProps
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs">
               <span className="text-gray-500 dark:text-zinc-400">
-                {formatDate(tooltip.order.orderDate)} → {formatDate(tooltip.order.expectedDate)}
+                {formatDate(tooltip.order.expectedStartDate)} → {formatDate(tooltip.order.expectedDate)}
               </span>
               <span className="text-gray-300 dark:text-zinc-600">|</span>
               <span className="flex items-center gap-1.5">

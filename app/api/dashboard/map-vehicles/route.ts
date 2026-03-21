@@ -32,7 +32,7 @@ export async function GET() {
         trackingStatus: true,
         estimatedArrival: true,
         lastTrackingSync: true,
-        orderDate: true,
+        expectedStartDate: true,
         expectedDate: true,
         factoryId: true,
         factory: {

@@ -61,9 +61,30 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 Manual statuses (SHIPPED, DELIVERED, CANCELLED) are never overwritten by auto-rules.
 
-## Current Status (Session 31 — Mar 18, 2026)
+## Current Status (Session 32 — Mar 20, 2026)
 
-**Last completed:** Sidebar consolidation + systematic review (Messages, Settings, Timeline, Team, Alerts, Requests, Integrations sections)
+**Last completed:** Order date rename + auto-reorder feature + stage detail editing in forms
+
+**Session 32 changes (Marco):**
+- **Schema Migration — `orderDate` → `expectedStartDate` + Auto-Reorder:**
+  - `prisma/schema.prisma`: Renamed `orderDate` → `expectedStartDate` (via `@map("orderDate")`), added `placedDate DateTime?`, made `orderNumber String?`, added 4 auto-reorder fields (`autoReorder`, `autoReorderOrderNumber`, `autoReorderStartDate`, `autoReorderEndDate`). Partial unique index via raw SQL (`WHERE "orderNumber" IS NOT NULL`).
+  - ~40 files: Mechanical rename of `orderDate` → `expectedStartDate` across all API routes, UI pages, components, lib files, and scripts. Added `placedDate` support throughout.
+  - `orderNumber` made nullable — cascading type fixes across notifications, PDF, dashboard routes, transformer.
+- **Auto-Reorder Cron Job** (`app/api/cron/auto-reorder/route.ts` NEW):
+  - Daily at 6 AM UTC. Finds orders with `autoReorder=true` and `recurrenceNextDate <= now()`.
+  - Creates new order copying all details, shifts stage dates by interval, disables recurrence on old order.
+  - Handles duplicate orderNumber via retry with null. Creates alert for missing PO#.
+  - Registered in `vercel.json`.
+- **Auto-Reorder UI:**
+  - `orders/[id]/page.tsx` RecurrenceCard: Auto-reorder toggle + 3 optional fields (order number, start date, end date) + info text + read view badge.
+  - `orders/new/page.tsx` and `orders/[id]/edit/page.tsx`: Auto-reorder section in recurrence card. Forms send 4 auto-reorder fields.
+  - API routes (`orders/route.ts` POST, `orders/[id]/route.ts` PATCH): Accept and save auto-reorder fields.
+- **Stage Detail Editing in Create/Edit Forms:**
+  - `components/sortable-stage-item.tsx`: Rewritten with expandable details — expected start/end dates, notes textarea, metadata key-value pairs with add/remove and smart presets by stage name.
+  - `components/sortable-stage-list.tsx`: Added `showDetails` and `onStageUpdate` props, manages expand/collapse state per stage.
+  - `orders/new/page.tsx` and `orders/[id]/edit/page.tsx`: Stage type expanded with dates/notes/metadata. Submit includes all stage detail fields. Edit form populates from fetched data (handles both array and object metadata formats). Reorder pre-fill carries over notes, metadata, and stage dates.
+  - `app/api/orders/route.ts` POST: Stage creation accepts `expectedStartDate`, `expectedEndDate`, `notes`, `metadata`.
+  - `app/api/orders/[id]/route.ts` PATCH: Stage upsert passes through dates, notes, metadata. Uses `Prisma.JsonNull` for clearing empty metadata.
 
 **Session 31 changes (Marco):**
 - **Sidebar Consolidation** — Reduced sidebar from 11 → 8 items:

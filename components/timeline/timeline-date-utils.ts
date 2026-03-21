@@ -34,14 +34,14 @@ export type StagePosition = {
  */
 export function computeStagePositions(
   stages: TimelineStage[],
-  orderDate?: string | null,
+  expectedStartDate?: string | null,
   expectedDate?: string | null,
 ): { positions: StagePosition[]; contentWidth: number; minDate: Date; maxDate: Date } {
   const sorted = [...stages].sort((a, b) => a.sequence - b.sequence);
 
   // Collect all known dates to build the axis range
   const allDates: Date[] = [];
-  if (orderDate) allDates.push(new Date(orderDate));
+  if (expectedStartDate) allDates.push(new Date(expectedStartDate));
   if (expectedDate) allDates.push(new Date(expectedDate));
   sorted.forEach((s) => {
     const d = getStageDate(s);
@@ -65,7 +65,7 @@ export function computeStagePositions(
   const rawWidth = totalDays * PIXELS_PER_DAY;
 
   // Place order-info node at the order date, or at minDate
-  const orderDay = orderDate ? toDayIndex(new Date(orderDate)) : minDay;
+  const orderDay = expectedStartDate ? toDayIndex(new Date(expectedStartDate)) : minDay;
 
   // Build raw x for each stage based on dates; null means undated
   const rawPositions: (number | null)[] = sorted.map((s) => {

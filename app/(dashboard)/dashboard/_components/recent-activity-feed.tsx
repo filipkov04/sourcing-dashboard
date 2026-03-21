@@ -7,7 +7,7 @@ import Link from "next/link";
 type ActivityItem = {
   id: string;
   type: "created" | "completed";
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   factoryName: string;
   status: string;
@@ -23,6 +23,8 @@ const statusColors: Record<string, string> = {
   DISRUPTED: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
   COMPLETED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
   SHIPPED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
+  IN_TRANSIT: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/20",
+  CUSTOMS: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
   DELIVERED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
   CANCELLED: "bg-zinc-500/5 text-zinc-500 dark:text-zinc-400 ring-1 ring-zinc-500/15",
 };
@@ -122,7 +124,7 @@ export function RecentActivityFeed() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#FF4D15] transition-colors truncate">
-                  #{activity.orderNumber}
+                  {activity.orderNumber ? `#${activity.orderNumber}` : "No PO#"}
                 </p>
                 <span
                   className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${

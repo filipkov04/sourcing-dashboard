@@ -58,13 +58,13 @@ export async function GET(request: NextRequest) {
       prisma.order.findMany({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
-          orderDate: { gte: from, lte: to },
+          expectedStartDate: { gte: from, lte: to },
         },
       }),
       prisma.order.count({
         where: {
           organizationId, ...(projectId ? { projectId } : {}),
-          orderDate: { gte: previousFrom, lt: from },
+          expectedStartDate: { gte: previousFrom, lt: from },
         },
       }),
       prisma.order.count({
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
           status: "COMPLETED",
           actualDate: { gte: previousFrom, lt: from, not: null },
         },
-        select: { actualDate: true, expectedDate: true, orderDate: true },
+        select: { actualDate: true, expectedDate: true, expectedStartDate: true },
       }),
     ]);
 
@@ -115,22 +115,22 @@ export async function GET(request: NextRequest) {
       ? Math.round((prevOnTimeCount / previousCompletedWithDates.length) * 100)
       : 0;
 
-    // Avg lead time: days from orderDate to actualDate for completed orders
+    // Avg lead time: days from expectedStartDate to actualDate for completed orders
     const completedWithLeadTime = orders.filter(
-      (o) => o.status === "COMPLETED" && o.actualDate && o.orderDate
+      (o) => o.status === "COMPLETED" && o.actualDate && o.expectedStartDate
     );
     const avgLeadTimeDays = completedWithLeadTime.length > 0
       ? +(completedWithLeadTime.reduce((sum, o) => {
-          const days = (new Date(o.actualDate!).getTime() - new Date(o.orderDate).getTime()) / (1000 * 60 * 60 * 24);
+          const days = (new Date(o.actualDate!).getTime() - new Date(o.expectedStartDate).getTime()) / (1000 * 60 * 60 * 24);
           return sum + days;
         }, 0) / completedWithLeadTime.length).toFixed(1)
       : 0;
 
     // Previous period avg lead time for trend
-    const prevLeadTimeOrders = previousCompletedWithDates.filter((o) => o.actualDate && o.orderDate);
+    const prevLeadTimeOrders = previousCompletedWithDates.filter((o) => o.actualDate && o.expectedStartDate);
     const prevAvgLeadTime = prevLeadTimeOrders.length > 0
       ? +(prevLeadTimeOrders.reduce((sum, o) => {
-          const days = (new Date(o.actualDate!).getTime() - new Date(o.orderDate!).getTime()) / (1000 * 60 * 60 * 24);
+          const days = (new Date(o.actualDate!).getTime() - new Date(o.expectedStartDate!).getTime()) / (1000 * 60 * 60 * 24);
           return sum + days;
         }, 0) / prevLeadTimeOrders.length).toFixed(1)
       : 0;
@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
     const completedSparkline: number[] = Array(bucketCount).fill(0);
 
     for (const order of orders) {
-      const orderTime = new Date(order.orderDate).getTime();
+      const orderTime = new Date(order.expectedStartDate).getTime();
       const bucket = Math.min(
         Math.floor((orderTime - from.getTime()) / bucketMs),
         bucketCount - 1

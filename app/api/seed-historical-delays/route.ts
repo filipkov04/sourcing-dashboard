@@ -50,7 +50,7 @@ export async function POST() {
         product: "Organic Cotton T-Shirt",
         sku: "OCT-2025-001",
         qty: 5000,
-        orderDate: "2025-01-10",
+        expectedStartDate: "2025-01-10",
         expectedDate: "2025-03-15",
         actualDate: "2025-03-28",
         status: "COMPLETED" as const,
@@ -63,7 +63,7 @@ export async function POST() {
         product: "Slim Fit Denim Jeans",
         sku: "SFD-2025-002",
         qty: 3000,
-        orderDate: "2025-02-01",
+        expectedStartDate: "2025-02-01",
         expectedDate: "2025-04-20",
         actualDate: "2025-05-08",
         status: "DELIVERED" as const,
@@ -76,7 +76,7 @@ export async function POST() {
         product: "Merino Wool Sweater",
         sku: "MWS-2025-003",
         qty: 2000,
-        orderDate: "2025-01-20",
+        expectedStartDate: "2025-01-20",
         expectedDate: "2025-04-01",
         actualDate: "2025-04-03",
         status: "SHIPPED" as const,
@@ -89,7 +89,7 @@ export async function POST() {
         product: "Linen Summer Dress",
         sku: "LSD-2025-004",
         qty: 4000,
-        orderDate: "2025-03-05",
+        expectedStartDate: "2025-03-05",
         expectedDate: "2025-05-25",
         actualDate: "2025-06-10",
         status: "COMPLETED" as const,
@@ -102,7 +102,7 @@ export async function POST() {
         product: "Performance Running Shorts",
         sku: "PRS-2025-005",
         qty: 8000,
-        orderDate: "2025-02-15",
+        expectedStartDate: "2025-02-15",
         expectedDate: "2025-04-30",
         actualDate: "2025-05-20",
         status: "DELIVERED" as const,
@@ -115,7 +115,7 @@ export async function POST() {
         product: "Silk Blouse Collection",
         sku: "SBC-2025-006",
         qty: 1500,
-        orderDate: "2025-04-01",
+        expectedStartDate: "2025-04-01",
         expectedDate: "2025-06-15",
         actualDate: "2025-07-02",
         status: "COMPLETED" as const,
@@ -128,7 +128,7 @@ export async function POST() {
         product: "Recycled Polyester Hoodie",
         sku: "RPH-2025-007",
         qty: 6000,
-        orderDate: "2025-03-20",
+        expectedStartDate: "2025-03-20",
         expectedDate: "2025-06-01",
         actualDate: "2025-06-15",
         status: "SHIPPED" as const,
@@ -141,7 +141,7 @@ export async function POST() {
         product: "Cashmere Scarf Set",
         sku: "CSS-2025-008",
         qty: 3000,
-        orderDate: "2025-05-01",
+        expectedStartDate: "2025-05-01",
         expectedDate: "2025-07-15",
         actualDate: "2025-08-05",
         status: "DELIVERED" as const,
@@ -155,7 +155,7 @@ export async function POST() {
         product: "Basic Cotton Polo",
         sku: "BCP-2025-009",
         qty: 10000,
-        orderDate: "2025-01-05",
+        expectedStartDate: "2025-01-05",
         expectedDate: "2025-03-20",
         actualDate: "2025-03-18",
         status: "COMPLETED" as const,
@@ -168,7 +168,7 @@ export async function POST() {
         product: "Nylon Windbreaker",
         sku: "NWB-2025-010",
         qty: 4000,
-        orderDate: "2025-02-10",
+        expectedStartDate: "2025-02-10",
         expectedDate: "2025-04-25",
         actualDate: "2025-04-22",
         status: "DELIVERED" as const,
@@ -181,7 +181,7 @@ export async function POST() {
         product: "Bamboo Fiber Socks (12-pack)",
         sku: "BFS-2025-011",
         qty: 20000,
-        orderDate: "2025-04-15",
+        expectedStartDate: "2025-04-15",
         expectedDate: "2025-06-10",
         actualDate: "2025-06-08",
         status: "COMPLETED" as const,
@@ -194,7 +194,7 @@ export async function POST() {
         product: "Canvas Tote Bag",
         sku: "CTB-2025-012",
         qty: 15000,
-        orderDate: "2025-05-20",
+        expectedStartDate: "2025-05-20",
         expectedDate: "2025-07-10",
         actualDate: "2025-07-08",
         status: "SHIPPED" as const,
@@ -208,7 +208,7 @@ export async function POST() {
         product: "Heavyweight Flannel Shirt",
         sku: "HFS-2026-013",
         qty: 3500,
-        orderDate: "2026-01-15",
+        expectedStartDate: "2026-01-15",
         expectedDate: "2026-03-25",
         actualDate: null as any, // still in progress
         status: "DELAYED" as const,
@@ -235,14 +235,14 @@ export async function POST() {
         continue;
       }
 
-      const orderDate = new Date(s.orderDate);
+      const expectedStartDate = new Date(s.expectedStartDate);
       const expectedDate = new Date(s.expectedDate);
       const actualDate = s.actualDate ? new Date(s.actualDate) : null;
       const isCurrentlyActive = !actualDate; // order still in progress
 
       // For active orders, use "now" as the reference end date for stage spacing
       const refEndDate = actualDate || new Date();
-      const totalDays = Math.ceil((refEndDate.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
+      const totalDays = Math.ceil((refEndDate.getTime() - expectedStartDate.getTime()) / (1000 * 60 * 60 * 24));
       const daysPerStage = Math.floor(totalDays / stageTemplates.length);
 
       // Determine which stage index the delayed/blocked stage is at
@@ -266,7 +266,7 @@ export async function POST() {
           unit: "pieces",
           status: s.status,
           overallProgress,
-          orderDate,
+          expectedStartDate,
           expectedDate,
           actualDate,
           priority: s.delayedStage ? "HIGH" : "NORMAL",
@@ -279,9 +279,9 @@ export async function POST() {
       // Create stages
       for (let j = 0; j < stageTemplates.length; j++) {
         const stageName = stageTemplates[j];
-        const stageStart = new Date(orderDate.getTime() + j * daysPerStage * 86400000);
-        const stageEnd = new Date(orderDate.getTime() + (j + 1) * daysPerStage * 86400000);
-        const expectedStageEnd = new Date(orderDate.getTime() + ((j + 1) * Math.floor((expectedDate.getTime() - orderDate.getTime()) / (stageTemplates.length * 86400000))) * 86400000);
+        const stageStart = new Date(expectedStartDate.getTime() + j * daysPerStage * 86400000);
+        const stageEnd = new Date(expectedStartDate.getTime() + (j + 1) * daysPerStage * 86400000);
+        const expectedStageEnd = new Date(expectedStartDate.getTime() + ((j + 1) * Math.floor((expectedDate.getTime() - expectedStartDate.getTime()) / (stageTemplates.length * 86400000))) * 86400000);
 
         // For currently active orders, set stage statuses appropriately
         let stageStatus: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "DELAYED" | "BLOCKED" = "COMPLETED";
@@ -313,7 +313,7 @@ export async function POST() {
             status: stageStatus,
             startedAt: stageStartedAt,
             completedAt: stageCompletedAt,
-            expectedStartDate: new Date(orderDate.getTime() + j * Math.floor((expectedDate.getTime() - orderDate.getTime()) / stageTemplates.length)),
+            expectedStartDate: new Date(expectedStartDate.getTime() + j * Math.floor((expectedDate.getTime() - expectedStartDate.getTime()) / stageTemplates.length)),
             expectedEndDate: expectedStageEnd,
             notes: stageName === s.delayedStage ? s.delayReason : stageName === s.blockedStage ? s.blockReason : null,
           },

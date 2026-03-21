@@ -18,7 +18,7 @@ type HorizontalTimelineProps = {
   stages: TimelineStage[];
   orderStatus: string;
   orderPriority: string;
-  orderDate?: string | null;
+  expectedStartDate?: string | null;
   expectedDate?: string | null;
   isAdmin?: boolean;
   currentUserId?: string;
@@ -125,7 +125,7 @@ export function HorizontalTimeline({
   stages,
   orderStatus,
   orderPriority,
-  orderDate,
+  expectedStartDate,
   expectedDate,
   isAdmin,
   currentUserId,
@@ -255,8 +255,8 @@ export function HorizontalTimeline({
 
   // Compute date-aware positions
   const { positions, contentWidth, minDate, maxDate } = useMemo(
-    () => computeStagePositions(sortedStages, orderDate, expectedDate),
-    [sortedStages, orderDate, expectedDate]
+    () => computeStagePositions(sortedStages, expectedStartDate, expectedDate),
+    [sortedStages, expectedStartDate, expectedDate]
   );
 
   // Build position map for quick lookup

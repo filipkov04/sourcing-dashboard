@@ -261,7 +261,7 @@ model Integration {
 
 model Order {
   id              String      @id @default(cuid())
-  orderNumber     String      // Brand's PO number
+  orderNumber     String?     // Brand's PO number (optional for auto-created orders)
   productName     String
   productSKU      String?
   productImage    String?     // Supabase Storage public URL for product image
@@ -271,9 +271,10 @@ model Order {
   status          OrderStatus @default(PENDING)
 
   // Dates
-  orderDate    DateTime
-  expectedDate DateTime
-  actualDate   DateTime?
+  expectedStartDate  DateTime  @map("orderDate")
+  placedDate         DateTime?
+  expectedDate       DateTime
+  actualDate         DateTime?
 
   // Additional info
   notes    String?   @db.Text
@@ -315,10 +316,17 @@ model Order {
   recurrenceNextDate     DateTime? // computed from interval OR manually overridden
   recurrenceLastAlertAt  DateTime? // prevents duplicate reminder alerts
 
+  // Auto-reorder
+  autoReorder              Boolean   @default(false)
+  autoReorderOrderNumber   String?
+  autoReorderStartDate     DateTime?
+  autoReorderEndDate       DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([organizationId, orderNumber]) // PO numbers unique per org
+  // Partial unique index enforced via raw SQL (WHERE orderNumber IS NOT NULL)
+  // @@unique([organizationId, orderNumber])
   @@index([organizationId])
   @@index([projectId])
   @@index([factoryId])

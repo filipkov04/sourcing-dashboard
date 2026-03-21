@@ -107,7 +107,7 @@ type OrderStage = {
 
 type Order = {
   id: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   productSKU: string | null;
   productImage: string | null;
@@ -116,7 +116,8 @@ type Order = {
   overallProgress: number;
   status: string;
   priority: string;
-  orderDate: string;
+  expectedStartDate: string;
+  placedDate: string | null;
   expectedDate: string;
   actualDate: string | null;
   notes: string | null;
@@ -125,6 +126,10 @@ type Order = {
   recurrenceIntervalDays: number | null;
   recurrenceNextDate: string | null;
   recurrenceLastAlertAt: string | null;
+  autoReorder: boolean;
+  autoReorderOrderNumber: string | null;
+  autoReorderStartDate: string | null;
+  autoReorderEndDate: string | null;
   factory: {
     id: string;
     name: string;
@@ -260,6 +265,14 @@ function RecurrenceCard({ order, onUpdate }: {
   const [nextDate, setNextDate] = useState(
     order.recurrenceNextDate ? new Date(order.recurrenceNextDate).toISOString().split("T")[0] : ""
   );
+  const [autoReorder, setAutoReorder] = useState(order.autoReorder);
+  const [arOrderNumber, setArOrderNumber] = useState(order.autoReorderOrderNumber ?? "");
+  const [arStartDate, setArStartDate] = useState(
+    order.autoReorderStartDate ? new Date(order.autoReorderStartDate).toISOString().split("T")[0] : ""
+  );
+  const [arEndDate, setArEndDate] = useState(
+    order.autoReorderEndDate ? new Date(order.autoReorderEndDate).toISOString().split("T")[0] : ""
+  );
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -275,6 +288,10 @@ function RecurrenceCard({ order, onUpdate }: {
           recurrenceEnabled: enabled,
           recurrenceIntervalDays: intervalDays,
           recurrenceNextDate: enabled && nextDate ? nextDate : null,
+          autoReorder: enabled ? autoReorder : false,
+          autoReorderOrderNumber: enabled && autoReorder && arOrderNumber ? arOrderNumber : null,
+          autoReorderStartDate: enabled && autoReorder && arStartDate ? arStartDate : null,
+          autoReorderEndDate: enabled && autoReorder && arEndDate ? arEndDate : null,
         }),
       });
       const data = await res.json();
@@ -284,6 +301,10 @@ function RecurrenceCard({ order, onUpdate }: {
           recurrenceIntervalDays: data.data.recurrenceIntervalDays,
           recurrenceNextDate: data.data.recurrenceNextDate,
           recurrenceLastAlertAt: data.data.recurrenceLastAlertAt,
+          autoReorder: data.data.autoReorder,
+          autoReorderOrderNumber: data.data.autoReorderOrderNumber,
+          autoReorderStartDate: data.data.autoReorderStartDate,
+          autoReorderEndDate: data.data.autoReorderEndDate,
         });
         setEditing(false);
       }
@@ -312,19 +333,53 @@ function RecurrenceCard({ order, onUpdate }: {
         </CardHeader>
         <CardContent>
           {order.recurrenceEnabled ? (
-            <div className="flex items-center gap-6 text-sm">
-              <div>
-                <p className="text-gray-600 dark:text-zinc-400">Status</p>
-                <Badge className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">Active</Badge>
-              </div>
-              <div>
-                <p className="text-gray-600 dark:text-zinc-400">Interval</p>
-                <p className="font-medium">Every {order.recurrenceIntervalDays} days</p>
-              </div>
-              {order.recurrenceNextDate && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-6 text-sm">
                 <div>
-                  <p className="text-gray-600 dark:text-zinc-400">Next Order Date</p>
-                  <p className="font-medium">{new Date(order.recurrenceNextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Status</p>
+                  <Badge className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">Active</Badge>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-zinc-400">Interval</p>
+                  <p className="font-medium">Every {order.recurrenceIntervalDays} days</p>
+                </div>
+                {order.recurrenceNextDate && (
+                  <div>
+                    <p className="text-gray-600 dark:text-zinc-400">Next Order Date</p>
+                    <p className="font-medium">{new Date(order.recurrenceNextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                  </div>
+                )}
+              </div>
+              {order.autoReorder && (
+                <div className="pt-3 border-t border-gray-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">Auto-Reorder</Badge>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    This order will be automatically re-created on {order.recurrenceNextDate ? new Date(order.recurrenceNextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "the next recurrence date"} with the same details. Stage dates shifted by {order.recurrenceIntervalDays} days.
+                  </p>
+                  {(order.autoReorderOrderNumber || order.autoReorderStartDate || order.autoReorderEndDate) && (
+                    <div className="flex gap-4 mt-2 text-xs">
+                      {order.autoReorderOrderNumber && (
+                        <div>
+                          <span className="text-gray-500 dark:text-zinc-500">PO#: </span>
+                          <span className="text-gray-900 dark:text-white">{order.autoReorderOrderNumber}</span>
+                        </div>
+                      )}
+                      {order.autoReorderStartDate && (
+                        <div>
+                          <span className="text-gray-500 dark:text-zinc-500">Start: </span>
+                          <span className="text-gray-900 dark:text-white">{new Date(order.autoReorderStartDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        </div>
+                      )}
+                      {order.autoReorderEndDate && (
+                        <div>
+                          <span className="text-gray-500 dark:text-zinc-500">End: </span>
+                          <span className="text-gray-900 dark:text-white">{new Date(order.autoReorderEndDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -366,7 +421,7 @@ function RecurrenceCard({ order, onUpdate }: {
                   onValueChange={(val) => {
                     setInterval(val);
                     if (val !== "custom") {
-                      const d = new Date(order.orderDate);
+                      const d = new Date(order.expectedStartDate);
                       d.setDate(d.getDate() + parseInt(val));
                       setNextDate(d.toISOString().split("T")[0]);
                     }
@@ -399,7 +454,7 @@ function RecurrenceCard({ order, onUpdate }: {
                     onChange={(e) => {
                       setCustomDays(e.target.value);
                       if (e.target.value) {
-                        const d = new Date(order.orderDate);
+                        const d = new Date(order.expectedStartDate);
                         d.setDate(d.getDate() + parseInt(e.target.value));
                         setNextDate(d.toISOString().split("T")[0]);
                       }
@@ -423,6 +478,64 @@ function RecurrenceCard({ order, onUpdate }: {
                 You&apos;ll receive a notification 7 days before this date to reorder.
               </p>
             </div>
+
+            {/* Auto-Reorder */}
+            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <label htmlFor="auto-reorder-toggle" className="text-sm font-medium cursor-pointer">Auto-reorder</label>
+                <Switch
+                  id="auto-reorder-toggle"
+                  checked={autoReorder}
+                  onCheckedChange={setAutoReorder}
+                  disabled={saving}
+                />
+              </div>
+              {autoReorder && (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    This order will be automatically re-created on {nextDate ? new Date(nextDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "the next recurrence date"} with the same details. Stage dates shifted by {interval === "custom" ? customDays : interval} days. You can modify the order after creation.
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label htmlFor="ar-order-number" className="text-xs text-gray-500 dark:text-zinc-500">Order Number</label>
+                      <Input
+                        id="ar-order-number"
+                        name="ar-order-number"
+                        placeholder="Optional PO#"
+                        value={arOrderNumber}
+                        onChange={(e) => setArOrderNumber(e.target.value)}
+                        disabled={saving}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="ar-start-date" className="text-xs text-gray-500 dark:text-zinc-500">Expected Start</label>
+                      <Input
+                        id="ar-start-date"
+                        name="ar-start-date"
+                        type="date"
+                        value={arStartDate}
+                        onChange={(e) => setArStartDate(e.target.value)}
+                        disabled={saving}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="ar-end-date" className="text-xs text-gray-500 dark:text-zinc-500">Expected End</label>
+                      <Input
+                        id="ar-end-date"
+                        name="ar-end-date"
+                        type="date"
+                        value={arEndDate}
+                        onChange={(e) => setArEndDate(e.target.value)}
+                        disabled={saving}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
         <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
@@ -432,6 +545,7 @@ function RecurrenceCard({ order, onUpdate }: {
           <Button variant="ghost" size="sm" onClick={() => {
             setEditing(false);
             setEnabled(order.recurrenceEnabled);
+            setAutoReorder(order.autoReorder);
           }} disabled={saving}>
             Cancel
           </Button>
@@ -520,7 +634,7 @@ export default function OrderDetailPage() {
 
         if (data.success) {
           setOrder(data.data);
-          setDetail(`${data.data.orderNumber} — ${data.data.productName}`);
+          setDetail(`${data.data.orderNumber ?? "—"} — ${data.data.productName}`);
         }
       } catch (err) {
         setError("Failed to load order");
@@ -982,7 +1096,7 @@ export default function OrderDetailPage() {
 
   const completedStages = order.stages?.filter((s) => s.status === "COMPLETED" || s.status === "SKIPPED").length ?? 0;
   const totalStages = order.stages?.length ?? 0;
-  const orderDateShort = formatDateShort(order.orderDate);
+  const expectedStartDateShort = formatDateShort(order.expectedStartDate);
   const expectedDateShort = formatDateShort(order.expectedDate);
   const isDueOverdue = daysUntilDue < 0;
   const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 7;
@@ -1015,7 +1129,7 @@ export default function OrderDetailPage() {
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {order.orderNumber}
+                {order.orderNumber ?? "No PO#"}
               </h1>
               {isAdminOrOwner ? (
                 <Select
@@ -1039,6 +1153,8 @@ export default function OrderDetailPage() {
                     <SelectItem value="DISRUPTED">Disrupted</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
                     <SelectItem value="SHIPPED">Shipped</SelectItem>
+                    <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                    <SelectItem value="CUSTOMS">Customs</SelectItem>
                     <SelectItem value="DELIVERED">Delivered</SelectItem>
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
@@ -1197,19 +1313,19 @@ export default function OrderDetailPage() {
             <p className="text-xs text-gray-400 dark:text-zinc-500">{order.unit}</p>
           </div>
 
-          {/* Ordered */}
+          {/* Expected Start */}
           <div className="rounded-lg bg-gray-50 dark:bg-zinc-800/30 border border-transparent dark:border-zinc-800/40 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">ORD</span>
-                <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Ordered</p>
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-600">STR</span>
+                <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Expected Start</p>
               </div>
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10">
                 <Calendar className="h-3.5 w-3.5 text-blue-500" />
               </span>
             </div>
-            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white">{orderDateShort.main}</p>
-            <p className="text-xs text-gray-400 dark:text-zinc-500">{orderDateShort.year}</p>
+            <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-white">{expectedStartDateShort.main}</p>
+            <p className="text-xs text-gray-400 dark:text-zinc-500">{expectedStartDateShort.year}</p>
           </div>
 
           {/* Due */}
@@ -1272,20 +1388,6 @@ export default function OrderDetailPage() {
                 <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Quantity: {order.quantity.toLocaleString()} {order.unit}
                 </p>
-                {order.tags && order.tags.length > 0 && (
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">
-                    Category: {order.tags.join(', ')}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <hr className="my-4 border-gray-100 dark:border-zinc-800" />
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">Order Number</p>
-                <p className="font-medium">{order.orderNumber}</p>
               </div>
             </div>
 
@@ -1295,8 +1397,8 @@ export default function OrderDetailPage() {
               <div className="flex items-start gap-2">
                 <Calendar className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">Order Date</p>
-                  <p className="font-medium">{formatDate(order.orderDate)}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Expected Start Date</p>
+                  <p className="font-medium">{formatDate(order.expectedStartDate)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -1306,6 +1408,15 @@ export default function OrderDetailPage() {
                   <p className="font-medium">{formatDate(order.expectedDate)}</p>
                 </div>
               </div>
+              {order.placedDate && (
+                <div className="flex items-start gap-2">
+                  <Calendar className="h-4 w-4 mt-0.5 text-gray-500 dark:text-zinc-500" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">Placed Date</p>
+                    <p className="font-medium">{formatDate(order.placedDate)}</p>
+                  </div>
+                </div>
+              )}
               {order.actualDate && (
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 mt-0.5 text-green-500" />
@@ -2335,7 +2446,7 @@ export default function OrderDetailPage() {
             stages={order.stages}
             orderStatus={order.status}
             orderPriority={order.priority}
-            orderDate={order.orderDate}
+            expectedStartDate={order.expectedStartDate}
             expectedDate={order.expectedDate}
             isAdmin={isAdminOrOwner}
             currentUserId={session?.user?.id}
@@ -2356,7 +2467,7 @@ export default function OrderDetailPage() {
         <RequestDeleteDialog
           entityType="order"
           entityId={order.id}
-          entityName={order.orderNumber}
+          entityName={order.orderNumber ?? order.productName}
           open={deleteRequestOpen}
           onOpenChange={setDeleteRequestOpen}
         />

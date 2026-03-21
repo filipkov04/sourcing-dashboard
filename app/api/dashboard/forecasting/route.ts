@@ -31,7 +31,7 @@ export async function GET() {
         productName: true,
         status: true,
         overallProgress: true,
-        orderDate: true,
+        expectedStartDate: true,
         expectedDate: true,
         factoryId: true,
         factory: { select: { name: true } },

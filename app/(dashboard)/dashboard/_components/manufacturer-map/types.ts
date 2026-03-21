@@ -74,7 +74,7 @@ export type MapVehicle = {
   trackingStatus: string | null;
   estimatedArrival: string | null;
   lastTrackingSync: string | null;
-  orderDate: string;
+  expectedStartDate: string;
   expectedDate: string | null;
   currentLocation: string | null;
   lat: number;

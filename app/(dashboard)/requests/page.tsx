@@ -44,7 +44,7 @@ interface RequestItem {
   reviewedAt: string | null;
   targetOrderId: string | null;
   targetFactoryId: string | null;
-  targetOrder: { id: string; orderNumber: string; productName: string } | null;
+  targetOrder: { id: string; orderNumber: string | null; productName: string } | null;
   targetFactory: { id: string; name: string; location: string } | null;
   conversationId: string | null;
   createdAt: string;
@@ -79,7 +79,7 @@ function getSummary(request: RequestItem): string {
   const { type, data, targetOrder, targetFactory } = request;
   if (type === "ORDER_REQUEST") return `New order: ${data.productName || "Untitled"}`;
   if (type === "FACTORY_REQUEST") return `New factory: ${data.name || "Untitled"}`;
-  const orderLabel = targetOrder ? `${targetOrder.productName} (${targetOrder.orderNumber})` : "order";
+  const orderLabel = targetOrder ? `${targetOrder.productName} (${targetOrder.orderNumber || "No PO#"})` : "order";
   const factoryLabel = targetFactory ? targetFactory.name : "factory";
   if (type === "ORDER_EDIT_REQUEST") return `Edit ${orderLabel}`;
   if (type === "FACTORY_EDIT_REQUEST") return `Edit ${factoryLabel}`;
@@ -386,7 +386,7 @@ export default function RequestsPage() {
                         {typeBadge.label} {getEntityType(request.type)}
                       </Badge>
                       <Badge variant="outline" className={statusBadge.color + " text-xs"}>
-                        {request.status.replace("_", " ")}
+                        {request.status.replace(/_/g, " ")}
                       </Badge>
                     </div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -396,7 +396,7 @@ export default function RequestsPage() {
                       {/* Entity identifiers */}
                       {request.targetOrder && (
                         <span className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded px-1.5 py-0.5">
-                          #{request.targetOrder.orderNumber}
+                          {request.targetOrder.orderNumber ? `#${request.targetOrder.orderNumber}` : "No PO#"}
                         </span>
                       )}
                       {!request.targetOrder && request.type === "ORDER_REQUEST" && !!request.data.orderNumber && (
@@ -619,7 +619,7 @@ function RequestDetails({ type, data, request }: { type: string; data: Record<st
       <div className="space-y-2 text-sm">
         {type === "ORDER_DELETE_REQUEST" && request.targetOrder && (
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            <Detail label="Order Number" value={request.targetOrder.orderNumber} />
+            <Detail label="Order Number" value={request.targetOrder.orderNumber || "No PO#"} />
             <Detail label="Product" value={request.targetOrder.productName} />
           </div>
         )}
@@ -699,7 +699,7 @@ function EditRequestDetails({ type, data, request }: { type: string; data: Recor
     <div className="space-y-3 text-sm">
       {type === "ORDER_EDIT_REQUEST" && request?.targetOrder && (
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-          <Detail label="Order Number" value={request.targetOrder.orderNumber} />
+          <Detail label="Order Number" value={request.targetOrder.orderNumber || "No PO#"} />
           <Detail label="Product" value={request.targetOrder.productName} />
         </div>
       )}
@@ -796,7 +796,7 @@ function OrderRequestDetails({ data }: { data: Record<string, unknown> }) {
         <Detail label="Supplier" value={factoryName || "Loading..."} />
       ) : null}
       {data.priority ? <Detail label="Priority" value={data.priority as string} /> : null}
-      {data.orderDate ? <Detail label="Order Date" value={new Date(data.orderDate as string).toLocaleDateString()} /> : null}
+      {data.expectedStartDate ? <Detail label="Expected Start Date" value={new Date(data.expectedStartDate as string).toLocaleDateString()} /> : null}
       {data.expectedDate ? <Detail label="Expected Date" value={new Date(data.expectedDate as string).toLocaleDateString()} /> : null}
       {data.notes ? <Detail label="Notes" value={data.notes as string} className="col-span-2" /> : null}
       {data.stages ? (

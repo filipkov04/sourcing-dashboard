@@ -6,7 +6,7 @@ import Link from "next/link";
 
 type ActionItem = {
   id: string;
-  orderNumber: string;
+  orderNumber: string | null;
   productName: string;
   factoryName: string;
   status: string;
@@ -147,7 +147,7 @@ export function ActionRequired() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-[#FF4D15] transition-colors truncate">
-                    #{item.orderNumber}
+                    {item.orderNumber ? `#${item.orderNumber}` : "No PO#"}
                   </p>
                   <span className={`flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${config.bg} ${config.text} ${config.ring}`}>
                     {item.status === "AT_RISK" ? "At Risk" : item.status.replace(/_/g, " ")}

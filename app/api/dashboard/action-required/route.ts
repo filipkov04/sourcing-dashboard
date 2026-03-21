@@ -65,7 +65,7 @@ export async function GET() {
 
     type ActionItem = {
       id: string;
-      orderNumber: string;
+      orderNumber: string | null;
       productName: string;
       factoryName: string;
       status: string;
@@ -108,7 +108,7 @@ export async function GET() {
 
       items.push({
         id: order.id,
-        orderNumber: order.orderNumber,
+        orderNumber: order.orderNumber ?? null,
         productName: order.productName,
         factoryName: order.factory.name,
         status: order.status,
@@ -125,8 +125,8 @@ export async function GET() {
       const hasExpectedDates = order.stages.some(s => s.expectedEndDate);
       if (hasExpectedDates) continue; // skip — stage timeline projection handles these
 
-      const totalDuration = order.expectedDate.getTime() - order.orderDate.getTime();
-      const elapsed = now.getTime() - order.orderDate.getTime();
+      const totalDuration = order.expectedDate.getTime() - order.expectedStartDate.getTime();
+      const elapsed = now.getTime() - order.expectedStartDate.getTime();
       if (totalDuration <= 0) continue;
 
       const timeElapsedPct = (elapsed / totalDuration) * 100;

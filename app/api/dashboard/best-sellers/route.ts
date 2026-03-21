@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     if (period !== "all") {
       const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
-      where.orderDate = { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
+      where.expectedStartDate = { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
     }
 
     // Fetch all orders with factory info
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       include: {
         factory: { select: { name: true } },
       },
-      orderBy: { orderDate: "desc" },
+      orderBy: { expectedStartDate: "desc" },
     });
 
     if (orders.length === 0) {
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       const totalQuantity = productOrders.reduce((sum, o) => sum + o.quantity, 0);
       const orderCount = productOrders.length;
 
-      // Latest order (already sorted desc by orderDate)
+      // Latest order (already sorted desc by expectedStartDate)
       const latest = productOrders[0];
 
       bestSellers.push({
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
         totalQuantity,
         unit: latest.unit,
         orderCount,
-        lastOrderDate: latest.orderDate.toISOString(),
+        lastOrderDate: latest.expectedStartDate.toISOString(),
         factoryName: latest.factory.name,
       });
     }

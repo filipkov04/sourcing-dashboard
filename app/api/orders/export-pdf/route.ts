@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
 
     const ordersData = orders.map((order) => ({
       ...order,
-      orderDate: order.orderDate.toISOString(),
+      expectedStartDate: order.expectedStartDate.toISOString(),
+      placedDate: order.placedDate?.toISOString() ?? null,
       expectedDate: order.expectedDate.toISOString(),
       actualDate: order.actualDate?.toISOString() || null,
       tags: (order.tags as string[]) || [],
