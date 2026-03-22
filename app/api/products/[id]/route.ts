@@ -68,6 +68,7 @@ const updateProductSchema = z.object({
   leadTimeProdDays: z.number().int().min(0).optional(),
   leadTimeShipDays: z.number().int().min(0).optional(),
   moq: z.number().int().min(1).optional(),
+  dailySalesEstimate: z.number().min(0, "Daily sales estimate cannot be negative").optional(),
 });
 
 // PATCH /api/products/[id] - Update an existing product
@@ -140,6 +141,7 @@ export async function PATCH(
     if (data.leadTimeProdDays !== undefined) updateData.leadTimeProdDays = data.leadTimeProdDays;
     if (data.leadTimeShipDays !== undefined) updateData.leadTimeShipDays = data.leadTimeShipDays;
     if (data.moq !== undefined) updateData.moq = data.moq;
+    if (data.dailySalesEstimate !== undefined) updateData.dailySalesEstimate = data.dailySalesEstimate;
 
     // Recalculate volumeCBM/isBulkCargo if any dimension changes
     const finalLength = data.length !== undefined ? data.length : existingProduct.length;

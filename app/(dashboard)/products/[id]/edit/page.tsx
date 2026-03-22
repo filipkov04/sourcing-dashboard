@@ -42,6 +42,7 @@ export default function EditProductPage() {
   const [leadTimeProd, setLeadTimeProd] = useState("");
   const [leadTimeShip, setLeadTimeShip] = useState("");
   const [moq, setMoq] = useState("");
+  const [dailySalesEstimate, setDailySalesEstimate] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
@@ -84,6 +85,7 @@ export default function EditProductPage() {
           setLeadTimeProd(p.leadTimeProdDays != null ? String(p.leadTimeProdDays) : "");
           setLeadTimeShip(p.leadTimeShipDays != null ? String(p.leadTimeShipDays) : "");
           setMoq(p.moq != null ? String(p.moq) : "");
+          setDailySalesEstimate(p.dailySalesEstimate != null ? String(p.dailySalesEstimate) : "");
           setTags(p.tags || []);
         }
       } catch {
@@ -142,6 +144,7 @@ export default function EditProductPage() {
       leadTimeProdDays: leadTimeProd ? parseInt(leadTimeProd) : undefined,
       leadTimeShipDays: leadTimeShip ? parseInt(leadTimeShip) : undefined,
       moq: moq ? parseInt(moq) : undefined,
+      dailySalesEstimate: dailySalesEstimate ? parseFloat(dailySalesEstimate) : undefined,
       tags,
     };
 
@@ -596,6 +599,31 @@ export default function EditProductPage() {
                     className={INPUT_CLASS}
                     placeholder="1"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="dailySalesEstimate" className={LABEL_CLASS}>
+                    Daily Sales Estimate
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      id="dailySalesEstimate"
+                      min="0"
+                      step="0.1"
+                      value={dailySalesEstimate}
+                      onChange={(e) => setDailySalesEstimate(e.target.value)}
+                      disabled={isLoading}
+                      className={INPUT_CLASS}
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-zinc-500">
+                      units/day
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">
+                    Used for runway forecasting until real sales data accumulates
+                  </p>
                 </div>
               </CardContent>
             </Card>

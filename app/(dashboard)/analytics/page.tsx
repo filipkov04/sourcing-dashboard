@@ -14,6 +14,7 @@ import { FactoryComparisonTable } from "./_components/factory-comparison-table";
 import { ForecastTimeline } from "./_components/forecast-timeline";
 import { CustomChartsTab } from "./_components/custom-charts-tab";
 import { TimelineTab } from "./_components/timeline-tab";
+import { ProcurementTab } from "./_components/procurement-tab";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
 type LeadTimeData = {
@@ -199,6 +200,7 @@ export default function AnalyticsPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="custom">Custom Charts</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="procurement">Procurement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -317,6 +319,10 @@ export default function AnalyticsPage() {
 
         <TabsContent value="timeline">
           <TimelineTab />
+        </TabsContent>
+
+        <TabsContent value="procurement">
+          <ProcurementTab />
         </TabsContent>
       </Tabs>
     </div>

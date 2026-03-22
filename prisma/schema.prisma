@@ -1044,6 +1044,7 @@ model Product {
   leadTimeProdDays  Int?     // Production lead time
   leadTimeShipDays  Int?     // Shipping lead time
   moq               Int?     // Minimum order quantity
+  dailySalesEstimate Float?  // Manual estimate of daily sales (units/day), used until real transaction data
 
   // Relationships
   stockLevels       Stock[]

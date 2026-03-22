@@ -37,6 +37,7 @@ export function ProductForm() {
   const [leadTimeProd, setLeadTimeProd] = useState("");
   const [leadTimeShip, setLeadTimeShip] = useState("");
   const [moq, setMoq] = useState("");
+  const [dailySalesEstimate, setDailySalesEstimate] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
@@ -91,6 +92,7 @@ export function ProductForm() {
       leadTimeProdDays: leadTimeProd ? parseInt(leadTimeProd) : undefined,
       leadTimeShipDays: leadTimeShip ? parseInt(leadTimeShip) : undefined,
       moq: moq ? parseInt(moq) : undefined,
+      dailySalesEstimate: dailySalesEstimate ? parseFloat(dailySalesEstimate) : undefined,
       tags,
     };
 
@@ -499,6 +501,31 @@ export function ProductForm() {
                   className={INPUT_CLASS}
                   placeholder="1"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="dailySalesEstimate" className={LABEL_CLASS}>
+                  Daily Sales Estimate
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    id="dailySalesEstimate"
+                    min="0"
+                    step="0.1"
+                    value={dailySalesEstimate}
+                    onChange={(e) => setDailySalesEstimate(e.target.value)}
+                    disabled={isSubmitting}
+                    className={INPUT_CLASS}
+                    placeholder="0"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-zinc-500">
+                    units/day
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">
+                  Used for runway forecasting until real sales data accumulates
+                </p>
               </div>
             </CardContent>
           </Card>

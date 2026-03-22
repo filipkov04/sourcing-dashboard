@@ -93,6 +93,10 @@ const tests = [
   { name: 'Inventory Locations API', path: '/api/inventory/locations', expectedStatus: [200, 307, 401] },
   { name: 'Inventory Stock API', path: '/api/inventory/stock?productId=test', expectedStatus: [200, 307, 401] },
 
+  // Procurement Forecasting (Tasks 10.1-10.8)
+  { name: 'Procurement Runway API', path: '/api/procurement/runway', expectedStatus: [200, 307, 401] },
+  { name: 'Procurement Reorder API', path: '/api/procurement/reorder-forecast', expectedStatus: [200, 307, 401] },
+
   // Integration System (Tasks 6.1-6.6, 7.1-7.4)
   { name: 'Integrations Page', path: '/integrations', expectedStatus: [200, 302, 307] },
   { name: 'Integrations List API', path: '/api/integrations', expectedStatus: [200, 307, 401] },

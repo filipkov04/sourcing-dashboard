@@ -25,6 +25,7 @@ const createProductSchema = z.object({
   leadTimeProdDays: z.number().int().min(0).optional(),
   leadTimeShipDays: z.number().int().min(0).optional(),
   moq: z.number().int().min(1).optional(),
+  dailySalesEstimate: z.number().min(0, "Daily sales estimate cannot be negative").optional(),
 });
 
 // GET /api/products - List products with search, filter, pagination
@@ -168,6 +169,7 @@ export async function POST(request: NextRequest) {
         leadTimeProdDays: data.leadTimeProdDays ?? null,
         leadTimeShipDays: data.leadTimeShipDays ?? null,
         moq: data.moq ?? null,
+        dailySalesEstimate: data.dailySalesEstimate ?? null,
         ...projectScope(session),
       },
       include: {

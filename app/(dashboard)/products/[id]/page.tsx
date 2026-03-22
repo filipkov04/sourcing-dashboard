@@ -33,6 +33,7 @@ import {
   BarChart3,
   Tag,
   Warehouse,
+  TrendingUp,
 } from "lucide-react";
 import { useBreadcrumb } from "@/lib/breadcrumb-context";
 import { tagColor, runwayStatusColor, formatCurrency } from "@/lib/inventory-utils";
@@ -72,6 +73,7 @@ interface ProductDetail {
   leadTimeProdDays: number | null;
   leadTimeShipDays: number | null;
   moq: number | null;
+  dailySalesEstimate: number | null;
   stockLevels: StockLevel[];
   _count: { transactions: number };
   createdAt: string;
@@ -337,7 +339,7 @@ export default function ProductDetailPage() {
       <p className="hud-section-label font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-500 mb-4">
         Procurement
       </p>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {/* COGS */}
         <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
           <div className="flex items-center justify-between">
@@ -392,6 +394,20 @@ export default function ProductDetailPage() {
             {product.leadTimeShipDays !== null ? `${product.leadTimeShipDays}d` : "—"}
           </p>
           <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">lead time</p>
+        </div>
+
+        {/* Daily Sales Estimate */}
+        <div className="rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-[#0d0f13] p-5 card-hover-glow hud-corners">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Velocity</p>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
+              <TrendingUp className="h-4 w-4 text-amber-500" />
+            </span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            {product.dailySalesEstimate !== null ? product.dailySalesEstimate : "—"}
+          </p>
+          <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">units/day est.</p>
         </div>
       </div>
 

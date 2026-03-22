@@ -799,7 +799,7 @@ export function ProductsTable({ products, userRole }: ProductsTableProps) {
                       </span>
                     </td>
 
-                    {/* Stock */}
+                    {/* Stock + Runway */}
                     <td className="whitespace-nowrap px-4 py-4">
                       {product.stockLevels.length > 0 ? (
                         <div className="flex items-center gap-2">
@@ -807,6 +807,17 @@ export function ProductsTable({ products, userRole }: ProductsTableProps) {
                           <span className={`text-sm font-medium ${statusColor.text}`}>
                             {agg.totalOnHand.toLocaleString()}
                           </span>
+                          {agg.worstRunwayStatus && (
+                            <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${statusColor.bg} ${statusColor.text}`}>
+                              {agg.worstRunwayStatus === "OUT_OF_STOCK"
+                                ? "Out"
+                                : agg.worstRunwayStatus === "CRITICAL"
+                                  ? "<15d"
+                                  : agg.worstRunwayStatus === "WARNING"
+                                    ? "15-30d"
+                                    : ">30d"}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-sm text-gray-400 dark:text-zinc-600">
